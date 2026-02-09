@@ -40,6 +40,14 @@ export async function POST(req: Request) {
     doctor.otpExpiry = undefined;
     await doctor.save();
 
+    // Clean up from Otp collection if exists
+    try {
+        const Otp = (await import('@/models/Otp')).default;
+        await Otp.deleteOne({ email: doctor.email, role: 'Doctor' });
+    } catch (err) {
+        console.error('Failed to cleanup Otp collection:', err);
+    }
+
     // Generate tokens
     const token = signToken({ id: doctor._id, role: 'doctor' });
     const refreshToken = await createRefreshToken(doctor._id.toString(), 'Doctor');

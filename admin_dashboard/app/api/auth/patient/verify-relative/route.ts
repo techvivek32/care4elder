@@ -26,16 +26,42 @@ export async function POST(req: Request) {
     
     const { otp } = await req.json();
     
-    // Mock OTP verification (Accept '123456')
-    if (otp !== '123456') {
+    // Retrieve patient with OTP fields
+    const patientWithOtp = await Patient.findById(decoded.id).select('+otp +otpExpiry');
+    
+    if (!patientWithOtp) {
+      return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
+    }
+
+    if (!patientWithOtp.otp || !patientWithOtp.otpExpiry) {
+      return NextResponse.json({ error: 'No OTP generated' }, { status: 400 });
+    }
+
+    if (new Date() > patientWithOtp.otpExpiry) {
+      return NextResponse.json({ error: 'OTP expired' }, { status: 400 });
+    }
+    
+    if (patientWithOtp.otp !== otp) {
        return NextResponse.json({ error: 'Invalid OTP' }, { status: 400 });
     }
 
     const patient = await Patient.findByIdAndUpdate(
       decoded.id,
-      { isRelativeVerified: true },
+      { 
+          isRelativeVerified: true,
+          otp: undefined,
+          otpExpiry: undefined
+      },
       { new: true }
     );
+
+    // Cleanup global OTP
+    try {
+         const Otp = (await import('@/models/Otp')).default;
+         await Otp.deleteOne({ email: patientWithOtp.email, role: 'Patient_Relative' });
+    } catch (err) {
+         console.error('Failed to cleanup Otp collection:', err);
+    }
 
     if (!patient) {
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 });

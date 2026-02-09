@@ -66,6 +66,22 @@ export async function POST(req: Request) {
     });
 
     if (!isEmailVerified && otp) {
+        // Also save to global Otp collection for visibility/debugging
+        try {
+            await Otp.findOneAndUpdate(
+                { email: doctor.email, role: 'Doctor' },
+                { 
+                    otp, 
+                    isVerified: false, 
+                    createdAt: new Date(),
+                    phone: phone
+                },
+                { upsert: true, new: true }
+            );
+        } catch (err) {
+            console.error('Failed to save to global OTP collection:', err);
+        }
+
         // Send OTP via email
         const emailSent = await sendDoctorOTP(email, otp);
         if (!emailSent) {

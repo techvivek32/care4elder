@@ -258,7 +258,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
 
                             final phone = _phoneController.text.trim();
                             // Handle OTP sending
-                            await AuthService().sendOtp(phone);
+                            await AuthService().sendLoginOtp(phone);
 
                             // Hide loading
                             if (context.mounted) Navigator.pop(context);

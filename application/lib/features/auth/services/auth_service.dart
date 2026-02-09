@@ -156,6 +156,58 @@ class AuthService {
     }
   }
 
+  /// Send Login OTP
+  Future<Map<String, dynamic>> sendLoginOtp(String phone) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/patient/login-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': phone}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return data;
+      } else {
+        throw Exception(data['error'] ?? 'Failed to send OTP');
+      }
+    } catch (e) {
+      if (kDebugMode) print('Login OTP Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Verify Login OTP
+  Future<Map<String, dynamic>> verifyLoginOtp(String phone, String otp) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/patient/verify-login-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': phone, 'otp': otp}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // Save tokens
+        if (data['token'] != null) {
+          await _storage.write(key: 'auth_token', value: data['token']);
+        }
+        // Save user info
+        if (data['user'] != null) {
+            await _storage.write(key: _userKey, value: jsonEncode(data['user']));
+        }
+        return data;
+      } else {
+        throw Exception(data['error'] ?? 'Verification failed');
+      }
+    } catch (e) {
+      if (kDebugMode) print('Login Verification Error: $e');
+      rethrow;
+    }
+  }
+
   /// Send OTP to phone number (Legacy/Mock)
   Future<bool> sendOtp(String phone) async {
     try {

@@ -107,20 +107,31 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
       if (widget.isSignup && widget.email != null) {
         // Verify Email OTP (Backend)
         await AuthService().verifyPatientEmail(widget.email!, otp);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Verification Successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          context.go('/patient/permissions');
+        }
       } else {
-        // Fallback or Login OTP logic (Legacy/Mock)
-        await AuthService().verifyOtp(widget.phoneNumber, otp);
-      }
+        // Login OTP logic
+        await AuthService().verifyLoginOtp(widget.phoneNumber, otp);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login Successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Verification Successful!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        context.go('/patient/permissions');
+          context.go('/patient/dashboard');
+        }
       }
     } catch (e) {
       if (mounted) {

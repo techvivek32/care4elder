@@ -1,0 +1,9 @@
+﻿Running Gradle task 'assembleRelease'...                          247.6s
+flutter : Gradle task assembleRelease failed with exit code 1
+At line:1 char:1
++ flutter build apk --release 2>&1 | Out-File -Encoding UTF8 build_log. ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Gradle task ass...ith exit code 1:String) [], RemoteExcep 
+   tion
+    + FullyQualifiedErrorId : NativeCommandError
+ 

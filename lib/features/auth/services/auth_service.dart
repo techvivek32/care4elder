@@ -1,0 +1,289 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+/// Service to handle Authentication logic.
+///
+/// Note on Credentials:
+/// The user provided email `care4elder2026@gmail.com` and an App Password.
+/// App Passwords are for SMTP (Email) access, not OAuth 2.0.
+///
+/// To enable real Google Sign-In:
+/// 1. Go to Google Cloud Console.
+/// 2. Create a project and enable "Google People API".
+/// 3. Create Credentials -> OAuth 2.0 Client ID.
+/// 4. Download `google-services.json` (Android) or `GoogleService-Info.plist` (iOS).
+/// 5. Place them in `android/app/` and `ios/Runner/` respectively.
+///
+/// For this implementation, we handle the standard Google Sign-In flow.
+/// If configuration is missing, it may throw PlatformException.
+class AuthService {
+  // Singleton instance
+  static final AuthService _instance = AuthService._internal();
+  factory AuthService() => _instance;
+  AuthService._internal();
+
+  final _storage = const FlutterSecureStorage();
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    // Configured with the user-provided Client ID.
+    // This allows the app to work without google-services.json on Android.
+    clientId:
+        '374189587484-63hansfrfo6jpa5aoc3ea7fft7tv73rh.apps.googleusercontent.com',
+    scopes: ['email', 'https://www.googleapis.com/auth/contacts.readonly'],
+  );
+
+  static const String _userKey = 'user_session';
+
+  // OTP Storage: phone -> {code, expiresAt, attempts}
+  final Map<String, Map<String, dynamic>> _otpStore = {};
+  // Rate Limiting: phone -> {timestamp}
+  final Map<String, List<DateTime>> _otpRateLimit = {};
+
+  /// SECURITY WARNING:
+  /// Set this flag to true ONLY for Development/Testing purposes.
+  /// When enabled, the hardcoded OTP '111111' (or any 6-digit code if desired,
+  /// but '111111' is the designated magic code) will bypass validation.
+  ///
+  /// DO NOT ENABLE IN PRODUCTION.
+  bool enableDevOtpBypass = true;
+
+  /// Send OTP to phone number
+  Future<bool> sendOtp(String phone) async {
+    try {
+      // 1. Rate Limiting Check (Max 3 per hour)
+      final now = DateTime.now();
+      if (_otpRateLimit.containsKey(phone)) {
+        final attempts = _otpRateLimit[phone]!;
+        // Remove attempts older than 1 hour
+        attempts.removeWhere((t) => now.difference(t).inHours >= 1);
+        if (attempts.length >= 3) {
+          throw Exception('Too many OTP attempts. Please try again later.');
+        }
+        attempts.add(now);
+      } else {
+        _otpRateLimit[phone] = [now];
+      }
+
+      // 2. Generate OTP (6 digits)
+      // Using a fixed random seed for predictability in tests could be an option,
+      // but for now we use random.
+      // For testing/demo purposes, we can log it.
+      String otp;
+      if (enableDevOtpBypass) {
+        otp = '000000';
+      } else {
+        otp = (100000 + DateTime.now().microsecond % 900000).toString();
+      }
+
+      // 3. Store OTP (Expires in 5 mins)
+      _otpStore[phone] = {
+        'code': otp,
+        'expiresAt': now.add(const Duration(minutes: 5)),
+        'verified': false,
+      };
+
+      // 4. Log Action
+      if (kDebugMode) {
+        print('SECURITY LOG: OTP Generated for $phone: $otp');
+      }
+
+      // 5. Mock Send SMS with Fallback
+      try {
+        await _sendSmsPrimary(phone, otp);
+      } catch (e) {
+        if (kDebugMode) {
+          print('Primary SMS Gateway failed: $e. Switching to fallback...');
+        }
+        await _sendSmsFallback(phone, otp);
+      }
+
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('OTP Send Error: $e');
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _sendSmsPrimary(String phone, String otp) async {
+    // Simulate primary gateway
+    await Future.delayed(const Duration(seconds: 1));
+    // Randomly fail to test fallback (10% chance)
+    if (DateTime.now().millisecond % 10 == 0) {
+      throw Exception('Gateway timeout');
+    }
+    // In real app: await http.post('https://primary-sms.com/api', ...);
+  }
+
+  Future<void> _sendSmsFallback(String phone, String otp) async {
+    // Simulate fallback gateway
+    await Future.delayed(const Duration(seconds: 1));
+    // In real app: await http.post('https://fallback-sms.com/api', ...);
+  }
+
+  /// Verify OTP
+  Future<bool> verifyOtp(String phone, String code) async {
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // SECURITY: Development Bypass Check
+    if (enableDevOtpBypass) {
+      // Logic: Accept any 6-digit code or specific '111111'.
+      // Requirement: "accepts any 6-digit OTP code (e.g., 111111) as valid"
+      // We will allow ANY 6-digit code to pass if this flag is enabled.
+      if (code.length == 6) {
+        if (kDebugMode) {
+          print('SECURITY WARNING: OTP Bypass used for $phone with code $code');
+        }
+        return true;
+      }
+    }
+
+    if (!_otpStore.containsKey(phone)) {
+      throw Exception(
+        'No OTP found for this number. Please request a new one.',
+      );
+    }
+
+    final data = _otpStore[phone]!;
+    final expiresAt = data['expiresAt'] as DateTime;
+
+    if (DateTime.now().isAfter(expiresAt)) {
+      _otpStore.remove(phone);
+      throw Exception('OTP expired. Please request a new one.');
+    }
+
+    if (data['code'] == code) {
+      _otpStore[phone]!['verified'] = true;
+      // Clear OTP after successful verification to prevent reuse
+      _otpStore.remove(phone);
+      return true;
+    } else {
+      throw Exception('Invalid OTP.');
+    }
+  }
+
+  /// Sign in with Google
+  Future<Map<String, dynamic>?> signInWithGoogle() async {
+    try {
+      // 1. Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        // The user canceled the sign-in
+        return null;
+      }
+
+      // 2. Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // 3. Create a new credential (if using Firebase)
+      // For pure Google Sign-In, we use the accessToken/idToken
+      final String? accessToken = googleAuth.accessToken;
+      final String? idToken = googleAuth.idToken;
+
+      if (kDebugMode) {
+        print('Access Token: $accessToken');
+        print('ID Token: $idToken');
+      }
+
+      // 4. Send to backend for verification and account creation
+      // This is where we would use the "Backend API"
+      final userProfile = await _authenticateWithBackend(
+        idToken: idToken,
+        email: googleUser.email,
+        displayName: googleUser.displayName,
+        photoUrl: googleUser.photoUrl,
+      );
+
+      // 5. Save session locally
+      await _saveSession(userProfile);
+
+      return userProfile;
+    } catch (error) {
+      if (kDebugMode) {
+        print('Google Sign-In Error: $error');
+      }
+      // Re-throw or handle specific errors
+      throw Exception('Sign in failed: $error');
+    }
+  }
+
+  /// Mock Backend Authentication
+  /// In a real app, this would be an HTTP POST to your server
+  Future<Map<String, dynamic>> _authenticateWithBackend({
+    String? idToken,
+    required String email,
+    String? displayName,
+    String? photoUrl,
+  }) async {
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Simulate backend response
+    return {
+      'id': 'user_${DateTime.now().millisecondsSinceEpoch}',
+      'email': email,
+      'name': displayName ?? 'User',
+      'photo_url': photoUrl,
+      'token': 'mock_jwt_token_from_backend',
+    };
+  }
+
+  /// Sign up with Email and Password
+  Future<Map<String, dynamic>> signUpWithEmail({
+    required String name,
+    required String email,
+    required String password,
+    required String phone,
+    required String dob,
+  }) async {
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Simulate backend response
+    final userProfile = {
+      'id': 'user_${DateTime.now().millisecondsSinceEpoch}',
+      'email': email,
+      'name': name,
+      'phone': phone,
+      'dob': dob,
+      'token': 'mock_jwt_token_from_backend',
+    };
+
+    // Save session locally
+    await _saveSession(userProfile);
+
+    return userProfile;
+  }
+
+  /// Save session to Secure Storage
+  Future<void> _saveSession(Map<String, dynamic> userProfile) async {
+    await _storage.write(key: _userKey, value: jsonEncode(userProfile));
+  }
+
+  /// Get current user session
+  Future<Map<String, dynamic>?> getCurrentUser() async {
+    final String? userData = await _storage.read(key: _userKey);
+    if (userData != null) {
+      return jsonDecode(userData);
+    }
+    return null;
+  }
+
+  /// Check if user is signed in
+  Future<bool> isSignedIn() async {
+    final user = await getCurrentUser();
+    return user != null;
+  }
+
+  /// Sign out
+  Future<void> signOut() async {
+    await _googleSignIn.signOut();
+    await _storage.delete(key: _userKey);
+  }
+}

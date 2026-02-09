@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env' });
 
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -22,16 +22,20 @@ async function seedAdmin() {
     await mongoose.connect(uri);
     console.log('Connected to MongoDB');
 
-    const email = 'admin@caresafe.com';
-    const password = 'admin'; // Change this in production
+    const email = 'care4elder2026@gmail.com';
+    const password = 'Care@2026'; // Change this in production
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log('Admin user already exists');
+      // Update password if user exists to ensure it matches
+      existingUser.password = hashedPassword;
+      await existingUser.save();
+      console.log('Admin user password updated');
     } else {
       await User.create({
-        name: 'Super Admin',
+        name: 'Care4Elder Admin',
         email,
         password: hashedPassword,
         role: 'admin'

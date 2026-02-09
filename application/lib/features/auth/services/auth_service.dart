@@ -2,22 +2,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 
 /// Service to handle Authentication logic.
-///
-/// Note on Credentials:
-/// The user provided email `care4elder2026@gmail.com` and an App Password.
-/// App Passwords are for SMTP (Email) access, not OAuth 2.0.
-///
-/// To enable real Google Sign-In:
-/// 1. Go to Google Cloud Console.
-/// 2. Create a project and enable "Google People API".
-/// 3. Create Credentials -> OAuth 2.0 Client ID.
-/// 4. Download `google-services.json` (Android) or `GoogleService-Info.plist` (iOS).
-/// 5. Place them in `android/app/` and `ios/Runner/` respectively.
-///
-/// For this implementation, we handle the standard Google Sign-In flow.
-/// If configuration is missing, it may throw PlatformException.
 class AuthService {
   // Singleton instance
   static final AuthService _instance = AuthService._internal();
@@ -25,12 +12,13 @@ class AuthService {
   AuthService._internal();
 
   final _storage = const FlutterSecureStorage();
+  
+  // Use localhost for web/iOS simulator, 10.0.2.2 for Android emulator
+  // For this environment, we will assume localhost is accessible
+  static const String _baseUrl = 'http://localhost:3000/api'; 
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    // Configured with the user-provided Client ID.
-    // This allows the app to work without google-services.json on Android.
-    clientId:
-        '374189587484-63hansfrfo6jpa5aoc3ea7fft7tv73rh.apps.googleusercontent.com',
+    clientId: '374189587484-63hansfrfo6jpa5aoc3ea7fft7tv73rh.apps.googleusercontent.com',
     scopes: ['email', 'https://www.googleapis.com/auth/contacts.readonly'],
   );
 
@@ -41,15 +29,134 @@ class AuthService {
   // Rate Limiting: phone -> {timestamp}
   final Map<String, List<DateTime>> _otpRateLimit = {};
 
-  /// SECURITY WARNING:
-  /// Set this flag to true ONLY for Development/Testing purposes.
-  /// When enabled, the hardcoded OTP '111111' (or any 6-digit code if desired,
-  /// but '111111' is the designated magic code) will bypass validation.
-  ///
-  /// DO NOT ENABLE IN PRODUCTION.
   bool enableDevOtpBypass = true;
 
-  /// Send OTP to phone number
+  /// Register Patient
+  Future<Map<String, dynamic>> registerPatient({
+    required String name,
+    required String email,
+    required String password,
+    required String phone,
+    String? dob,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/patient/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'phone': phone,
+          // 'dob': dob // Backend doesn't seem to take DOB yet, but we can send it if updated
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        return data;
+      } else if (response.statusCode == 409) {
+        throw Exception(data['error'] ?? 'User already exists');
+      } else {
+        throw Exception(data['error'] ?? 'Registration failed');
+      }
+    } catch (e) {
+      if (kDebugMode) print('Registration Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Verify Patient Email OTP
+  Future<Map<String, dynamic>> verifyPatientEmail(String email, String otp) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/patient/verify-email'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // Save tokens
+        if (data['token'] != null) {
+          await _storage.write(key: 'auth_token', value: data['token']);
+        }
+        return data;
+      } else {
+        throw Exception(data['error'] ?? 'Verification failed');
+      }
+    } catch (e) {
+      if (kDebugMode) print('Verification Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Update Patient Relatives
+  Future<Map<String, dynamic>> updateRelatives(List<Map<String, String>> relatives) async {
+    try {
+      final token = await _storage.read(key: 'auth_token');
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/patient/update-relatives'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'relatives': relatives,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return data;
+      } else {
+        throw Exception(data['error'] ?? 'Failed to save relatives');
+      }
+    } catch (e) {
+      if (kDebugMode) print('Update Relatives Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Verify Relative OTP
+  Future<Map<String, dynamic>> verifyRelativeOtp(String otp) async {
+    try {
+      final token = await _storage.read(key: 'auth_token');
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/patient/verify-relative'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'otp': otp,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return data;
+      } else {
+        throw Exception(data['error'] ?? 'Verification failed');
+      }
+    } catch (e) {
+      if (kDebugMode) print('Relative Verification Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Send OTP to phone number (Legacy/Mock)
   Future<bool> sendOtp(String phone) async {
     try {
       // 1. Rate Limiting Check (Max 3 per hour)

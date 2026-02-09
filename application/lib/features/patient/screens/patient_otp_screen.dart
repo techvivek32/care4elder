@@ -8,12 +8,14 @@ import '../../auth/services/auth_service.dart';
 
 class PatientOtpScreen extends StatefulWidget {
   final String phoneNumber;
+  final String? email;
   final bool isSignup;
   final Map<String, dynamic>? signupData;
 
   const PatientOtpScreen({
     super.key,
     required this.phoneNumber,
+    this.email,
     this.isSignup = false,
     this.signupData,
   });
@@ -102,16 +104,12 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await AuthService().verifyOtp(widget.phoneNumber, otp);
-
-      if (widget.isSignup && widget.signupData != null) {
-        await AuthService().signUpWithEmail(
-          name: widget.signupData!['name'],
-          email: widget.signupData!['email'],
-          password: widget.signupData!['password'],
-          phone: widget.signupData!['phone'],
-          dob: widget.signupData!['dob'],
-        );
+      if (widget.isSignup && widget.email != null) {
+        // Verify Email OTP (Backend)
+        await AuthService().verifyPatientEmail(widget.email!, otp);
+      } else {
+        // Fallback or Login OTP logic (Legacy/Mock)
+        await AuthService().verifyOtp(widget.phoneNumber, otp);
       }
 
       if (mounted) {
@@ -122,11 +120,7 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
           ),
         );
 
-        if (widget.isSignup) {
-          context.go('/patient/permissions');
-        } else {
-          context.go('/patient/permissions');
-        }
+        context.go('/patient/permissions');
       }
     } catch (e) {
       if (mounted) {

@@ -221,6 +221,9 @@ class _PatientEmergencyContactsScreenState
 
       await prefs.setString('emergency_relatives', jsonEncode(contactsData));
 
+      // Save to Backend
+      await AuthService().updateRelatives(contactsData);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -231,6 +234,7 @@ class _PatientEmergencyContactsScreenState
 
         // Initiate OTP for the first contact (as primary verification)
         final firstContactPhone = contactsData[0]['phone']!;
+        // We send OTP (Mock/Static) to simulate the process
         await AuthService().sendOtp(firstContactPhone);
 
         // Navigate to OTP verification

@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 
+import 'package:permission_handler/permission_handler.dart';
+
 class PatientPermissionsScreen extends StatefulWidget {
   const PatientPermissionsScreen({super.key});
 
@@ -19,10 +21,22 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
     'Motion Sensors',
   };
 
-  void _handleContinue() {
+  Future<void> _handleContinue() async {
     if (_agreedToTerms) {
-      // Navigate to the next screen (Emergency Contacts)
-      context.go('/patient/contacts');
+      // Temporarily disabled permission requests as per requirement (Web compatibility)
+      /*
+      // Request actual permissions
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.location,
+        Permission.microphone,
+        Permission.sensors, // For motion sensors
+      ].request();
+      */
+
+      if (mounted) {
+        // Navigate to the next screen (Emergency Contacts)
+        context.go('/patient/contacts');
+      }
     }
   }
 

@@ -19,6 +19,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
     }
 
+    const existingPhone = await Patient.findOne({ phone });
+    if (existingPhone) {
+      return NextResponse.json({ error: 'Phone number already registered' }, { status: 409 });
+    }
+
     // Check if email was pre-verified via OTP flow
     const otpRecord = await Otp.findOne({ email, role: 'Patient', isVerified: true });
     const isEmailVerified = !!otpRecord;
@@ -28,7 +33,8 @@ export async function POST(req: Request) {
     // Generate 6-digit OTP only if not verified
     let otp, otpExpiry;
     if (!isEmailVerified) {
-        otp = Math.floor(100000 + Math.random() * 900000).toString();
+        // otp = Math.floor(100000 + Math.random() * 900000).toString();
+        otp = '123456'; // Static OTP as requested
         otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     }
 

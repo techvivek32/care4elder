@@ -99,8 +99,8 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Verify OTP
-      await AuthService().verifyOtp(widget.phoneNumber, otp);
+      // Verify OTP (Relative Verification)
+      await AuthService().verifyRelativeOtp(otp);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

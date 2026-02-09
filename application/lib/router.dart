@@ -62,6 +62,7 @@ final router = GoRouter(
       builder: (context, state) {
         final extra = state.extra;
         String phone = '';
+        String? email;
         Map<String, dynamic>? signupData;
         bool isSignup = false;
 
@@ -69,12 +70,14 @@ final router = GoRouter(
           phone = extra;
         } else if (extra is Map<String, dynamic>) {
           phone = extra['phone'] ?? '';
+          email = extra['email'];
           isSignup = extra['isSignup'] ?? false;
           signupData = extra['data'];
         }
 
         return PatientOtpScreen(
           phoneNumber: phone,
+          email: email,
           isSignup: isSignup,
           signupData: signupData,
         );

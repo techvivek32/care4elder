@@ -95,22 +95,32 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
 
     try {
       final phone = _phoneController.text.trim();
+      final email = _emailController.text.trim();
+      final name = _nameController.text.trim();
+      final password = _passwordController.text;
+      final dob = _dobController.text.trim();
 
-      // Send OTP
-      await AuthService().sendOtp(phone);
+      // Register Patient (Check for duplicates and create account)
+      await AuthService().registerPatient(
+        name: name,
+        email: email,
+        password: password,
+        phone: phone,
+        dob: dob,
+      );
 
       final signupData = {
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'password': _passwordController.text,
+        'name': name,
+        'email': email,
+        'password': password,
         'phone': phone,
-        'dob': _dobController.text.trim(),
+        'dob': dob,
       };
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('OTP sent successfully!'),
+            content: Text('Account created! Please verify OTP.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -118,7 +128,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
         // Navigate to OTP screen with signup data
         context.push(
           '/patient/otp',
-          extra: {'phone': phone, 'isSignup': true, 'data': signupData},
+          extra: {'phone': phone, 'email': email, 'isSignup': true, 'data': signupData},
         );
       }
     } catch (e) {
@@ -126,7 +136,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to send OTP: ${e.toString().replaceAll("Exception: ", "")}',
+              'Registration failed: ${e.toString().replaceAll("Exception: ", "")}',
             ),
             backgroundColor: AppColors.error,
           ),

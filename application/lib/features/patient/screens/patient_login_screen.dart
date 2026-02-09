@@ -13,14 +13,87 @@ class PatientLoginScreen extends StatefulWidget {
   State<PatientLoginScreen> createState() => _PatientLoginScreenState();
 }
 
-class _PatientLoginScreenState extends State<PatientLoginScreen> {
+class _PatientLoginScreenState extends State<PatientLoginScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final FocusNode _phoneFocusNode = FocusNode();
   final _formKey = GlobalKey<FormState>();
+  
+  bool _isPasswordVisible = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _phoneFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      if (_tabController.index == 0) {
+        // Phone Login
+        final phone = _phoneController.text.trim();
+        await AuthService().sendLoginOtp(phone);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('OTP Sent!')),
+          );
+          context.push('/patient/otp', extra: phone);
+        }
+      } else {
+        // Email Login
+        final email = _emailController.text.trim();
+        final password = _passwordController.text;
+
+        await AuthService().loginWithEmail(email, password);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login Successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          context.go('/patient/dashboard');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll("Exception: ", "")),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   Future<void> _handleGoogleSignIn() async {
     try {
-      // Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -29,19 +102,15 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
 
       final user = await AuthService().signInWithGoogle();
 
-      // Hide loading
       if (mounted) Navigator.pop(context);
 
       if (user != null && mounted) {
-        // Success
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Welcome ${user['name']}!')));
-        // Navigate to dashboard or next screen
         // context.go('/patient/dashboard');
       }
     } catch (e) {
-      // Hide loading
       if (mounted) Navigator.pop(context);
 
       if (mounted) {
@@ -53,13 +122,6 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
         );
       }
     }
-  }
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    _phoneFocusNode.dispose();
-    super.dispose();
   }
 
   @override
@@ -119,174 +181,275 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Enter your mobile number to continue',
+                    'Sign in to continue',
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       color: AppColors.textGrey,
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
-                  // Mobile Number Input
-                  Text(
-                    'Mobile Number',
-                    style: GoogleFonts.roboto(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+                  // Tabs
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Country Code Dropdown (Styled container for now)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              'IN +91',
-                              style: GoogleFonts.roboto(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textDark,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down, size: 20),
-                          ],
-                        ),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicator: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white,
                       ),
-                      const SizedBox(width: 12),
-
-                      // Phone Input Field
-                      Expanded(
-                        child: TextFormField(
-                          controller: _phoneController,
-                          focusNode: _phoneFocusNode,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(10),
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter phone number';
-                            }
-                            if (value.length != 10) {
-                              return 'Enter valid 10-digit number';
-                            }
-                            return null;
-                          },
-                          style: GoogleFonts.roboto(
-                            fontSize: 16,
-                            color: AppColors.textDark,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Enter phone number',
-                            hintStyle: GoogleFonts.roboto(
-                              color: Colors.grey.shade400,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.phone_outlined,
-                              color: Colors.grey.shade400,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: AppColors.primaryBlue,
-                                width: 2,
-                              ),
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: AppColors.error,
-                              ),
-                            ),
+                      indicatorPadding: const EdgeInsets.all(2),
+                      dividerColor: Colors.transparent,
+                      labelColor: AppColors.textDark,
+                      unselectedLabelColor: AppColors.textGrey,
+                      labelStyle: GoogleFonts.roboto(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                      tabs: const [
+                        Tab(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.phone_outlined, size: 16),
+                              SizedBox(width: 6),
+                              Text('Phone'),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
+                        Tab(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.email_outlined, size: 16),
+                              SizedBox(width: 6),
+                              Text('Email'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 32),
 
-                  // Send OTP Button
+                  // Tab View Content
+                  if (_tabController.index == 0)
+                    // Phone Input
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mobile Number',
+                          style: GoogleFonts.roboto(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Country Code
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'IN +91',
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.keyboard_arrow_down, size: 20),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Phone Input
+                            Expanded(
+                              child: TextFormField(
+                                controller: _phoneController,
+                                focusNode: _phoneFocusNode,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10),
+                                ],
+                                validator: (value) {
+                                  if (_tabController.index == 0) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter phone number';
+                                    }
+                                    if (value.length != 10) {
+                                      return 'Enter valid 10-digit number';
+                                    }
+                                  }
+                                  return null;
+                                },
+                                style: GoogleFonts.roboto(
+                                  fontSize: 16,
+                                  color: AppColors.textDark,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Enter phone number',
+                                  hintStyle: GoogleFonts.roboto(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.phone_outlined,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.primaryBlue,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  else
+                    // Email Input
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Email Address',
+                          style: GoogleFonts.roboto(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (_tabController.index == 1) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter email';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Please enter valid email';
+                              }
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Enter your email',
+                            prefixIcon: const Icon(Icons.email_outlined),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Password',
+                          style: GoogleFonts.roboto(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: !_isPasswordVisible,
+                          validator: (value) {
+                            if (_tabController.index == 1) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter password';
+                              }
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Enter your password',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                  const SizedBox(height: 32),
+
+                  // Login Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          try {
-                            // Show loading
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (context) => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-
-                            final phone = _phoneController.text.trim();
-                            // Handle OTP sending
-                            await AuthService().sendLoginOtp(phone);
-
-                            // Hide loading
-                            if (context.mounted) Navigator.pop(context);
-
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('OTP Sent!')),
-                              );
-                              // Navigate to OTP screen
-                              context.push('/patient/otp', extra: phone);
-                            }
-                          } catch (e) {
-                            // Hide loading
-                            if (context.mounted) Navigator.pop(context);
-
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    e.toString().replaceAll("Exception: ", ""),
-                                  ),
-                                  backgroundColor: AppColors.error,
-                                ),
-                              );
-                            }
-                          }
-                        }
-                      },
+                      onPressed: _isLoading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryBlue,
                         foregroundColor: Colors.white,
@@ -296,13 +459,22 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                         ),
                         elevation: 0,
                       ),
-                      child: Text(
-                        'Send OTP',
-                        style: GoogleFonts.roboto(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              _tabController.index == 0 ? 'Send OTP' : 'Login',
+                              style: GoogleFonts.roboto(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
 

@@ -325,6 +325,39 @@ class AuthService {
     }
   }
 
+  /// Login with Email and Password
+  Future<Map<String, dynamic>> loginWithEmail(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/patient/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // Save tokens
+        if (data['token'] != null) {
+          await _storage.write(key: 'auth_token', value: data['token']);
+        }
+        // Save user info
+        if (data['user'] != null) {
+            await _storage.write(key: _userKey, value: jsonEncode(data['user']));
+        }
+        return data;
+      } else {
+        throw Exception(data['error'] ?? 'Login failed');
+      }
+    } catch (e) {
+      if (kDebugMode) print('Email Login Error: $e');
+      rethrow;
+    }
+  }
+
   /// Sign in with Google
   Future<Map<String, dynamic>?> signInWithGoogle() async {
     try {

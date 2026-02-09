@@ -4,6 +4,7 @@ import Doctor from '@/models/Doctor';
 import Otp from '@/models/Otp';
 import bcrypt from 'bcryptjs';
 import { sendDoctorOTP } from '@/lib/mail';
+import { sendSms } from '@/lib/sms';
 
 export async function POST(req: Request) {
   try {
@@ -73,8 +74,15 @@ export async function POST(req: Request) {
             console.log(`OTP sent to ${email}`);
         }
         
+        // Send OTP via SMS
+        // Use Exact DLT Template: "{#var#} is the OTP for your Care4Elder account. NEVER SHARE YOUR OTP WITH ANYONE. Care4Elder will never call or message to ask for the OTP."
+        const smsMessage = `${otp} is the OTP for your Care4Elder account. NEVER SHARE YOUR OTP WITH ANYONE. Care4Elder will never call or message to ask for the OTP.`;
+        const templateId = process.env.SMS_TEMPLATE_ID;
+        
+        await sendSms(phone, smsMessage, templateId);
+
         return NextResponse.json({
-            message: 'Registration successful. OTP sent to email.',
+            message: 'Registration successful. OTP sent to email and phone.',
             email: doctor.email
         }, { status: 201 });
     } else {

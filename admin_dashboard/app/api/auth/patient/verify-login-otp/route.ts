@@ -35,6 +35,18 @@ export async function POST(req: Request) {
     patient.otpExpiry = undefined;
     await patient.save();
 
+    // Clean up from Otp collection if exists (since we duplicate it there for visibility)
+    try {
+        const Otp = (await import('@/models/Otp')).default;
+        // Use email or phone to identify. Patient model uses phone for login, but Otp collection uses email/role generally.
+        // But since we saved it using email in login-otp, we should delete by email.
+        if (patient.email) {
+            await Otp.deleteOne({ email: patient.email, role: 'Patient' });
+        }
+    } catch (err) {
+        console.error('Failed to cleanup Otp collection:', err);
+    }
+
     // Generate tokens
     const token = signToken({ id: patient._id, role: 'patient' });
     const refreshToken = await createRefreshToken(patient._id as string, 'Patient');

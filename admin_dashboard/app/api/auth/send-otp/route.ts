@@ -4,6 +4,7 @@ import Otp from '@/models/Otp';
 import Doctor from '@/models/Doctor';
 import Patient from '@/models/Patient';
 import { sendOTP } from '@/lib/mail';
+import { sendSms } from '@/lib/sms';
 
 export async function POST(req: Request) {
   try {
@@ -58,6 +59,12 @@ export async function POST(req: Request) {
 
     // Send Email
     const emailSent = await sendOTP(email, otp, normalizedRole as 'Doctor' | 'Patient');
+
+    // Send SMS if phone is available
+    if (existingUser && existingUser.phone) {
+        const smsMessage = `Your Care4Elder verification code is ${otp}.`;
+        await sendSms(existingUser.phone, smsMessage);
+    }
 
     if (!emailSent) {
       return NextResponse.json({ error: 'Failed to send OTP email' }, { status: 500 });

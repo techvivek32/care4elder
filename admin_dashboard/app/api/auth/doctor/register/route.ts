@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       documents 
     } = body;
 
-    if (!name || !email || !password || !phone || !specialization || !licenseNumber || !consultationFee) {
+    if (!name || !email || !password || !phone || !specialization || !licenseNumber || consultationFee === undefined || consultationFee === null) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 

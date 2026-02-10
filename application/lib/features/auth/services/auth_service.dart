@@ -208,7 +208,31 @@ class AuthService {
     }
   }
 
-  /// Send OTP to phone number (Legacy/Mock)
+  /// Resend OTP (Real)
+  Future<bool> resendOtp({required String email, String role = 'Patient'}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/send-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'role': role,
+          'intent': 'register' // or 'login' depending on context, but 'register' handles unverified users
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Failed to resend OTP');
+      }
+    } catch (e) {
+      if (kDebugMode) print('Resend OTP Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Send OTP to phone number (Legacy/Mock - Deprecated for Registration)
   Future<bool> sendOtp(String phone) async {
     try {
       // 1. Rate Limiting Check (Max 3 per hour)

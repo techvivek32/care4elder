@@ -153,7 +153,11 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
     });
 
     try {
-      await AuthService().sendOtp(widget.phoneNumber);
+      if (widget.isSignup && widget.email != null) {
+        await AuthService().resendOtp(email: widget.email!, role: 'Patient');
+      } else {
+        await AuthService().sendLoginOtp(widget.phoneNumber);
+      }
 
       if (mounted) {
         _startTimer();

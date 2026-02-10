@@ -101,9 +101,21 @@ class DoctorAuthService extends ChangeNotifier {
           return false;
         }
       } else {
-        await Future.delayed(const Duration(milliseconds: 800));
-        _mockPhoneOtp = '123456';
-        return true;
+        // Phone OTP (Real implementation)
+        final url = Uri.parse('${ApiConstants.baseUrl}/auth/doctor/register-otp');
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'phone': identifier}),
+        );
+
+        if (response.statusCode == 200) {
+          debugPrint('Phone OTP Sent successfully');
+          return true;
+        } else {
+          debugPrint('Failed to send Phone OTP: ${response.body}');
+          return false;
+        }
       }
     } catch (e) {
       debugPrint('Error sending OTP: $e');
@@ -162,16 +174,26 @@ class DoctorAuthService extends ChangeNotifier {
           };
         }
       } else {
-        if (otp.length != 6) {
-          return {'success': false, 'error': 'Invalid OTP'};
+        // Phone OTP Verification (Real implementation)
+        final phone = _registrationData.phoneNumber;
+        if (phone == null) {
+          return {'success': false, 'error': 'Phone number not found'};
         }
-        if (_mockPhoneOtp == null) {
-          return {'success': false, 'error': 'OTP not found'};
+
+        final url = Uri.parse('${ApiConstants.baseUrl}/auth/doctor/verify-register-otp');
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'phone': phone, 'otp': otp}),
+        );
+
+        final data = jsonDecode(response.body);
+
+        if (response.statusCode == 200) {
+          return {'success': true};
+        } else {
+          return {'success': false, 'error': data['error'] ?? 'Verification failed'};
         }
-        if (otp != _mockPhoneOtp) {
-          return {'success': false, 'error': 'Invalid OTP'};
-        }
-        return {'success': true, 'verificationStatus': 'pending'};
       }
     } catch (e) {
       debugPrint('Error verifying OTP: $e');

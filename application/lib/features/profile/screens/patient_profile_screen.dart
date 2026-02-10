@@ -66,6 +66,13 @@ class PatientProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildMenuItem(
               context,
+              icon: Icons.account_balance_wallet_outlined,
+              title: 'My Wallet',
+              onTap: () => context.push('/patient/profile/wallet'),
+            ),
+            const SizedBox(height: 16),
+            _buildMenuItem(
+              context,
               icon: Icons.people_outline,
               title: 'Emergency Contacts',
               onTap: () => context.push('/patient/contacts'),

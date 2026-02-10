@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/settings_service.dart';
+import 'core/services/profile_service.dart';
 import 'router.dart';
 
 void main() {
@@ -16,24 +18,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: SettingsService(),
-      builder: (context, child) {
-        return MaterialApp.router(
-          title: 'Care4Elder',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: SettingsService().themeMode,
-          routerConfig: router,
-          builder: (context, child) {
-            if (child == null) {
-              return const SizedBox.shrink();
-            }
-            return BackNavigationHandler(child: child);
-          },
-        );
-      },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProfileService()),
+      ],
+      child: AnimatedBuilder(
+        animation: SettingsService(),
+        builder: (context, child) {
+          return MaterialApp.router(
+            title: 'Care4Elder',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: SettingsService().themeMode,
+            routerConfig: router,
+            builder: (context, child) {
+              if (child == null) {
+                return const SizedBox.shrink();
+              }
+              return BackNavigationHandler(child: child);
+            },
+          );
+        },
+      ),
     );
   }
 }

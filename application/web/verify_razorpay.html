@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Key Verification</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .status { margin-top: 20px; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Razorpay Key Tester</h1>
+    <p>Testing Key: <strong>rzp_test_RlUAkt1HzIvV4j</strong></p>
+    <button id="pay-btn" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Test Payment (₹ 1.00)</button>
+    
+    <div id="status" class="status" style="display: none;"></div>
+
+    <script>
+        document.getElementById('pay-btn').onclick = function(e){
+            var options = {
+                "key": "rzp_test_RlUAkt1HzIvV4j",
+                "amount": "100", // Amount is in currency subunits. Default currency is INR. Hence, 100 paise = INR 1
+                "currency": "INR",
+                "name": "Test Transaction",
+                "description": "Key Verification",
+                "image": "https://example.com/your_logo",
+                "handler": function (response){
+                    showStatus("Success! Payment ID: " + response.razorpay_payment_id, true);
+                },
+                "prefill": {
+                    "name": "Test User",
+                    "email": "test@example.com",
+                    "contact": "9999999999"
+                },
+                "theme": {
+                    "color": "#3399cc"
+                }
+            };
+            
+            try {
+                var rzp1 = new Razorpay(options);
+                rzp1.on('payment.failed', function (response){
+                    showStatus("Payment Failed: " + response.error.description, false);
+                });
+                rzp1.open();
+                e.preventDefault();
+            } catch (error) {
+                showStatus("Error initializing Razorpay: " + error.message, false);
+            }
+        }
+
+        function showStatus(message, isSuccess) {
+            var el = document.getElementById('status');
+            el.style.display = 'block';
+            el.className = 'status ' + (isSuccess ? 'success' : 'error');
+            el.innerText = message;
+        }
+    </script>
+</body>
+</html>

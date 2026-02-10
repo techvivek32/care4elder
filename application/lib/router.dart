@@ -32,6 +32,7 @@ import 'features/profile/screens/personal_info_screen.dart';
 import 'features/consultation/screens/video_call_screen.dart';
 import 'features/notifications/screens/notification_screen.dart';
 import 'features/settings/screens/app_settings_screen.dart';
+import 'features/profile/screens/patient_wallet_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_history_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_profile_tab_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_settings_screen.dart';
@@ -284,6 +285,10 @@ final router = GoRouter(
             GoRoute(
               path: 'settings',
               builder: (context, state) => const AppSettingsScreen(),
+            ),
+            GoRoute(
+              path: 'wallet',
+              builder: (context, state) => const PatientWalletScreen(),
             ),
           ],
         ),

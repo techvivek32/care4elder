@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../../core/constants/api_constants.dart';
 import '../../features/auth/services/auth_service.dart';
 
 class UserProfile {
@@ -14,6 +15,7 @@ class UserProfile {
   String location;
   String bloodGroup;
   String allergies;
+  double walletBalance;
 
   UserProfile({
     required this.id,
@@ -25,6 +27,7 @@ class UserProfile {
     required this.location,
     required this.bloodGroup,
     required this.allergies,
+    this.walletBalance = 0.0,
   });
 
   UserProfile copyWith({
@@ -37,6 +40,7 @@ class UserProfile {
     String? location,
     String? bloodGroup,
     String? allergies,
+    double? walletBalance,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -48,6 +52,7 @@ class UserProfile {
       location: location ?? this.location,
       bloodGroup: bloodGroup ?? this.bloodGroup,
       allergies: allergies ?? this.allergies,
+      walletBalance: walletBalance ?? this.walletBalance,
     );
   }
 
@@ -64,6 +69,7 @@ class UserProfile {
       location: json['location'] ?? '',
       bloodGroup: json['bloodGroup'] ?? '',
       allergies: json['allergies'] ?? '',
+      walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -91,7 +97,6 @@ class ProfileService extends ChangeNotifier {
   UserProfile? _currentUser;
   bool _isLoading = false;
   String? _error;
-  static const String _baseUrl = 'http://localhost:3000/api';
 
   // Mock list of known relatives (simulating data from other parts of the app)
   // TODO: Fetch this from backend if needed
@@ -124,7 +129,7 @@ class ProfileService extends ChangeNotifier {
       }
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/patients/$patientId'),
+        Uri.parse('${ApiConstants.baseUrl}/patients/$patientId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -168,7 +173,7 @@ class ProfileService extends ChangeNotifier {
       }
 
       final response = await http.put(
-        Uri.parse('$_baseUrl/patients/$patientId'),
+        Uri.parse('${ApiConstants.baseUrl}/patients/$patientId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -191,6 +196,64 @@ class ProfileService extends ChangeNotifier {
       _error = 'Failed to update profile: $e';
       if (kDebugMode) {
         print('Update Profile Exception: $e');
+      }
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Recharge Wallet
+  Future<bool> rechargeWallet(String paymentId, double amount) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final authService = AuthService();
+      final patientId = await authService.getPatientId();
+      final token = await authService.getToken();
+
+      if (patientId == null || token == null) {
+        _error = 'User not authenticated';
+        return false;
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/patients/$patientId/wallet'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'paymentId': paymentId,
+          'amount': amount,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          // Update local balance
+          if (_currentUser != null) {
+            _currentUser = _currentUser!.copyWith(
+              walletBalance: (data['newBalance'] as num).toDouble(),
+            );
+          }
+          return true;
+        }
+      }
+
+      _error = 'Failed to recharge wallet: ${response.statusCode}';
+      if (kDebugMode) {
+        print('Recharge Error: ${response.body}');
+      }
+      return false;
+    } catch (e) {
+      _error = 'Failed to recharge wallet: $e';
+      if (kDebugMode) {
+        print('Recharge Exception: $e');
       }
       return false;
     } finally {

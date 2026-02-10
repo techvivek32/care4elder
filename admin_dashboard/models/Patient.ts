@@ -20,6 +20,7 @@ export interface IPatient extends Document {
   profilePictureUrl?: string;
   bloodGroup?: string;
   allergies?: string;
+  walletBalance: number;
 }
 
 const PatientSchema: Schema = new Schema({
@@ -41,7 +42,8 @@ const PatientSchema: Schema = new Schema({
   location: { type: String },
   profilePictureUrl: { type: String },
   bloodGroup: { type: String },
-  allergies: { type: String }
+  allergies: { type: String },
+  walletBalance: { type: Number, default: 0 }
 }, { timestamps: true });
 
 const Patient: Model<IPatient> = mongoose.models.Patient || mongoose.model<IPatient>('Patient', PatientSchema);

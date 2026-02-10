@@ -547,118 +547,96 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: () async {
-            if (item.originalData != null) {
-              final result = await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => DoctorHistoryDetailScreen(
-                    callRequest: item.originalData!,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundImage: item.image.isNotEmpty
+                  ? NetworkImage(item.image)
+                  : const AssetImage('assets/images/logo.png') as ImageProvider,
+              backgroundColor: Colors.grey[200],
+              onBackgroundImageError: (exception, stackTrace) {},
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: GoogleFonts.roboto(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
                   ),
-                ),
-              );
-              if (result == true) {
-                _loadHistory();
-              }
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundImage: item.image.isNotEmpty
-                      ? NetworkImage(item.image)
-                      : const AssetImage('assets/images/logo.png') as ImageProvider,
-                  backgroundColor: Colors.grey[200],
-                  onBackgroundImageError: (exception, stackTrace) {},
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 6),
+                  Row(
                     children: [
-                      Text(
-                        item.name,
-                        style: GoogleFonts.roboto(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
-                        ),
+                      Icon(
+                        item.type == 'Video'
+                            ? Icons.videocam_outlined
+                            : Icons.phone_outlined,
+                        size: 16,
+                        color: AppColors.textGrey,
                       ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(
-                            item.type == 'Video'
-                                ? Icons.videocam_outlined
-                                : Icons.phone_outlined,
-                            size: 16,
-                            color: AppColors.textGrey,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${item.type} • ${item.duration}',
-                            style: GoogleFonts.roboto(
-                              fontSize: 13,
-                              color: AppColors.textGrey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
+                      const SizedBox(width: 4),
                       Text(
-                        _formatDate(item.date),
+                        '${item.type} • ${item.duration}',
                         style: GoogleFonts.roboto(
                           fontSize: 13,
-                          color: Colors.grey[500],
+                          color: AppColors.textGrey,
                         ),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusBg,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        item.status.label,
-                        style: GoogleFonts.roboto(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: statusColor,
-                        ),
-                      ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _formatDate(item.date),
+                    style: GoogleFonts.roboto(
+                      fontSize: 13,
+                      color: Colors.grey[500],
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      item.price == 0 ? '-' : '₹${item.price}',
-                      style: GoogleFonts.roboto(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: statusColor,
-                      ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusBg,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    item.status.label,
+                    style: GoogleFonts.roboto(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
                     ),
-                  ],
+                  ),
                 ),
-                const SizedBox(width: 12),
-                Icon(Icons.chevron_right, color: Colors.grey[400]),
+                const SizedBox(height: 24),
+                Text(
+                  item.price == 0 ? '-' : '₹${item.price}',
+                  style: GoogleFonts.roboto(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
+                ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );

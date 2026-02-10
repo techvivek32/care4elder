@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Users, Phone, CheckCircle, XCircle } from 'lucide-react';
+import Link from 'next/link';
 
 async function fetchPatients() {
   const res = await fetch('/api/patients');
@@ -52,7 +53,9 @@ export default function PatientsPage() {
                   <div className="flex-1">
                     <div className="flex items-center">
                         <Users className="h-5 w-5 text-gray-400 mr-2" />
-                        <h3 className="text-lg font-medium text-gray-900">{patient.name}</h3>
+                        <Link href={`/dashboard/patients/${patient._id}`} className="hover:underline focus:outline-none">
+                            <h3 className="text-lg font-medium text-blue-600 hover:text-blue-800 transition-colors">{patient.name}</h3>
+                        </Link>
                     </div>
                     <div className="mt-1 flex items-center text-sm text-gray-500">
                         <Phone className="h-4 w-4 mr-1" />

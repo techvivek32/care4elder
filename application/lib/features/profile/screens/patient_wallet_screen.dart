@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:intl/intl.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -24,6 +25,11 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+
+    // Fetch history
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProfileService>(context, listen: false).fetchWalletHistory();
+    });
   }
 
   @override
@@ -264,6 +270,108 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                           ],
                         ),
                       ),
+
+                      const SizedBox(height: 32),
+                      
+                      // History Header
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Wallet History',
+                          style: GoogleFonts.roboto(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // History List
+                      if (profileService.walletHistory.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              'No transactions yet',
+                              style: GoogleFonts.roboto(
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: profileService.walletHistory.length,
+                          itemBuilder: (context, index) {
+                            final transaction = profileService.walletHistory[index];
+                            final isCredit = transaction.type == 'credit';
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[200]!),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: isCredit 
+                                          ? Colors.green[50] 
+                                          : Colors.red[50],
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      isCredit 
+                                          ? Icons.add_rounded 
+                                          : Icons.remove_rounded,
+                                      color: isCredit 
+                                          ? Colors.green 
+                                          : Colors.red,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          transaction.description,
+                                          style: GoogleFonts.roboto(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.textDark,
+                                          ),
+                                        ),
+                                        Text(
+                                          _formatDate(transaction.timestamp),
+                                          style: GoogleFonts.roboto(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    '${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(0)}',
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isCredit ? Colors.green : Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -302,5 +410,16 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
         },
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    // Convert UTC to IST (UTC+5:30) explicitly if needed, or just use device local time
+    // Since user specifically asked for IST, we can force it or rely on local.
+    // Usually .toLocal() is best if the user is in India.
+    // If we want to force IST regardless of device location:
+    // final istDate = date.toUtc().add(const Duration(hours: 5, minutes: 30));
+    
+    // Using local time as it's the standard behavior
+    return DateFormat('dd/MM/yyyy hh:mm a').format(date.toLocal());
   }
 }

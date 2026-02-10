@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Patient from '@/models/Patient';
 import Setting from '@/models/Setting';
+import Transaction from '@/models/Transaction';
 import Razorpay from 'razorpay';
 
 export async function POST(
@@ -75,6 +76,16 @@ export async function POST(
 
     patient.walletBalance += amountInRupees;
     await patient.save();
+
+    // Create Transaction Record
+    await Transaction.create({
+      patientId: patient._id,
+      type: 'credit',
+      amount: amountInRupees,
+      description: 'Wallet Recharge',
+      paymentId: paymentId,
+      balanceAfter: patient.walletBalance
+    });
 
     return NextResponse.json({
       success: true,

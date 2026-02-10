@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Patient from '@/models/Patient';
+import Transaction from '@/models/Transaction';
 
 export async function POST(
   request: Request,
@@ -38,6 +39,15 @@ export async function POST(
 
     patient.walletBalance = currentBalance - amount;
     await patient.save();
+
+    // Create Transaction Record
+    await Transaction.create({
+      patientId: patient._id,
+      type: 'debit',
+      amount: amount,
+      description: 'Consultation Fee',
+      balanceAfter: patient.walletBalance
+    });
 
     return NextResponse.json({
       success: true,

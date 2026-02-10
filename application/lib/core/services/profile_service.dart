@@ -87,6 +87,32 @@ class UserProfile {
   }
 }
 
+class WalletTransaction {
+  final String id;
+  final String type; // 'credit' or 'debit'
+  final double amount;
+  final String description;
+  final DateTime timestamp;
+
+  WalletTransaction({
+    required this.id,
+    required this.type,
+    required this.amount,
+    required this.description,
+    required this.timestamp,
+  });
+
+  factory WalletTransaction.fromJson(Map<String, dynamic> json) {
+    return WalletTransaction(
+      id: json['_id'] ?? '',
+      type: json['type'] ?? 'credit',
+      amount: (json['amount'] as num).toDouble(),
+      description: json['description'] ?? '',
+      timestamp: DateTime.parse(json['createdAt']),
+    );
+  }
+}
+
 class ProfileService extends ChangeNotifier {
   static final ProfileService _instance = ProfileService._internal();
   factory ProfileService() => _instance;
@@ -96,6 +122,7 @@ class ProfileService extends ChangeNotifier {
   }
 
   UserProfile? _currentUser;
+  List<WalletTransaction> _walletHistory = [];
   bool _isLoading = false;
   String? _error;
   String? _razorpayKeyId;
@@ -108,6 +135,7 @@ class ProfileService extends ChangeNotifier {
   ];
 
   UserProfile? get currentUser => _currentUser;
+  List<WalletTransaction> get walletHistory => _walletHistory;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get razorpayKeyId => _razorpayKeyId;
@@ -174,6 +202,41 @@ class ProfileService extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> fetchWalletHistory() async {
+    // Don't set global loading here to avoid full screen loaders, just quiet update or local loading if needed
+    // But for now, we'll use the service state
+    
+    try {
+      final authService = AuthService();
+      final patientId = await authService.getPatientId();
+      final token = await authService.getToken();
+
+      if (patientId == null || token == null) return;
+
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/patients/$patientId/wallet/history'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        _walletHistory = data.map((json) => WalletTransaction.fromJson(json)).toList();
+        notifyListeners();
+      } else {
+        if (kDebugMode) {
+           print('Fetch Wallet History Error: ${response.body}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Fetch Wallet History Exception: $e');
+      }
     }
   }
 

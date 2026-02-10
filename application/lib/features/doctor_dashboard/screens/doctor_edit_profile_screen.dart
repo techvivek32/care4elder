@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/doctor_profile_service.dart';
 
@@ -305,37 +306,48 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
   }
 
   Widget _buildImagePicker() {
-    ImageProvider? imageProvider;
-    if (_pickedImage != null) {
-      if (kIsWeb) {
-        imageProvider = MemoryImage(_pickedImage!.bytes!);
-      } else {
-        // For non-web, usually FileImage(File(_pickedImage!.path!))
-        // But since we are in a mock environment that might run on windows but we want to be safe:
-        // If bytes are available use them
-        if (_pickedImage!.bytes != null) {
-           imageProvider = MemoryImage(_pickedImage!.bytes!);
-        }
-      }
-    } else if (_currentImageUrl != null) {
-      // Use network image if available
-      // For mock, if it's not a real URL, we might fallback or use asset
-      if (_currentImageUrl!.startsWith('http')) {
-        imageProvider = NetworkImage(_currentImageUrl!);
-      } else {
-         imageProvider = const AssetImage('assets/images/doctor_male_1.png');
-      }
+    Widget imageContent;
+
+    if (_pickedImage != null && _pickedImage!.bytes != null) {
+      imageContent = Image.memory(
+        _pickedImage!.bytes!,
+        fit: BoxFit.cover,
+        width: 120,
+        height: 120,
+      );
+    } else if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
+      imageContent = CachedNetworkImage(
+        imageUrl: _currentImageUrl!,
+        fit: BoxFit.cover,
+        width: 120,
+        height: 120,
+        placeholder: (context, url) => const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        errorWidget: (context, url, error) => const Icon(
+          Icons.person,
+          size: 60,
+          color: AppColors.primaryBlue,
+        ),
+      );
     } else {
-      imageProvider = const AssetImage('assets/images/doctor_male_1.png');
+      imageContent = const Icon(
+        Icons.person,
+        size: 60,
+        color: AppColors.primaryBlue,
+      );
     }
 
     return Center(
       child: Stack(
         children: [
           Container(
+            width: 120,
+            height: 120,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 4),
+              color: const Color(0xFFE3F2FD),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
@@ -344,10 +356,8 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
                 ),
               ],
             ),
-            child: CircleAvatar(
-              radius: 60,
-              backgroundImage: imageProvider,
-              backgroundColor: Colors.grey.shade200,
+            child: ClipOval(
+              child: imageContent,
             ),
           ),
           Positioned(

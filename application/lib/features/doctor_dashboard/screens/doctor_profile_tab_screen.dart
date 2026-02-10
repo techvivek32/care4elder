@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/doctor_profile_service.dart';
 
@@ -108,14 +109,33 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                         // Avatar with Camera Icon
                         Stack(
                           children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundImage: profile.profileImage != null
-                                  ? NetworkImage(profile.profileImage!)
-                                        as ImageProvider
-                                  : const AssetImage(
-                                      'assets/images/doctor_male_1.png',
-                                    ),
+                            Container(
+                              width: 100,
+                              height: 100,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFFE3F2FD),
+                              ),
+                              child: ClipOval(
+                                child: profile.profileImage != null
+                                    ? CachedNetworkImage(
+                                        imageUrl: profile.profileImage!,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) => const Center(
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                        errorWidget: (context, url, error) => const Icon(
+                                          Icons.person,
+                                          size: 50,
+                                          color: AppColors.primaryBlue,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: AppColors.primaryBlue,
+                                      ),
+                              ),
                             ),
                             Positioned(
                               bottom: 0,

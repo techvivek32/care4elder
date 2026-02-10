@@ -44,6 +44,9 @@ export async function POST(req: Request) {
     //   return NextResponse.json({ error: 'Account pending verification' }, { status: 403 });
     // }
 
+    // Reset availability to false on login
+    await Doctor.findByIdAndUpdate(doctor._id, { isAvailable: false });
+
     const token = signToken({ id: doctor._id, role: 'doctor' });
     const refreshToken = await createRefreshToken(doctor._id.toString(), 'Doctor');
 

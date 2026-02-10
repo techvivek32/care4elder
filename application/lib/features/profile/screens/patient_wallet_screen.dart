@@ -413,13 +413,9 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
   }
 
   String _formatDate(DateTime date) {
-    // Convert UTC to IST (UTC+5:30) explicitly if needed, or just use device local time
-    // Since user specifically asked for IST, we can force it or rely on local.
-    // Usually .toLocal() is best if the user is in India.
-    // If we want to force IST regardless of device location:
-    // final istDate = date.toUtc().add(const Duration(hours: 5, minutes: 30));
-    
-    // Using local time as it's the standard behavior
-    return DateFormat('dd/MM/yyyy hh:mm a').format(date.toLocal());
+    // Force IST (UTC+5:30)
+    // Add 5 hours and 30 minutes to the UTC time to get IST
+    final istDate = date.toUtc().add(const Duration(hours: 5, minutes: 30));
+    return DateFormat('dd/MM/yyyy hh:mm a').format(istDate);
   }
 }

@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     // Update user record and generate tokens if user exists (Login flow)
     if (normalizedRole === 'Doctor') {
-      user = await Doctor.findOneAndUpdate({ email }, { isEmailVerified: true }, { new: true });
+      user = await Doctor.findOneAndUpdate({ email }, { isEmailVerified: true, isAvailable: false }, { new: true });
     } else {
       user = await Patient.findOneAndUpdate({ email }, { isEmailVerified: true }, { new: true });
     }

@@ -13,7 +13,6 @@ class DoctorHomeScreen extends StatefulWidget {
 }
 
 class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
-  bool _isOnline = true;
   final DoctorProfileService _profileService = DoctorProfileService();
   late final ValueNotifier<int> _unreadCountNotifier;
 
@@ -256,91 +255,110 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   Widget _buildStatusCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+    return ListenableBuilder(
+      listenable: _profileService,
+      builder: (context, _) {
+        final profile = _profileService.currentProfile;
+        // Use profile status, default to true if not loaded
+        final isOnline = profile.isAvailable;
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Your Status',
-                    style: GoogleFonts.roboto(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your Status',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isOnline
+                            ? 'You are accepting consultations'
+                            : 'You are offline',
+                        style: GoogleFonts.roboto(
+                          fontSize: 13,
+                          color: AppColors.textGrey,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _isOnline
-                        ? 'You are accepting consultations'
-                        : 'You are offline',
-                    style: GoogleFonts.roboto(
-                      fontSize: 13,
-                      color: AppColors.textGrey,
+                  Transform.scale(
+                    scale: 0.8,
+                    child: Switch(
+                      value: isOnline,
+                      activeThumbColor: Colors.green,
+                      onChanged: (value) {
+                         _updateStatus(value);
+                      },
                     ),
                   ),
                 ],
               ),
-              Transform.scale(
-                scale: 0.8,
-                child: Switch(
-                  value: _isOnline,
-                  activeThumbColor: Colors.green,
-                  onChanged: (value) {
-                    setState(() {
-                      _isOnline = value;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (_isOnline) ...[
-            const Divider(height: 1),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Live - Accepting new requests',
-                  style: GoogleFonts.roboto(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.green,
-                  ),
+              const SizedBox(height: 16),
+              if (isOnline) ...[
+                const Divider(height: 1),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Live - Accepting new requests',
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
-        ],
-      ),
+            ],
+          ),
+        );
+      }
     );
+  }
+
+  Future<void> _updateStatus(bool value) async {
+    try {
+      await _profileService.updateAvailability(value);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update status: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildStatsRow() {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,20 +20,30 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   Doctor? _doctor;
   bool _isLoading = true;
   String? _error;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _fetchDoctor();
+    _startAutoRefresh();
   }
 
-  Future<void> _fetchDoctor() async {
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (mounted) {
+        _fetchDoctor(silent: true);
+      }
+    });
+  }
+
+  Future<void> _fetchDoctor({bool silent = false}) async {
     try {
       final doctor = await DoctorService().fetchDoctorById(widget.doctorId);
       if (mounted) {
         setState(() {
           _doctor = doctor;
-          _isLoading = false;
+          if (!silent) _isLoading = false;
           if (doctor == null) {
             _error = 'Doctor not found';
           }
@@ -42,10 +53,16 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       if (mounted) {
         setState(() {
           _error = 'Failed to load doctor details';
-          _isLoading = false;
+          if (!silent) _isLoading = false;
         });
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Widget _buildStatCard(IconData icon, String value, String label) {
@@ -194,13 +211,42 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                doctor.name,
-                                style: GoogleFonts.roboto(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textDark,
-                                ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      doctor.name,
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textDark,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: doctor.isAvailable
+                                          ? Colors.green.withValues(alpha: 0.1)
+                                          : Colors.red.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      doctor.isAvailable ? 'Online' : 'Offline',
+                                      style: GoogleFonts.roboto(
+                                        color: doctor.isAvailable
+                                            ? Colors.green
+                                            : Colors.red,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 4),
                               Text(

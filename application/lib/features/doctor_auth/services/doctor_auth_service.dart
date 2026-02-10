@@ -454,6 +454,30 @@ class DoctorAuthService extends ChangeNotifier {
     return _storage.read(key: _doctorIdKey);
   }
 
+  Future<void> logout() async {
+    try {
+      final token = await getDoctorToken();
+      final doctorId = await getDoctorId();
+      
+      if (token != null && doctorId != null) {
+        // Set availability to false on backend
+        await http.patch(
+          Uri.parse('${ApiConstants.baseUrl}/doctors/$doctorId/availability'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({'isAvailable': false}),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error updating status during logout: $e');
+      // Continue with logout even if API fails
+    } finally {
+      await clearDoctorSession();
+    }
+  }
+
   Future<void> clearDoctorSession() async {
     await _storage.delete(key: _doctorTokenKey);
     await _storage.delete(key: _doctorRefreshTokenKey);

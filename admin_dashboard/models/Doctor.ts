@@ -59,7 +59,7 @@ const DoctorSchema: Schema = new Schema({
     standard: { type: Number },
     emergency: { type: Number },
   },
-  isAvailable: { type: Boolean, default: true },
+  isAvailable: { type: Boolean, default: false },
   isEmailVerified: { type: Boolean, default: false },
   otp: { type: String, select: false },
   otpExpiry: { type: Date, select: false },

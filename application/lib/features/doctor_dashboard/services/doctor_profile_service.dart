@@ -34,6 +34,7 @@ class DoctorProfileData {
   String about;
   String hospitalAffiliation;
   String? profileImage;
+  bool isAvailable;
   Map<String, dynamic>? consultationFees;
   Map<String, dynamic>? bankDetails;
 
@@ -48,6 +49,7 @@ class DoctorProfileData {
     required this.about,
     this.hospitalAffiliation = '',
     this.profileImage,
+    this.isAvailable = true,
     this.consultationFees,
     this.bankDetails,
   });
@@ -68,6 +70,7 @@ class DoctorProfileData {
       about: json['about'] ?? '',
       hospitalAffiliation: json['hospitalAffiliation'] ?? '',
       profileImage: _resolveImageUrl(rawImage),
+      isAvailable: json['isAvailable'] ?? true,
       consultationFees: json['consultationFees'],
       bankDetails: json['bankDetails'],
     );
@@ -85,6 +88,7 @@ class DoctorProfileData {
       'about': about,
       'hospitalAffiliation': hospitalAffiliation,
       'profileImage': profileImage,
+      'isAvailable': isAvailable,
       'consultationFees': consultationFees,
       'bankDetails': bankDetails,
     };
@@ -101,6 +105,7 @@ class DoctorProfileData {
     String? about,
     String? hospitalAffiliation,
     String? profileImage,
+    bool? isAvailable,
     Map<String, dynamic>? consultationFees,
     Map<String, dynamic>? bankDetails,
   }) {
@@ -115,6 +120,7 @@ class DoctorProfileData {
       about: about ?? this.about,
       hospitalAffiliation: hospitalAffiliation ?? this.hospitalAffiliation,
       profileImage: profileImage ?? this.profileImage,
+      isAvailable: isAvailable ?? this.isAvailable,
       consultationFees: consultationFees ?? this.consultationFees,
       bankDetails: bankDetails ?? this.bankDetails,
     );
@@ -175,6 +181,34 @@ class DoctorProfileService extends ChangeNotifier {
     throw Exception(
       jsonDecode(response.body)['error'] ?? 'Failed to load profile',
     );
+  }
+
+  Future<void> updateAvailability(bool isAvailable) async {
+    try {
+      final token = await DoctorAuthService().getDoctorToken();
+      final doctorId = await DoctorAuthService().getDoctorId();
+      
+      if (token == null || doctorId == null) return;
+
+      final response = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/doctors/$doctorId/availability'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'isAvailable': isAvailable}),
+      );
+
+      if (response.statusCode == 200) {
+        _currentProfile = _currentProfile.copyWith(isAvailable: isAvailable);
+        notifyListeners();
+      } else {
+        throw Exception('Failed to update availability');
+      }
+    } catch (e) {
+      debugPrint('Error updating availability: $e');
+      rethrow;
+    }
   }
 
   Future<bool> updateProfile(DoctorProfileData updatedData) async {

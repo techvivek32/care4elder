@@ -33,6 +33,7 @@ export async function POST(req: Request) {
     // Verify
     doctor.otp = undefined;
     doctor.otpExpiry = undefined;
+    doctor.isAvailable = false; // Reset availability on login
     await doctor.save();
 
     // Clean up from Otp collection if exists

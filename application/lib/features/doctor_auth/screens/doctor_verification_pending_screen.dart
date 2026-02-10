@@ -167,7 +167,7 @@ class _DoctorVerificationPendingScreenState
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    await DoctorAuthService().clearDoctorSession();
+                    await DoctorAuthService().logout();
                     if (!context.mounted) return;
                     context.go('/doctor/login');
                   },

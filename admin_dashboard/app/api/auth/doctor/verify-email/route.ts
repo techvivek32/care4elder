@@ -38,6 +38,7 @@ export async function POST(req: Request) {
     doctor.isEmailVerified = true;
     doctor.otp = undefined;
     doctor.otpExpiry = undefined;
+    doctor.isAvailable = false;
     await doctor.save();
 
     // Clean up from Otp collection if exists

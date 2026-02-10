@@ -79,10 +79,12 @@ class DoctorService extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> fetchDoctors() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+  Future<void> fetchDoctors({bool silent = false}) async {
+    if (!silent) {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+    }
 
     try {
       // The list endpoint is public
@@ -104,7 +106,7 @@ class DoctorService extends ChangeNotifier {
         _error = 'Failed to fetch doctors: ${response.statusCode}';
       }
     } catch (e) {
-      _error = 'Failed to fetch doctors: $e';
+      _error = 'Error fetching doctors: $e';
     } finally {
       _isLoading = false;
       notifyListeners();

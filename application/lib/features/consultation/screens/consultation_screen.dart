@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,6 +16,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   String _selectedCategory = 'All';
   final TextEditingController _searchController = TextEditingController();
   final DoctorService _doctorService = DoctorService();
+  Timer? _refreshTimer;
 
   final List<String> _categories = [
     'All',
@@ -34,6 +36,15 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
       }
     });
     _loadDoctors();
+    _startAutoRefresh();
+  }
+
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (mounted) {
+        _doctorService.fetchDoctors(silent: true);
+      }
+    });
   }
 
   Future<void> _loadDoctors() async {
@@ -42,6 +53,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -281,7 +293,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                                 ? Colors.green.withValues(
                                                     alpha: 0.1,
                                                   )
-                                                : Colors.grey.withValues(
+                                                : Colors.red.withValues(
                                                     alpha: 0.1,
                                                   ),
                                             borderRadius: BorderRadius.circular(12),
@@ -293,7 +305,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                               fontWeight: FontWeight.w600,
                                               color: doctor.isAvailable
                                                   ? Colors.green
-                                                  : Colors.grey,
+                                                  : Colors.red,
                                             ),
                                           ),
                                         ),

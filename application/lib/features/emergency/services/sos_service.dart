@@ -78,6 +78,26 @@ class SOSService {
     }
   }
 
+  Future<Map<String, dynamic>?> getSOSStatus(String sosId) async {
+    try {
+      final token = await _authService.getToken();
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/sos/$sosId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      print('Get SOS Status Error: $e');
+      return null;
+    }
+  }
+
   Future<void> stopSOS() async {
     try {
       final sosId = await getActiveSosId();

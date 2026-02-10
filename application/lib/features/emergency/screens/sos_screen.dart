@@ -25,6 +25,7 @@ class _SosScreenState extends State<SosScreen> {
   bool _isActivating = false;
   String? _activationError;
   Timer? _etaTimer;
+  Timer? _statusPollingTimer;
   Duration _etaRemaining = const Duration(minutes: 8);
 
   @override
@@ -48,6 +49,70 @@ class _SosScreenState extends State<SosScreen> {
         _etaRemaining = const Duration(minutes: 8); // Should calculate based on start time
       });
       _startEtaTimer();
+      _startStatusPolling();
+    }
+  }
+
+  void _startStatusPolling() {
+    _statusPollingTimer?.cancel();
+    _statusPollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      
+      final sosId = await _sosService.getActiveSosId();
+      if (sosId != null) {
+        final statusData = await _sosService.getSOSStatus(sosId);
+        if (statusData != null && mounted) {
+            // Check if resolved
+            if (statusData['status'] == 'resolved') {
+                await _sosService.stopSOS(); // Clean up local state
+                setState(() {
+                    _isActive = false;
+                });
+                timer.cancel();
+                return;
+            }
+
+            // Update Services
+            if (statusData['callStatus'] != null && statusData['callStatus']['service'] != null) {
+                final servicesData = statusData['callStatus']['service']['selectedServices'] as List?;
+                if (servicesData != null) {
+                    setState(() {
+                        _services = servicesData.map<Map<String, dynamic>>((s) {
+                            String name = s['name'] ?? 'Unknown';
+                            return {
+                                'name': name,
+                                'status': s['status'] == 'active' ? 'Dispatched' : (s['status'] ?? 'Active'),
+                                'eta': s['eta'] ?? 'Calculating...',
+                                'icon': _getServiceIcon(name),
+                                'color': _getServiceColor(name),
+                            };
+                        }).toList();
+                    });
+                }
+            }
+        }
+      }
+    });
+  }
+
+  IconData _getServiceIcon(String name) {
+    switch (name.toLowerCase()) {
+      case 'ambulance': return Icons.medical_services_outlined;
+      case 'police': return Icons.local_police_outlined;
+      case 'fire dept': return Icons.fire_truck_outlined;
+      default: return Icons.emergency_outlined;
+    }
+  }
+
+  Color _getServiceColor(String name) {
+    switch (name.toLowerCase()) {
+      case 'ambulance': return Colors.red;
+      case 'police': return Colors.blue;
+      case 'fire dept': return Colors.orange;
+      default: return Colors.grey;
     }
   }
 
@@ -155,33 +220,12 @@ class _SosScreenState extends State<SosScreen> {
 
   List<Map<String, dynamic>> _contacts = [];
 
-  final List<Map<String, dynamic>> _services = [
-    {
-      'name': 'Ambulance',
-      'status': 'Dispatched',
-      'eta': '8 mins',
-      'icon': Icons.medical_services_outlined,
-      'color': Colors.red,
-    },
-    {
-      'name': 'Police',
-      'status': 'Notified',
-      'eta': '12 mins',
-      'icon': Icons.local_police_outlined,
-      'color': Colors.blue,
-    },
-    {
-      'name': 'Fire Dept',
-      'status': 'On Standby',
-      'eta': '15 mins',
-      'icon': Icons.fire_truck_outlined,
-      'color': Colors.orange,
-    },
-  ];
+  List<Map<String, dynamic>> _services = [];
 
   @override
   void dispose() {
     _etaTimer?.cancel();
+    _statusPollingTimer?.cancel();
     super.dispose();
   }
 
@@ -513,29 +557,6 @@ class _SosScreenState extends State<SosScreen> {
               ),
               child: Text(
                 'Cancel Emergency Alert',
-                style: GoogleFonts.roboto(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: _callEmergency,
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.textDark,
-                side: BorderSide(color: Colors.grey.shade300),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Call Emergency Services',
                 style: GoogleFonts.roboto(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

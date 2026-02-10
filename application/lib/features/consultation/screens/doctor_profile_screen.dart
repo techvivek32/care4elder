@@ -413,24 +413,36 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        // Handle booking
-                        // context.push('/book-appointment/${doctor.id}');
+                        context.push('/patient/doctor/${doctor.id}/call');
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryBlue,
+                        backgroundColor: const Color(0xFFFF5252),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        elevation: 0,
+                        elevation: 4,
+                        shadowColor: const Color(0xFFFF5252).withValues(alpha: 0.4),
                       ),
-                      child: Text(
-                        'Book Appointment',
-                        style: GoogleFonts.roboto(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.videocam_rounded,
+                            size: 24,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Call Now',
+                            style: GoogleFonts.roboto(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

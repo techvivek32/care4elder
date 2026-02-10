@@ -185,6 +185,12 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
                 <span className="font-semibold text-gray-900">₹{doctor.consultationFee}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-gray-500">Emergency Fee</span>
+                <span className="font-semibold text-gray-900">
+                  {doctor.consultationFees?.emergency ? `₹${doctor.consultationFees.emergency}` : '-'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b">
                 <span className="text-gray-500">Wallet Balance</span>
                 <span className="font-semibold text-green-600">₹{doctor.walletBalance}</span>
               </div>
@@ -194,8 +200,8 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
                   <h4 className="text-sm font-medium text-gray-900 mb-3">Bank Information</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Bank Name</span>
-                      <span className="text-gray-900">{doctor.bankDetails.bankName || '-'}</span>
+                      <span className="text-gray-500">Holder Name</span>
+                      <span className="text-gray-900">{doctor.bankDetails.accountHolderName || '-'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Account No</span>

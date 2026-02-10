@@ -27,6 +27,7 @@ class _SosScreenState extends State<SosScreen> {
   Timer? _etaTimer;
   Timer? _statusPollingTimer;
   Duration _etaRemaining = const Duration(minutes: 8);
+  int? _lastKnownMinEtaMinutes;
 
   @override
   void initState() {
@@ -79,6 +80,22 @@ class _SosScreenState extends State<SosScreen> {
             if (statusData['callStatus'] != null && statusData['callStatus']['service'] != null) {
                 final servicesData = statusData['callStatus']['service']['selectedServices'] as List?;
                 if (servicesData != null) {
+                    // Calculate minimum ETA
+                    int? minMinutes;
+                    for (var s in servicesData) {
+                        int? minutes = _parseEtaToMinutes(s['eta']);
+                        if (minutes != null) {
+                            if (minMinutes == null || minutes < minMinutes) {
+                                minMinutes = minutes;
+                            }
+                        }
+                    }
+
+                    if (minMinutes != null && minMinutes != _lastKnownMinEtaMinutes) {
+                        _lastKnownMinEtaMinutes = minMinutes;
+                        _etaRemaining = Duration(minutes: minMinutes);
+                    }
+
                     setState(() {
                         _services = servicesData.map<Map<String, dynamic>>((s) {
                             String name = s['name'] ?? 'Unknown';
@@ -96,6 +113,19 @@ class _SosScreenState extends State<SosScreen> {
         }
       }
     });
+  }
+
+  int? _parseEtaToMinutes(String? eta) {
+    if (eta == null) return null;
+    final match = RegExp(r'(\d+)').firstMatch(eta);
+    if (match != null) {
+      int val = int.parse(match.group(1)!);
+      if (eta.toLowerCase().contains('hour') || eta.toLowerCase().contains('hr')) {
+        val *= 60;
+      }
+      return val;
+    }
+    return null;
   }
 
   IconData _getServiceIcon(String name) {

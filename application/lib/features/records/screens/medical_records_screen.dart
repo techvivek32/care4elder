@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../auth/services/auth_service.dart';
 import '../../../core/services/call_request_service.dart';
 import 'patient_record_detail_screen.dart';
@@ -42,6 +44,37 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         setState(() => _isLoading = false);
       }
       debugPrint('Error fetching records: $e');
+    }
+  }
+
+  Future<void> _downloadFile(String url) async {
+    String finalUrl = url;
+    if (!url.startsWith('http')) {
+      final baseUrl = ApiConstants.baseUrl;
+      final rootUrl = baseUrl.endsWith('/api') 
+          ? baseUrl.substring(0, baseUrl.length - 4) 
+          : baseUrl;
+      
+      if (!url.startsWith('/')) {
+        finalUrl = '$rootUrl/$url';
+      } else {
+        finalUrl = '$rootUrl$url';
+      }
+    }
+
+    final uri = Uri.parse(finalUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      try {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not launch file URL: $finalUrl')),
+          );
+        }
+      }
     }
   }
 
@@ -198,6 +231,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           record,
           'Prescription',
           Icons.description_outlined,
+          record.prescriptions,
+          Colors.blue,
         ));
       }
       if (record.labReports.isNotEmpty) {
@@ -205,6 +240,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           record,
           'Lab Report',
           Icons.science_outlined,
+          record.labReports,
+          Colors.green,
         ));
       }
       if (record.medicalDocuments.isNotEmpty) {
@@ -212,6 +249,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           record,
           'Medical Document',
           Icons.folder_open_outlined,
+          record.medicalDocuments,
+          Colors.orange,
         ));
       }
     }
@@ -219,17 +258,32 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     return items.take(10).toList(); // Show up to 10 recent items
   }
 
-  Widget _buildRecordItemWrapper(CallRequestData record, String title, IconData icon) {
+  Widget _buildRecordItemWrapper(
+    CallRequestData record, 
+    String title, 
+    IconData icon,
+    List<String> files,
+    Color color,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GestureDetector(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PatientRecordDetailScreen(callRequest: record),
-            ),
-          );
+          if (files.length == 1) {
+            _downloadFile(files.first);
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PatientCategoryFilesScreen(
+                  title: title,
+                  files: files,
+                  icon: icon,
+                  color: color,
+                ),
+              ),
+            );
+          }
         },
         child: _buildRecentRecordItem(
           title: title,

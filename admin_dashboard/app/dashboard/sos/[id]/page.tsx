@@ -32,41 +32,41 @@ export default function SOSDetailPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center space-x-4">
         <Link href="/dashboard/sos" className="p-2 hover:bg-gray-100 rounded-full">
-          <ArrowLeft className="h-6 w-6" />
+          <ArrowLeft className="h-6 w-6 text-black" />
         </Link>
-        <h1 className="text-2xl font-bold text-gray-800">Emergency Alert Details</h1>
+        <h1 className="text-2xl font-bold text-black">Emergency Alert Details</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Map & Location */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center">
-              <MapPin className="mr-2 h-5 w-5 text-red-500" /> Live Location
+            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
+              <MapPin className="mr-2 h-5 w-5 text-red-600" /> Live Location
             </h2>
             <div className="bg-gray-100 rounded-lg h-96 flex items-center justify-center relative overflow-hidden">
-               {/* Placeholder for Map - In a real app, integrate Google Maps or Leaflet here */}
-               <div className="text-center p-6">
-                 <MapPin className="h-12 w-12 text-red-500 mx-auto mb-2 animate-bounce" />
-                 <p className="font-mono text-lg">{typeof alert.location === 'string' ? alert.location : JSON.stringify(alert.location)}</p>
-                 <p className="text-sm text-gray-500 mt-2">
-                   <a 
-                    href={`https://www.google.com/maps/search/?api=1&query=${alert.location?.lat},${alert.location?.lng}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                   >
-                     Open in Google Maps
-                   </a>
-                 </p>
-               </div>
+               {alert.location?.lat && alert.location?.lng ? (
+                 <iframe
+                   width="100%"
+                   height="100%"
+                   frameBorder="0"
+                   style={{ border: 0 }}
+                   src={`https://maps.google.com/maps?q=${alert.location.lat},${alert.location.lng}&z=15&output=embed`}
+                   allowFullScreen
+                 ></iframe>
+               ) : (
+                 <div className="text-center p-6">
+                   <MapPin className="h-12 w-12 text-red-500 mx-auto mb-2 animate-bounce" />
+                   <p className="font-mono text-lg">{typeof alert.location === 'string' ? alert.location : JSON.stringify(alert.location)}</p>
+                 </div>
+               )}
             </div>
           </div>
 
           {/* Emergency Contacts */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center">
-              <Phone className="mr-2 h-5 w-5 text-blue-500" /> Emergency Contacts
+            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
+              <Phone className="mr-2 h-5 w-5 text-blue-600" /> Emergency Contacts
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {patient?.emergencyContacts?.map((contact: any, index: number) => (
@@ -75,21 +75,21 @@ export default function SOSDetailPage() {
                     <User className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{contact.name}</p>
-                    <p className="text-sm text-gray-500">{contact.relation}</p>
+                    <p className="font-medium text-black">{contact.name}</p>
+                    <p className="text-sm text-black">{contact.relation}</p>
                     <p className="text-sm font-mono text-blue-600 mt-1">{contact.phone}</p>
                   </div>
                 </div>
               ))}
               {(!patient?.emergencyContacts || patient.emergencyContacts.length === 0) && (
-                <p className="text-gray-500 italic">No emergency contacts listed.</p>
+                <p className="text-black italic">No emergency contacts listed.</p>
               )}
             </div>
           </div>
 
           {/* Recent Doctors */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
               <Stethoscope className="mr-2 h-5 w-5 text-green-600" /> Recent Doctors
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -103,14 +103,14 @@ export default function SOSDetailPage() {
                      )}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{doctor.name}</p>
-                    <p className="text-sm text-gray-500">{doctor.specialization}</p>
+                    <p className="font-medium text-black">{doctor.name}</p>
+                    <p className="text-sm text-black">{doctor.specialization}</p>
                     <p className="text-sm font-mono text-green-600 mt-1">{doctor.phone}</p>
                   </div>
                 </div>
               ))}
               {(!alert.doctors || alert.doctors.length === 0) && (
-                <p className="text-gray-500 italic">No recent doctors found.</p>
+                <p className="text-black italic">No recent doctors found.</p>
               )}
             </div>
           </div>
@@ -119,7 +119,7 @@ export default function SOSDetailPage() {
         {/* Right Column: Patient Info & Status */}
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
               <User className="mr-2 h-5 w-5 text-gray-700" /> Patient Information
             </h2>
             <div className="space-y-4">
@@ -128,39 +128,31 @@ export default function SOSDetailPage() {
                   {patient?.profilePictureUrl ? (
                     <img src={patient.profilePictureUrl} alt={patient.name} className="h-full w-full object-cover" />
                   ) : (
-                    <span className="text-xl font-bold text-gray-500">{patient?.name?.[0]}</span>
+                    <span className="text-xl font-bold text-black">{patient?.name?.[0]}</span>
                   )}
                 </div>
                 <div>
-                  <p className="font-bold text-lg">{patient?.name}</p>
-                  <p className="text-sm text-gray-500">{patient?.email}</p>
+                  <p className="font-bold text-lg text-black">{patient?.name}</p>
+                  <p className="text-sm text-black">{patient?.email}</p>
                 </div>
               </div>
               
               <div className="pt-4 border-t border-gray-100 space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Phone</span>
-                  <span className="font-medium">{patient?.phone}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Blood Group</span>
-                  <span className="font-medium">{patient?.bloodGroup || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Allergies</span>
-                  <span className="font-medium text-red-500">{patient?.allergies || 'None'}</span>
+                  <span className="text-black">Phone</span>
+                  <span className="font-medium text-black">{patient?.phone}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
               <Clock className="mr-2 h-5 w-5 text-orange-500" /> Alert Status
             </h2>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Status</span>
+                <span className="text-black">Status</span>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                   alert.status === 'active' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
                 }`}>
@@ -168,15 +160,15 @@ export default function SOSDetailPage() {
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Started At</span>
-                <span className="font-medium text-sm">
+                <span className="text-black">Started At</span>
+                <span className="font-medium text-sm text-black">
                   {new Date(alert.timestamp).toLocaleString()}
                 </span>
               </div>
               
               {alert.status === 'active' && (
                 <div className="pt-4 mt-4 border-t border-gray-100">
-                  <p className="text-sm text-gray-500 mb-3">
+                  <p className="text-sm text-black mb-3">
                     Once the emergency is handled, mark this alert as resolved.
                   </p>
                   <button 

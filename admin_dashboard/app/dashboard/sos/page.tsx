@@ -85,10 +85,20 @@ export default function SOSPage() {
                   <ExternalLink className="mr-2 h-4 w-4" /> View Details
                 </Link>
                 <button
-                  onClick={() => mutation.mutate(alert._id)}
-                  className="bg-white text-red-600 px-4 py-2 border border-red-200 rounded-md shadow-sm hover:bg-red-100 flex items-center justify-center"
+                  onClick={() => resolveMutation.mutate(alert._id)}
+                  className="bg-white text-green-600 px-4 py-2 border border-green-200 rounded-md shadow-sm hover:bg-green-100 flex items-center justify-center"
                 >
-                  <CheckCircle className="mr-2 h-4 w-4" /> Mark Resolved
+                  <CheckCircle className="mr-2 h-4 w-4" /> Resolve
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete this alert?')) {
+                      deleteMutation.mutate(alert._id);
+                    }
+                  }}
+                  className="bg-white text-gray-600 px-4 py-2 border border-gray-200 rounded-md shadow-sm hover:bg-gray-100 flex items-center justify-center"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
                 </button>
               </div>
             </div>

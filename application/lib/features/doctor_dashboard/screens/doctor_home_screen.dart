@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/call_request_service.dart';
+import '../../doctor_auth/services/doctor_auth_service.dart';
 import '../services/doctor_profile_service.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
@@ -15,6 +18,10 @@ class DoctorHomeScreen extends StatefulWidget {
 class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   final DoctorProfileService _profileService = DoctorProfileService();
   late final ValueNotifier<int> _unreadCountNotifier;
+  final CallRequestService _callService = CallRequestService();
+  Timer? _incomingCallTimer;
+  bool _checkingIncoming = false;
+  String? _activeCallId;
 
   @override
   void initState() {
@@ -22,6 +29,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     // Ensure we have a valid notifier
     _unreadCountNotifier = NotificationService().unreadCountNotifier;
     _loadProfile();
+    _startIncomingCallPolling();
   }
 
   Future<void> _loadProfile() async {
@@ -47,6 +55,126 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   @override
+  void dispose() {
+    _incomingCallTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startIncomingCallPolling() {
+    _incomingCallTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _checkIncomingCall();
+    });
+  }
+
+  Future<void> _checkIncomingCall() async {
+    if (_checkingIncoming) return;
+    final profile = _profileService.currentProfile;
+    if (!profile.isAvailable) return;
+    if (_activeCallId != null) return;
+
+    _checkingIncoming = true;
+    try {
+      final token = await DoctorAuthService().getDoctorToken();
+      final doctorId = await DoctorAuthService().getDoctorId();
+      if (token == null || doctorId == null) {
+        _checkingIncoming = false;
+        return;
+      }
+
+      final incoming = await _callService.fetchIncomingCallForDoctor(
+        token: token,
+        doctorId: doctorId,
+      );
+
+      if (incoming == null || incoming.status != 'ringing') {
+        _checkingIncoming = false;
+        return;
+      }
+
+      _activeCallId = incoming.id;
+      if (!mounted) {
+        _checkingIncoming = false;
+        return;
+      }
+
+      final result = await _showIncomingCallDialog(incoming);
+      if (!mounted) {
+        _activeCallId = null;
+        _checkingIncoming = false;
+        return;
+      }
+
+      if (result == 'accept') {
+        await _callService.updateCallRequestStatus(
+          token: token,
+          callRequestId: incoming.id,
+          status: 'accepted',
+        );
+        if (mounted) {
+          context.push('/doctor/call-room', extra: {
+            'channel': incoming.channelName,
+            'remoteName': incoming.patientName,
+            'callRequestId': incoming.id,
+          });
+        }
+      } else if (result == 'decline') {
+        await _callService.updateCallRequestStatus(
+          token: token,
+          callRequestId: incoming.id,
+          status: 'declined',
+        );
+      }
+      _activeCallId = null;
+    } finally {
+      _checkingIncoming = false;
+    }
+  }
+
+  Future<String?> _showIncomingCallDialog(CallRequestData call) {
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Incoming Call',
+            style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Patient: ${call.patientName}'),
+              const SizedBox(height: 8),
+              Text(
+                call.consultationType == 'emergency'
+                    ? 'Emergency Call'
+                    : 'Consultation Call',
+              ),
+              const SizedBox(height: 8),
+              Text('Fee: ₹${call.fee.toStringAsFixed(0)}'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'decline'),
+              child: const Text('Decline'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, 'accept'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Accept'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -64,6 +192,37 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               _buildStatusCard(),
               const SizedBox(height: 24),
 
+              // Join Call Button
+              ListenableBuilder(
+                listenable: _profileService,
+                builder: (context, _) {
+                  final profile = _profileService.currentProfile;
+                  if (!profile.isAvailable) return const SizedBox.shrink();
+                  
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        context.push('/doctor/call-room', extra: {
+                          'channel': profile.id,
+                          'remoteName': 'Patient',
+                        });
+                      },
+                      icon: const Icon(Icons.video_call),
+                      label: const Text('Join My Consultation Room'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryBlue,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
               // Stats Row
               _buildStatsRow(),
               const SizedBox(height: 24),
@@ -80,7 +239,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 type: 'Video',
                 reason: 'Recurring headaches',
                 isNew: true,
-                imageAsset: 'assets/images/user1.png',
+                imageAsset: 'assets/images/logo.png',
                 onTap: () {
                   context.push(
                     '/doctor/request-details/1',
@@ -90,7 +249,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                       'type': 'Video Call',
                       'time': '10:30 AM',
                       'symptom': 'Recurring headaches',
-                      'image': 'assets/images/user1.png',
+                      'image': 'assets/images/logo.png',
                     },
                   );
                 },
@@ -102,7 +261,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 type: 'Voice',
                 reason: 'Follow-up consultation',
                 isNew: true,
-                imageAsset: 'assets/images/user2.png',
+                imageAsset: 'assets/images/logo.png',
                 onTap: () {
                   context.push(
                     '/doctor/request-details/2',
@@ -112,7 +271,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                       'type': 'Voice Call',
                       'time': '11:00 AM',
                       'symptom': 'Follow-up consultation',
-                      'image': 'assets/images/user2.png',
+                      'image': 'assets/images/logo.png',
                     },
                   );
                 },

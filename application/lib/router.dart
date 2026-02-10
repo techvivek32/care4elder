@@ -29,7 +29,8 @@ import 'features/emergency/screens/sos_screen.dart';
 import 'features/records/screens/medical_records_screen.dart';
 import 'features/profile/screens/patient_profile_screen.dart';
 import 'features/profile/screens/personal_info_screen.dart';
-import 'features/consultation/screens/video_call_screen.dart';
+import 'features/call/screens/video_call_screen.dart';
+import 'features/call/screens/patient_ringing_screen.dart';
 import 'features/notifications/screens/notification_screen.dart';
 import 'features/settings/screens/app_settings_screen.dart';
 import 'features/profile/screens/patient_wallet_screen.dart';
@@ -228,6 +229,21 @@ final router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/doctor/call-room',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final channel = extra?['channel'] ?? '';
+        final remoteName = extra?['remoteName'] ?? 'Patient';
+        final callRequestId = extra?['callRequestId'];
+        return VideoCallScreen(
+          channelName: channel,
+          remoteUserName: remoteName,
+          callRequestId: callRequestId,
+          isDoctor: true,
+        );
+      },
+    ),
+    GoRoute(
       path: '/doctor/earnings',
       builder: (context, state) => const DoctorEarningsScreen(),
     ),
@@ -302,7 +318,26 @@ final router = GoRouter(
       path: '/patient/doctor/:id/call',
       builder: (context, state) {
         final id = state.pathParameters['id']!;
-        return VideoCallScreen(doctorId: id);
+        final extra = state.extra as Map<String, dynamic>?;
+        final name = extra?['doctorName'] ?? 'Doctor';
+        final callRequestId = extra?['callRequestId'];
+        return VideoCallScreen(
+          channelName: id,
+          remoteUserName: name,
+          callRequestId: callRequestId,
+          isDoctor: false,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/patient/doctor/:id/ringing',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        return PatientRingingScreen(
+          callRequestId: extra['callRequestId'] ?? '',
+          channelName: extra['channelName'] ?? '',
+          doctorName: extra['doctorName'] ?? 'Doctor',
+        );
       },
     ),
     GoRoute(

@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/call_request_service.dart';
+import '../../auth/services/auth_service.dart';
 import '../../../core/services/profile_service.dart';
 
 class DoctorProfileScreen extends StatefulWidget {
@@ -693,10 +695,21 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
     
     try {
       final profileService = context.read<ProfileService>();
+      final authService = AuthService();
+      final callService = CallRequestService();
       final walletBalance = profileService.currentUser?.walletBalance ?? 0;
       final fee = _selectedType == 'consultation' 
           ? widget.doctor.consultationFee 
           : widget.doctor.emergencyFee;
+
+      if (!widget.doctor.isAvailable) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Doctor is offline')),
+          );
+        }
+        return;
+      }
 
       if (walletBalance < fee) {
         if (mounted) {
@@ -710,8 +723,41 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
       
       if (mounted) {
         if (success) {
-          Navigator.pop(context); // Close sheet
-          context.push('/patient/doctor/${widget.doctor.id}/call');
+          final token = await authService.getToken();
+          final patientId = await authService.getPatientId();
+          if (token == null || patientId == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Session expired, please login again')),
+            );
+            return;
+          }
+
+          final callRequest = await callService.createCallRequest(
+            token: token,
+            doctorId: widget.doctor.id,
+            patientId: patientId,
+            consultationType: _selectedType,
+            fee: fee,
+          );
+
+          if (callRequest == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Doctor is offline or call failed')),
+            );
+            return;
+          }
+
+          if (mounted) {
+            Navigator.pop(context);
+            context.push(
+              '/patient/doctor/${widget.doctor.id}/ringing',
+              extra: {
+                'callRequestId': callRequest.id,
+                'channelName': callRequest.channelName,
+                'doctorName': widget.doctor.name,
+              },
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(profileService.error ?? 'Transaction failed')),

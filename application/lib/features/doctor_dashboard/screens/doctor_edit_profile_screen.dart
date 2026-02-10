@@ -57,7 +57,16 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
           _nameController.text = profile.name;
           _specialtyController.text = profile.specialty;
           _emailController.text = profile.email;
-          _phoneController.text = profile.phone;
+          
+          // Remove +91 or 91 prefix for display if present
+          String phone = profile.phone;
+          if (phone.startsWith('+91')) {
+            phone = phone.substring(3);
+          } else if (phone.startsWith('91') && phone.length > 10) {
+            phone = phone.substring(2);
+          }
+          _phoneController.text = phone;
+          
           _qualificationsController.text = profile.qualifications;
           _experienceController.text = profile.experience;
           _aboutController.text = profile.about;

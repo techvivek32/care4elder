@@ -20,6 +20,7 @@ import 'features/doctor_auth/screens/doctor_rejected_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_shell.dart';
 import 'features/doctor_dashboard/screens/doctor_home_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_requests_screen.dart';
+import 'features/doctor_dashboard/screens/doctor_records_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_request_details_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_call_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_call_summary_screen.dart';
@@ -160,6 +161,10 @@ final router = GoRouter(
         GoRoute(
           path: '/doctor/requests',
           builder: (context, state) => const DoctorRequestsScreen(),
+        ),
+        GoRoute(
+          path: '/doctor/records',
+          builder: (context, state) => const DoctorRecordsScreen(),
         ),
         GoRoute(
           path: '/doctor/history',

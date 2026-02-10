@@ -20,11 +20,14 @@ class _DoctorShellState extends State<DoctorShell> {
     if (location.startsWith('/doctor/requests')) {
       return 1;
     }
-    if (location.startsWith('/doctor/history')) {
+    if (location.startsWith('/doctor/records')) {
       return 2;
     }
-    if (location.startsWith('/doctor/profile')) {
+    if (location.startsWith('/doctor/history')) {
       return 3;
+    }
+    if (location.startsWith('/doctor/profile')) {
+      return 4;
     }
     return 0;
   }
@@ -78,9 +81,12 @@ class _DoctorShellState extends State<DoctorShell> {
         context.go('/doctor/requests');
         break;
       case 2:
-        context.go('/doctor/history');
+        context.go('/doctor/records');
         break;
       case 3:
+        context.go('/doctor/history');
+        break;
+      case 4:
         context.go('/doctor/profile');
         break;
     }
@@ -135,6 +141,11 @@ class _DoctorShellState extends State<DoctorShell> {
                 icon: Icon(Icons.calendar_today_outlined),
                 activeIcon: Icon(Icons.calendar_today),
                 label: 'Requests',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.description_outlined),
+                activeIcon: Icon(Icons.description),
+                label: 'Records',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.history),

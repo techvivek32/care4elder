@@ -9,6 +9,7 @@ export interface ICallRequest extends Document {
   channelName: string;
   duration?: number; // Duration in seconds
   report?: string; // Doctor's notes/report
+  reportUrl?: string; // URL of uploaded report file
 }
 
 const CallRequestSchema: Schema = new Schema(
@@ -29,6 +30,7 @@ const CallRequestSchema: Schema = new Schema(
     channelName: { type: String, default: '' },
     duration: { type: Number, default: 0 },
     report: { type: String, default: '' },
+    reportUrl: { type: String, default: '' },
   },
   { timestamps: true }
 );

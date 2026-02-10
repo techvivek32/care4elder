@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/services/call_request_service.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/call_request_service.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
 import 'package:intl/intl.dart';
 
@@ -56,6 +58,57 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
       }
     }
     if (mounted) setState(() => _isSaving = false);
+  }
+
+  Future<void> _uploadReportFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles();
+      if (result == null || result.files.single.path == null) {
+        return;
+      }
+
+      final file = File(result.files.single.path!);
+      
+      setState(() => _isSaving = true);
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Uploading report file...')),
+      );
+
+      final token = await DoctorAuthService().getDoctorToken();
+      if (token == null) return;
+
+      final url = await _callService.uploadReportFile(token: token, file: file);
+      
+      if (url != null) {
+        final success = await _callService.updateCallReport(
+          token: token,
+          callRequestId: widget.callRequest.id,
+          reportUrl: url,
+        );
+
+        if (success) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Report file uploaded successfully')),
+          );
+          // Ideally we update the local state to show the file is uploaded, 
+          // but for now just showing success message.
+        } else {
+          throw Exception('Failed to update record');
+        }
+      } else {
+        throw Exception('Failed to upload file');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
@@ -184,17 +237,42 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
                   ),
                 ],
               ),
-              child: TextField(
-                controller: _reportController,
-                maxLines: 8,
-                decoration: InputDecoration(
-                  hintText: 'Enter diagnosis, prescription, or notes here...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _reportController,
+                    maxLines: 8,
+                    decoration: InputDecoration(
+                      hintText: 'Enter diagnosis, prescription, or notes here...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.all(20),
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.all(20),
-                ),
+                  const Divider(height: 1),
+                  ListTile(
+                    onTap: _isSaving ? null : _uploadReportFile,
+                    leading: const Icon(Icons.attach_file, color: AppColors.primaryBlue),
+                    title: Text(
+                      widget.callRequest.reportUrl.isNotEmpty 
+                          ? 'Update Report File (File already uploaded)' 
+                          : 'Attach Report File (PDF/Image)',
+                      style: GoogleFonts.roboto(
+                        color: AppColors.primaryBlue,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    trailing: _isSaving 
+                        ? const SizedBox(
+                            width: 20, 
+                            height: 20, 
+                            child: CircularProgressIndicator(strokeWidth: 2)
+                          ) 
+                        : const Icon(Icons.chevron_right, color: Colors.grey),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),

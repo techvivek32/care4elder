@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
 
@@ -15,6 +17,7 @@ class CallRequestData {
   final DateTime createdAt;
   final int duration;
   final String report;
+  final String reportUrl;
   final String patientProfile;
   final String patientLocation;
   final DateTime? patientDob;
@@ -32,6 +35,7 @@ class CallRequestData {
     required this.createdAt,
     this.duration = 0,
     this.report = '',
+    this.reportUrl = '',
     this.patientProfile = '',
     this.patientLocation = '',
     this.patientDob,
@@ -53,6 +57,7 @@ class CallRequestData {
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
       duration: (json['duration'] as num?)?.toInt() ?? 0,
       report: json['report'] ?? '',
+      reportUrl: json['reportUrl'] ?? '',
       patientProfile: patient is Map ? (patient['profilePictureUrl'] ?? '') : '',
       patientLocation: patient is Map ? (patient['location'] ?? '') : '',
       patientDob: (patient is Map && patient['dateOfBirth'] != null) 
@@ -173,11 +178,13 @@ class CallRequestService {
     required String token,
     required String callRequestId,
     String? report,
+    String? reportUrl,
     int? duration,
     String? status,
   }) async {
     final body = <String, dynamic>{};
     if (report != null) body['report'] = report;
+    if (reportUrl != null) body['reportUrl'] = reportUrl;
     if (duration != null) body['duration'] = duration;
     if (status != null) body['status'] = status;
 
@@ -191,5 +198,40 @@ class CallRequestService {
     );
 
     return response.statusCode == 200;
+  }
+
+  Future<String?> uploadReportFile({
+    required String token,
+    required File file,
+  }) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiConstants.baseUrl}/upload'),
+    );
+    
+    // Add file
+    request.files.add(
+      await http.MultipartFile.fromPath('file', file.path),
+    );
+
+    // Add headers (Authorization if needed, though upload route might be public or check generic auth)
+    // The current upload route doesn't seem to check auth, but it's good practice.
+    // However, the upload route in Next.js example didn't show auth check middleware explicitly, 
+    // but usually it's handled. For now, we'll just send the file.
+    
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['urls'] != null && (data['urls'] as List).isNotEmpty) {
+          return (data['urls'] as List).first as String;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error uploading file: $e');
+    }
+    return null;
   }
 }

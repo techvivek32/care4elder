@@ -69,7 +69,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { status, duration, report } = await request.json();
+    const { status, duration, report, reportUrl } = await request.json();
     
     // Allow updating report separately or with status
     if (status && !['accepted', 'declined', 'cancelled', 'timeout', 'ringing', 'completed'].includes(status)) {
@@ -91,6 +91,7 @@ export async function PATCH(
     if (status) callRequest.status = status;
     if (duration !== undefined) callRequest.duration = duration;
     if (report !== undefined) callRequest.report = report;
+    if (reportUrl !== undefined) callRequest.reportUrl = reportUrl;
     
     await callRequest.save();
 

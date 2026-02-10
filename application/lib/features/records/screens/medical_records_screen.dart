@@ -180,27 +180,61 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   ),
                 )
               else
-                ..._records.take(5).map((record) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PatientRecordDetailScreen(callRequest: record),
-                        ),
-                      );
-                    },
-                    child: _buildRecentRecordItem(
-                      title: 'Consultation Report',
-                      subtitle: '${DateFormat('MMM d, yyyy').format(record.createdAt)} • ${record.doctorName}',
-                      icon: Icons.description_outlined,
-                    ),
-                  ),
-                )),
+                ..._buildRecentRecordsList(),
               const SizedBox(height: 32),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildRecentRecordsList() {
+    List<Widget> items = [];
+    
+    for (var record in _records) {
+      if (record.prescriptions.isNotEmpty) {
+        items.add(_buildRecordItemWrapper(
+          record,
+          'Prescription',
+          Icons.description_outlined,
+        ));
+      }
+      if (record.labReports.isNotEmpty) {
+        items.add(_buildRecordItemWrapper(
+          record,
+          'Lab Report',
+          Icons.science_outlined,
+        ));
+      }
+      if (record.medicalDocuments.isNotEmpty) {
+        items.add(_buildRecordItemWrapper(
+          record,
+          'Medical Document',
+          Icons.folder_open_outlined,
+        ));
+      }
+    }
+    
+    return items.take(10).toList(); // Show up to 10 recent items
+  }
+
+  Widget _buildRecordItemWrapper(CallRequestData record, String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PatientRecordDetailScreen(callRequest: record),
+            ),
+          );
+        },
+        child: _buildRecentRecordItem(
+          title: title,
+          subtitle: '${DateFormat('MMM d, yyyy').format(record.createdAt)} • ${record.doctorName}',
+          icon: icon,
         ),
       ),
     );

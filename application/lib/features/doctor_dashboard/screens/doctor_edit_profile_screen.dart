@@ -265,7 +265,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
                     const SizedBox(height: 16),
                     _buildTextField(
                       controller: _hospitalController,
-                      label: 'Hospital/Clinic Affiliation',
+                      label: 'Hospital/Clinic Address',
                       icon: Icons.local_hospital_outlined,
                       validator: (v) => v?.isEmpty == true ? 'Hospital Affiliation is required' : null,
                     ),

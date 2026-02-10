@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../services/doctor_profile_service.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
   const DoctorHomeScreen({super.key});
@@ -13,6 +14,38 @@ class DoctorHomeScreen extends StatefulWidget {
 
 class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   bool _isOnline = true;
+  final DoctorProfileService _profileService = DoctorProfileService();
+  late final ValueNotifier<int> _unreadCountNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ensure we have a valid notifier
+    _unreadCountNotifier = NotificationService().unreadCountNotifier;
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      await _profileService.getProfile();
+    } catch (e) {
+      debugPrint('Error loading profile: $e');
+    }
+  }
+
+  String _getGreeting() {
+    // IST is UTC + 5:30
+    final now = DateTime.now().toUtc().add(const Duration(hours: 5, minutes: 30));
+    final hour = now.hour;
+
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,91 +156,102 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   Widget _buildHeader() {
-    return Row(
-      children: [
-        const CircleAvatar(
-          radius: 24,
-          backgroundColor: Colors.grey,
-          backgroundImage: AssetImage(
-            'assets/images/doctor_profile.png',
-          ), // Placeholder
-          child: Icon(Icons.person, color: Colors.white), // Fallback
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Good Morning',
-                style: GoogleFonts.roboto(
-                  fontSize: 14,
-                  color: AppColors.textGrey,
-                ),
-              ),
-              Text(
-                'Dr. John Smith',
-                style: GoogleFonts.roboto(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
-                ),
-              ),
-            ],
-          ),
-        ),
-        GestureDetector(
-          onTap: () => context.push('/doctor/notifications'),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
+    return ListenableBuilder(
+      listenable: _profileService,
+      builder: (context, _) {
+        final profile = _profileService.currentProfile;
+        final greeting = _getGreeting();
+        
+        return Row(
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: Colors.grey.shade200,
+              backgroundImage: profile.profileImage != null && profile.profileImage!.isNotEmpty
+                  ? NetworkImage(profile.profileImage!)
+                  : const AssetImage('assets/images/doctor_profile.png') as ImageProvider,
+              child: (profile.profileImage == null || profile.profileImage!.isEmpty) 
+                  ? const Icon(Icons.person, color: Colors.grey) 
+                  : null,
             ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(
-                  Icons.notifications_outlined,
-                  color: AppColors.textDark,
-                ),
-                Positioned(
-                  right: -2,
-                  top: -2,
-                  child: ValueListenableBuilder<int>(
-                    valueListenable: NotificationService().unreadCountNotifier,
-                    builder: (context, count, child) {
-                      if (count <= 0) {
-                        return const SizedBox.shrink();
-                      }
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        constraints: const BoxConstraints(minWidth: 16),
-                        child: Text(
-                          count > 99 ? '99+' : '$count',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.roboto(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      );
-                    },
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    greeting,
+                    style: GoogleFonts.roboto(
+                      fontSize: 14,
+                      color: AppColors.textGrey,
+                    ),
                   ),
-                ),
-              ],
+                  Text(
+                    profile.name.isNotEmpty ? profile.name : 'Dr. User',
+                    style: GoogleFonts.roboto(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
-      ],
+            GestureDetector(
+              onTap: () => context.push('/doctor/notifications'),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.textDark,
+                    ),
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: _unreadCountNotifier,
+                        builder: (context, count, child) {
+                          if (count <= 0) {
+                            return const SizedBox.shrink();
+                          }
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.white, width: 1.5),
+                            ),
+                            constraints: const BoxConstraints(minWidth: 16),
+                            child: Text(
+                              count > 99 ? '99+' : '$count',
+                              style: GoogleFonts.roboto(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

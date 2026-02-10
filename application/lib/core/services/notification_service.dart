@@ -26,7 +26,7 @@ class NotificationService {
   }
 
   NotificationService._internal() {
-    _initMockData();
+    Future.microtask(() => _initMockData());
   }
 
   final ValueNotifier<List<AppNotification>> notificationsNotifier =

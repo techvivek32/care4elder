@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserPlus, Phone, CheckCircle, XCircle, Clock } from 'lucide-react';
+import Link from 'next/link';
 
 async function fetchDoctors() {
   const res = await fetch('/api/doctors');
@@ -54,7 +55,9 @@ export default function DoctorsPage() {
                   <div className="flex-1">
                     <div className="flex items-center">
                         <UserPlus className="h-5 w-5 text-gray-400 mr-2" />
-                        <h3 className="text-lg font-medium text-gray-900">{doctor.name}</h3>
+                        <Link href={`/dashboard/doctors/${doctor._id}`} className="hover:underline focus:outline-none">
+                          <h3 className="text-lg font-medium text-blue-600 hover:text-blue-800 transition-colors">{doctor.name}</h3>
+                        </Link>
                         <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           doctor.verificationStatus === 'approved' ? 'bg-green-100 text-green-800' :
                           doctor.verificationStatus === 'rejected' ? 'bg-red-100 text-red-800' :

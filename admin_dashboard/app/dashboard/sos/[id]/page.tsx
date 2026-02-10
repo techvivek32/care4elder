@@ -38,85 +38,7 @@ export default function SOSDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Map & Location */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
-              <MapPin className="mr-2 h-5 w-5 text-red-600" /> Live Location
-            </h2>
-            <div className="bg-gray-100 rounded-lg h-96 flex items-center justify-center relative overflow-hidden">
-               {alert.location?.lat && alert.location?.lng ? (
-                 <iframe
-                   width="100%"
-                   height="100%"
-                   frameBorder="0"
-                   style={{ border: 0 }}
-                   src={`https://maps.google.com/maps?q=${alert.location.lat},${alert.location.lng}&z=15&output=embed`}
-                   allowFullScreen
-                 ></iframe>
-               ) : (
-                 <div className="text-center p-6">
-                   <MapPin className="h-12 w-12 text-red-500 mx-auto mb-2 animate-bounce" />
-                   <p className="font-mono text-lg">{typeof alert.location === 'string' ? alert.location : JSON.stringify(alert.location)}</p>
-                 </div>
-               )}
-            </div>
-          </div>
-
-          {/* Emergency Contacts */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
-              <Phone className="mr-2 h-5 w-5 text-blue-600" /> Emergency Contacts
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {patient?.emergencyContacts?.map((contact: any, index: number) => (
-                <div key={index} className="flex items-start p-4 bg-gray-50 rounded-lg">
-                  <div className="bg-blue-100 p-2 rounded-full mr-4">
-                    <User className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-black">{contact.name}</p>
-                    <p className="text-sm text-black">{contact.relation}</p>
-                    <p className="text-sm font-mono text-blue-600 mt-1">{contact.phone}</p>
-                  </div>
-                </div>
-              ))}
-              {(!patient?.emergencyContacts || patient.emergencyContacts.length === 0) && (
-                <p className="text-black italic">No emergency contacts listed.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Recent Doctors */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
-              <Stethoscope className="mr-2 h-5 w-5 text-green-600" /> Recent Doctors
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {alert.doctors?.map((doctor: any, index: number) => (
-                <div key={index} className="flex items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mr-4 overflow-hidden">
-                     {doctor.profileImage ? (
-                        <img src={doctor.profileImage} alt={doctor.name} className="h-full w-full object-cover" />
-                     ) : (
-                        <Stethoscope className="h-6 w-6 text-green-600" />
-                     )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-black">{doctor.name}</p>
-                    <p className="text-sm text-black">{doctor.specialization}</p>
-                    <p className="text-sm font-mono text-green-600 mt-1">{doctor.phone}</p>
-                  </div>
-                </div>
-              ))}
-              {(!alert.doctors || alert.doctors.length === 0) && (
-                <p className="text-black italic">No recent doctors found.</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Patient Info & Status */}
+        {/* Left Column: Patient Info, Contacts, Status */}
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
@@ -143,6 +65,29 @@ export default function SOSDetailPage() {
                   <span className="font-medium text-black">{patient?.phone}</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
+              <Phone className="mr-2 h-5 w-5 text-blue-600" /> Emergency Contacts
+            </h2>
+            <div className="space-y-4">
+              {patient?.emergencyContacts?.map((contact: any, index: number) => (
+                <div key={index} className="flex items-start p-4 bg-gray-50 rounded-lg">
+                  <div className="bg-blue-100 p-2 rounded-full mr-4">
+                    <User className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-black">{contact.name}</p>
+                    <p className="text-sm text-black">{contact.relation}</p>
+                    <p className="text-sm font-mono text-blue-600 mt-1">{contact.phone}</p>
+                  </div>
+                </div>
+              ))}
+              {(!patient?.emergencyContacts || patient.emergencyContacts.length === 0) && (
+                <p className="text-black italic">No emergency contacts listed.</p>
+              )}
             </div>
           </div>
 
@@ -187,6 +132,59 @@ export default function SOSDetailPage() {
                     <CheckCircle className="mr-2 h-4 w-4" /> Mark as Resolved
                   </button>
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Map & Recent Doctors */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
+              <MapPin className="mr-2 h-5 w-5 text-red-600" /> Live Location
+            </h2>
+            <div className="bg-gray-100 rounded-lg h-96 flex items-center justify-center relative overflow-hidden">
+               {alert.location?.lat && alert.location?.lng ? (
+                 <iframe
+                   width="100%"
+                   height="100%"
+                   frameBorder="0"
+                   style={{ border: 0 }}
+                   src={`https://maps.google.com/maps?q=${alert.location.lat},${alert.location.lng}&z=15&output=embed`}
+                   allowFullScreen
+                 ></iframe>
+               ) : (
+                 <div className="text-center p-6">
+                   <MapPin className="h-12 w-12 text-red-500 mx-auto mb-2 animate-bounce" />
+                   <p className="font-mono text-lg">{typeof alert.location === 'string' ? alert.location : JSON.stringify(alert.location)}</p>
+                 </div>
+               )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center text-black">
+              <Stethoscope className="mr-2 h-5 w-5 text-green-600" /> Recent Doctors
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {alert.doctors?.map((doctor: any, index: number) => (
+                <div key={index} className="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mr-4 overflow-hidden">
+                     {doctor.profileImage ? (
+                        <img src={doctor.profileImage} alt={doctor.name} className="h-full w-full object-cover" />
+                     ) : (
+                        <Stethoscope className="h-6 w-6 text-green-600" />
+                     )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-black">{doctor.name}</p>
+                    <p className="text-sm text-black">{doctor.specialization}</p>
+                    <p className="text-sm font-mono text-green-600 mt-1">{doctor.phone}</p>
+                  </div>
+                </div>
+              ))}
+              {(!alert.doctors || alert.doctors.length === 0) && (
+                <p className="text-black italic">No recent doctors found.</p>
               )}
             </div>
           </div>

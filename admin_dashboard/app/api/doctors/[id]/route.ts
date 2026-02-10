@@ -73,6 +73,16 @@ export async function PUT(
     if (body.experience != null) updateData.experience = body.experience;
     if (body.about != null) updateData.about = body.about;
     if (body.profileImage != null) updateData.profileImage = body.profileImage;
+    if (body.consultationFees != null) {
+        updateData.consultationFees = body.consultationFees;
+        // Also update standard fee as default for compatibility
+        if (body.consultationFees.standard) {
+             updateData.consultationFee = body.consultationFees.standard;
+        }
+    }
+    if (body.bankDetails != null) {
+      updateData.bankDetails = body.bankDetails;
+    }
 
     const doctor = await Doctor.findByIdAndUpdate(id, updateData, {
       new: true,

@@ -18,14 +18,18 @@ export interface IDoctor extends Document {
   documents: string[];
   walletBalance: number;
   consultationFee: number;
+  consultationFees?: {
+    standard: number;
+    emergency: number;
+  };
   isAvailable: boolean;
   isEmailVerified: boolean;
   otp?: string;
   otpExpiry?: Date;
   bankDetails?: {
+    accountHolderName: string;
     accountNumber: string;
     ifscCode: string;
-    bankName: string;
   };
 }
 
@@ -50,15 +54,19 @@ const DoctorSchema: Schema = new Schema({
   },
   documents: [{ type: String }],
   walletBalance: { type: Number, default: 0 },
-  consultationFee: { type: Number, required: true },
+  consultationFee: { type: Number, required: true }, // Keep for backward compatibility
+  consultationFees: {
+    standard: { type: Number },
+    emergency: { type: Number },
+  },
   isAvailable: { type: Boolean, default: true },
   isEmailVerified: { type: Boolean, default: false },
   otp: { type: String, select: false },
   otpExpiry: { type: Date, select: false },
   bankDetails: {
+    accountHolderName: String,
     accountNumber: String,
     ifscCode: String,
-    bankName: String,
   }
 }, { timestamps: true });
 

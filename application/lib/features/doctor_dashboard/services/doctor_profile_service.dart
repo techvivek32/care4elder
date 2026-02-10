@@ -33,6 +33,8 @@ class DoctorProfileData {
   String experience;
   String about;
   String? profileImage;
+  Map<String, dynamic>? consultationFees;
+  Map<String, dynamic>? bankDetails;
 
   DoctorProfileData({
     required this.id,
@@ -44,6 +46,8 @@ class DoctorProfileData {
     required this.experience,
     required this.about,
     this.profileImage,
+    this.consultationFees,
+    this.bankDetails,
   });
 
   factory DoctorProfileData.fromJson(Map<String, dynamic> json) {
@@ -61,6 +65,8 @@ class DoctorProfileData {
           '',
       about: json['about'] ?? '',
       profileImage: _resolveImageUrl(rawImage),
+      consultationFees: json['consultationFees'],
+      bankDetails: json['bankDetails'],
     );
   }
 
@@ -75,6 +81,8 @@ class DoctorProfileData {
       'experience': experience,
       'about': about,
       'profileImage': profileImage,
+      'consultationFees': consultationFees,
+      'bankDetails': bankDetails,
     };
   }
 
@@ -88,6 +96,8 @@ class DoctorProfileData {
     String? experience,
     String? about,
     String? profileImage,
+    Map<String, dynamic>? consultationFees,
+    Map<String, dynamic>? bankDetails,
   }) {
     return DoctorProfileData(
       id: id ?? this.id,
@@ -99,6 +109,8 @@ class DoctorProfileData {
       experience: experience ?? this.experience,
       about: about ?? this.about,
       profileImage: profileImage ?? this.profileImage,
+      consultationFees: consultationFees ?? this.consultationFees,
+      bankDetails: bankDetails ?? this.bankDetails,
     );
   }
 }
@@ -184,6 +196,8 @@ class DoctorProfileService extends ChangeNotifier {
         'experience': updatedData.experience,
         'about': updatedData.about,
         'profileImage': updatedData.profileImage,
+        'consultationFees': updatedData.consultationFees,
+        'bankDetails': updatedData.bankDetails,
       }),
     );
 

@@ -2,12 +2,121 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../services/doctor_profile_service.dart';
 
-class DoctorConsultationFeeScreen extends StatelessWidget {
+class DoctorConsultationFeeScreen extends StatefulWidget {
   const DoctorConsultationFeeScreen({super.key});
 
   @override
+  State<DoctorConsultationFeeScreen> createState() =>
+      _DoctorConsultationFeeScreenState();
+}
+
+class _DoctorConsultationFeeScreenState
+    extends State<DoctorConsultationFeeScreen> {
+  final _standardFeeController = TextEditingController();
+  final _emergencyFeeController = TextEditingController();
+  final _holderNameController = TextEditingController();
+  final _accountNumberController = TextEditingController();
+  final _ifscController = TextEditingController();
+
+  bool _isLoading = true;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    _standardFeeController.dispose();
+    _emergencyFeeController.dispose();
+    _holderNameController.dispose();
+    _accountNumberController.dispose();
+    _ifscController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final profile = await DoctorProfileService().getProfile();
+      if (mounted) {
+        setState(() {
+          // Fees
+          final fees = profile.consultationFees ?? {};
+          _standardFeeController.text =
+              (fees['standard'] ?? profile.consultationFees?['standard'] ?? 500)
+                  .toString();
+          _emergencyFeeController.text =
+              (fees['emergency'] ?? 800).toString();
+
+          // Bank Details
+          final bank = profile.bankDetails ?? {};
+          _holderNameController.text = bank['accountHolderName'] ?? '';
+          _accountNumberController.text = bank['accountNumber'] ?? '';
+          _ifscController.text = bank['ifscCode'] ?? '';
+
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load data: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    setState(() => _isSaving = true);
+    try {
+      final currentProfile = DoctorProfileService().currentProfile;
+      final updatedProfile = currentProfile.copyWith(
+        consultationFees: {
+          'standard': int.tryParse(_standardFeeController.text) ?? 0,
+          'emergency': int.tryParse(_emergencyFeeController.text) ?? 0,
+        },
+        bankDetails: {
+          'accountHolderName': _holderNameController.text.trim(),
+          'accountNumber': _accountNumberController.text.trim(),
+          'ifscCode': _ifscController.text.trim(),
+        },
+      );
+
+      await DoctorProfileService().updateProfile(updatedProfile);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Settings saved successfully')),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save settings: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF8FAFC),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -44,21 +153,14 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
             _buildSectionHeader('PRICING DETAILS'),
             _buildPricingCard(
               title: 'Standard Consultation',
-              price: '₹500',
+              controller: _standardFeeController,
               subtitle: 'Per 30 minute session',
               color: const Color(0xFF4C6FFF),
             ),
             const SizedBox(height: 12),
             _buildPricingCard(
-              title: 'Follow-up Visit',
-              price: '₹300',
-              subtitle: 'Within 7 days of a consultation',
-              color: const Color(0xFF00C853),
-            ),
-            const SizedBox(height: 12),
-            _buildPricingCard(
               title: 'Emergency Consultation',
-              price: '₹800',
+              controller: _emergencyFeeController,
               subtitle: 'Outside normal working hours',
               color: const Color(0xFFFF6F00),
             ),
@@ -98,16 +200,19 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _buildTextField(
+                    controller: _holderNameController,
                     label: 'Account Holder Name',
                     icon: Icons.person_outline,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
+                    controller: _accountNumberController,
                     label: 'Bank Account Number',
                     icon: Icons.account_balance_wallet_outlined,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
+                    controller: _ifscController,
                     label: 'IFSC Code',
                     icon: Icons.account_balance_outlined,
                   ),
@@ -118,28 +223,31 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Settings saved successfully'),
-                    ),
-                  );
-                },
+                onPressed: _isSaving ? null : _saveChanges,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: Text(
-                  'Save Changes',
-                  style: GoogleFonts.roboto(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        'Save Changes',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -148,8 +256,13 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField({required String label, required IconData icon}) {
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+  }) {
     return TextFormField(
+      controller: controller,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.grey),
@@ -186,12 +299,10 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
 
   Widget _buildPricingCard({
     required String title,
-    required String price,
+    required TextEditingController controller,
     required String subtitle,
     required Color color,
   }) {
-    final controller = TextEditingController(text: price.replaceAll('₹', ''));
-    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -200,7 +311,7 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -211,7 +322,7 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(Icons.payments_outlined, color: color, size: 24),
@@ -292,7 +403,7 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -304,22 +415,17 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
 
   Widget _buildIncludedItem(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          const Icon(
-            Icons.check_circle,
-            color: AppColors.primaryBlue,
-            size: 18,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.roboto(
-                fontSize: 14,
-                color: AppColors.textDark,
-              ),
+          const Icon(Icons.check_circle, color: AppColors.primaryBlue, size: 20),
+          const SizedBox(width: 12),
+          Text(
+            text,
+            style: GoogleFonts.roboto(
+              fontSize: 14,
+              color: AppColors.textDark,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -333,7 +439,10 @@ class DoctorConsultationFeeScreen extends StatelessWidget {
       children: [
         Text(
           label,
-          style: GoogleFonts.roboto(fontSize: 14, color: Colors.grey[600]),
+          style: GoogleFonts.roboto(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
         ),
         Text(
           value,

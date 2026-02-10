@@ -83,10 +83,18 @@ class _DoctorOtpScreenState extends State<DoctorOtpScreen> {
     });
 
     try {
-      final result = await DoctorAuthService().verifyOtp(
-        _otpController.text,
-        isEmail: widget.isEmail,
-      );
+      Map<String, dynamic> result;
+      if (widget.isLogin && !widget.isEmail) {
+        result = await DoctorAuthService().verifyLoginOtp(
+          widget.identifier,
+          _otpController.text,
+        );
+      } else {
+        result = await DoctorAuthService().verifyOtp(
+          _otpController.text,
+          isEmail: widget.isEmail,
+        );
+      }
 
       if (result['success'] == true) {
         if (mounted) {

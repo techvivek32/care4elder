@@ -5,6 +5,7 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/doctor_auth_service.dart';
+import 'doctor_otp_screen.dart';
 
 class DoctorLoginScreen extends StatefulWidget {
   const DoctorLoginScreen({super.key});
@@ -44,7 +45,7 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
   }
 
   Future<void> _handleLogin() async {
-    // Phone Login
+    // Phone Login (OTP)
     if (_tabController.index == 0) {
       final phoneIdentifier = _completePhoneNumber.isNotEmpty
           ? _completePhoneNumber.trim()
@@ -55,37 +56,27 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
         );
         return;
       }
-      if (_passwordController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter your password')),
-        );
-        return;
-      }
+      
       setState(() => _isLoading = true);
       try {
-        final result = await DoctorAuthService().loginWithPassword(
-          phoneIdentifier,
-          _passwordController.text,
-        );
+        final success = await DoctorAuthService().sendLoginOtp(phoneIdentifier);
 
         if (!mounted) return;
 
-        if (result['success']) {
-          final status = result['verificationStatus'];
-          if (status == 'approved') {
-            context.go('/doctor/home');
-          } else if (status == 'pending') {
-            context.go('/doctor/verification-pending');
-          } else if (status == 'rejected') {
-            context.go('/doctor/rejected');
-          } else {
-            context.go('/doctor/home');
-          }
-        } else if (result['verificationStatus'] == 'rejected') {
-          context.go('/doctor/rejected');
+        if (success) {
+           Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DoctorOtpScreen(
+                identifier: phoneIdentifier,
+                isEmail: false,
+                isLogin: true,
+              ),
+            ),
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['error'] ?? 'Login failed')),
+            const SnackBar(content: Text('Failed to send OTP. Please try again.')),
           );
         }
       } catch (e) {
@@ -257,13 +248,8 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
                           const SizedBox(height: 32),
 
                           // Tab View Content
-                          SizedBox(
-                            height: 200,
-                            child: TabBarView(
-                              controller: _tabController,
-                              children: [
-                                // Phone Input
-                                Column(
+                          _tabController.index == 0
+                              ? Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
@@ -332,81 +318,9 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Password',
-                                      style: GoogleFonts.roboto(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textDark,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    SizedBox(
-                                      height: 52,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.04,
-                                              ),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: TextFormField(
-                                          controller: _passwordController,
-                                          obscureText: !_isPasswordVisible,
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 14,
-                                            color: AppColors.textDark,
-                                          ),
-                                          decoration: InputDecoration(
-                                            hintText: 'Enter your password',
-                                            hintStyle: GoogleFonts.roboto(
-                                              fontSize: 14,
-                                              color: AppColors.textGrey,
-                                            ),
-                                            prefixIcon: const Icon(
-                                              Icons.lock_outline,
-                                              color: AppColors.textGrey,
-                                            ),
-                                            suffixIcon: IconButton(
-                                              icon: Icon(
-                                                _isPasswordVisible
-                                                    ? Icons.visibility
-                                                    : Icons.visibility_off,
-                                                color: AppColors.textGrey,
-                                              ),
-                                              onPressed: () => setState(
-                                                () => _isPasswordVisible =
-                                                    !_isPasswordVisible,
-                                              ),
-                                            ),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(14),
-                                              borderSide: BorderSide.none,
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  horizontal: 14,
-                                                  vertical: 14,
-                                                ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
                                   ],
-                                ),
-                                // Email Input
-                                Column(
+                                )
+                              : Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
@@ -541,9 +455,6 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ),
 
                           const SizedBox(height: 24),
 

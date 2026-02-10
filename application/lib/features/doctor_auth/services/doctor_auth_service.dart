@@ -223,6 +223,60 @@ class DoctorAuthService extends ChangeNotifier {
     }
   }
 
+  // Send Login OTP (Phone)
+  Future<bool> sendLoginOtp(String phone) async {
+    try {
+      final url = Uri.parse('${ApiConstants.baseUrl}/auth/doctor/login-otp');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': phone}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint('Failed to send Login OTP: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error sending Login OTP: $e');
+      return false;
+    }
+  }
+
+  // Verify Login OTP (Phone)
+  Future<Map<String, dynamic>> verifyLoginOtp(String phone, String otp) async {
+    try {
+      final url = Uri.parse('${ApiConstants.baseUrl}/auth/doctor/verify-login-otp');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': phone, 'otp': otp}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final user = data['user'];
+        await _storeSession(
+          token: data['token'],
+          refreshToken: data['refreshToken'],
+          doctorId: user?['_id']?.toString() ?? user?['id']?.toString(),
+        );
+        return {
+          'success': true,
+          'verificationStatus': user['verificationStatus'],
+        };
+      } else {
+        return {'success': false, 'error': data['error'] ?? 'Verification failed'};
+      }
+    } catch (e) {
+      debugPrint('Error verifying Login OTP: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
   // Submit Registration
   Future<bool> submitRegistration() async {
     try {

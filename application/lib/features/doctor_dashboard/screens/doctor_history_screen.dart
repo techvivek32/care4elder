@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/call_request_service.dart';
+import '../../doctor_auth/services/doctor_auth_service.dart';
+import 'doctor_history_detail_screen.dart';
 
 class DoctorHistoryScreen extends StatefulWidget {
   const DoctorHistoryScreen({super.key});
@@ -19,6 +23,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   HistoryTypeFilter _typeFilter = HistoryTypeFilter.all;
   HistoryDateFilter _dateFilter = HistoryDateFilter.all;
   ConsultationHistoryItem? _selectedItem;
+  final CallRequestService _callService = CallRequestService();
 
   @override
   void initState() {
@@ -43,84 +48,38 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
       _errorMessage = null;
     });
     try {
-      await Future.delayed(const Duration(milliseconds: 900));
-      final now = DateTime.now();
-      _allItems = [
-        ConsultationHistoryItem(
-          id: '1',
-          name: 'Robert Wilson',
-          type: 'Video',
-          duration: '18 min',
-          date: now.subtract(const Duration(days: 7)),
-          status: HistoryStatus.completed,
-          price: 500,
-          image: 'https://randomuser.me/api/portraits/men/1.jpg',
-          notes: 'Recurring headaches and dizziness',
-          prescription: 'Hydration, rest, and magnesium supplements',
-          followUp: 'Feb 15, 2026',
-        ),
-        ConsultationHistoryItem(
-          id: '2',
-          name: 'Emily Davis',
-          type: 'Video',
-          duration: '12 min',
-          date: now.subtract(const Duration(days: 8)),
-          status: HistoryStatus.completed,
-          price: 500,
-          image: 'https://randomuser.me/api/portraits/women/2.jpg',
-          notes: 'Skin rash on arms, itchy and spreading',
-          prescription: 'Topical steroid cream',
-          followUp: 'Feb 18, 2026',
-        ),
-        ConsultationHistoryItem(
-          id: '3',
-          name: 'Mike Chen',
-          type: 'Voice',
-          duration: '8 min',
-          date: now.subtract(const Duration(days: 9)),
-          status: HistoryStatus.completed,
-          price: 300,
-          image: 'https://randomuser.me/api/portraits/men/3.jpg',
-          notes: 'Follow-up for blood pressure medication',
-          prescription: 'Continue current dosage',
-          followUp: 'Mar 1, 2026',
-        ),
-        ConsultationHistoryItem(
-          id: '4',
-          name: 'Lisa Anderson',
-          type: 'Video',
-          duration: '22 min',
-          date: now.subtract(const Duration(days: 11)),
-          status: HistoryStatus.completed,
-          price: 500,
-          image: 'https://randomuser.me/api/portraits/women/4.jpg',
-          notes: 'Post-surgery recovery check',
-          prescription: 'Physical therapy twice weekly',
-          followUp: 'Feb 20, 2026',
-        ),
-        ConsultationHistoryItem(
-          id: '5',
-          name: 'James Brown',
-          type: 'Voice',
-          duration: '10 min',
-          date: now.subtract(const Duration(days: 12)),
-          status: HistoryStatus.cancelled,
-          price: 0,
-          image: 'https://randomuser.me/api/portraits/men/5.jpg',
-          notes: 'Appointment cancelled by patient',
-          prescription: '-',
-          followUp: '-',
-        ),
-      ];
-      _selectedItem = _allItems.isNotEmpty ? _allItems.first : null;
-    } catch (e) {
-      _errorMessage = 'Unable to load consultation history';
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+      final token = await DoctorAuthService().getDoctorToken();
+      if (token == null) {
+        throw Exception('Not authenticated');
       }
+
+      final history = await _callService.getDoctorHistory(token: token);
+      
+      _allItems = history.map((data) {
+        return ConsultationHistoryItem(
+          id: data.id,
+          name: data.patientName,
+          type: data.consultationType == 'consultation' ? 'Video' : 'Voice',
+          duration: '${(data.duration / 60).ceil()} min',
+          date: data.createdAt,
+          status: data.status == 'completed' ? HistoryStatus.completed : HistoryStatus.cancelled,
+          price: data.fee.toInt(),
+          image: data.patientProfile.isNotEmpty ? data.patientProfile : '',
+          notes: data.report,
+          prescription: '',
+          followUp: '',
+          originalData: data,
+        );
+      }).toList();
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
     }
   }
 
@@ -479,19 +438,6 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                       return _buildHistoryCard(item);
                     },
                   ),
-                if (_selectedItem != null) ...[
-                  const SizedBox(height: 24),
-                  Text(
-                    'Request Details',
-                    style: GoogleFonts.roboto(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildDetailsCard(_selectedItem!),
-                ],
               ],
             ),
           ),
@@ -605,10 +551,19 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
-          onTap: () {
-            setState(() {
-              _selectedItem = item;
-            });
+          onTap: () async {
+            if (item.originalData != null) {
+              final result = await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => DoctorHistoryDetailScreen(
+                    callRequest: item.originalData!,
+                  ),
+                ),
+              );
+              if (result == true) {
+                _loadHistory();
+              }
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -617,7 +572,9 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundImage: NetworkImage(item.image),
+                  backgroundImage: item.image.isNotEmpty
+                      ? NetworkImage(item.image)
+                      : const AssetImage('assets/images/logo.png') as ImageProvider,
                   backgroundColor: Colors.grey[200],
                   onBackgroundImageError: (exception, stackTrace) {},
                 ),
@@ -802,6 +759,7 @@ class ConsultationHistoryItem {
   final String notes;
   final String prescription;
   final String followUp;
+  final CallRequestData? originalData;
 
   ConsultationHistoryItem({
     required this.id,
@@ -815,6 +773,7 @@ class ConsultationHistoryItem {
     required this.notes,
     required this.prescription,
     required this.followUp,
+    this.originalData,
   });
 }
 

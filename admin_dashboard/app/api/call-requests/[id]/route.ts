@@ -69,12 +69,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { status } = await request.json();
-    if (
-      !['accepted', 'declined', 'cancelled', 'timeout', 'ringing'].includes(
-        status
-      )
-    ) {
+    const { status, duration, report } = await request.json();
+    
+    // Allow updating report separately or with status
+    if (status && !['accepted', 'declined', 'cancelled', 'timeout', 'ringing', 'completed'].includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
@@ -90,7 +88,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    callRequest.status = status;
+    if (status) callRequest.status = status;
+    if (duration !== undefined) callRequest.duration = duration;
+    if (report !== undefined) callRequest.report = report;
+    
     await callRequest.save();
 
     const populated = await CallRequest.findById(id)

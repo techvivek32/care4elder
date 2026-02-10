@@ -3,10 +3,12 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface ICallRequest extends Document {
   doctorId: mongoose.Types.ObjectId;
   patientId: mongoose.Types.ObjectId;
-  status: 'ringing' | 'accepted' | 'declined' | 'cancelled' | 'timeout';
+  status: 'ringing' | 'accepted' | 'declined' | 'cancelled' | 'timeout' | 'completed';
   consultationType: 'consultation' | 'emergency';
   fee: number;
   channelName: string;
+  duration?: number; // Duration in seconds
+  report?: string; // Doctor's notes/report
 }
 
 const CallRequestSchema: Schema = new Schema(
@@ -15,7 +17,7 @@ const CallRequestSchema: Schema = new Schema(
     patientId: { type: Schema.Types.ObjectId, ref: 'Patient', required: true },
     status: {
       type: String,
-      enum: ['ringing', 'accepted', 'declined', 'cancelled', 'timeout'],
+      enum: ['ringing', 'accepted', 'declined', 'cancelled', 'timeout', 'completed'],
       default: 'ringing',
     },
     consultationType: {
@@ -25,6 +27,8 @@ const CallRequestSchema: Schema = new Schema(
     },
     fee: { type: Number, required: true },
     channelName: { type: String, default: '' },
+    duration: { type: Number, default: 0 },
+    report: { type: String, default: '' },
   },
   { timestamps: true }
 );

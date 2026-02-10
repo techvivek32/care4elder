@@ -238,10 +238,12 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
     if (widget.callRequestId != null && widget.callRequestId!.isNotEmpty) {
       final token = await _getToken();
       if (token != null) {
-        await CallRequestService().updateCallRequestStatus(
+        final status = _seconds > 0 ? 'completed' : 'cancelled';
+        await CallRequestService().updateCallReport(
           token: token,
           callRequestId: widget.callRequestId!,
-          status: 'cancelled',
+          status: status,
+          duration: _seconds,
         );
       }
     }

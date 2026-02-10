@@ -18,6 +18,9 @@ class CallRequestData {
   final int duration;
   final String report;
   final String reportUrl;
+  final List<String> prescriptions;
+  final List<String> labReports;
+  final List<String> medicalDocuments;
   final String patientProfile;
   final String patientLocation;
   final DateTime? patientDob;
@@ -36,6 +39,9 @@ class CallRequestData {
     this.duration = 0,
     this.report = '',
     this.reportUrl = '',
+    this.prescriptions = const [],
+    this.labReports = const [],
+    this.medicalDocuments = const [],
     this.patientProfile = '',
     this.patientLocation = '',
     this.patientDob,
@@ -58,6 +64,9 @@ class CallRequestData {
       duration: (json['duration'] as num?)?.toInt() ?? 0,
       report: json['report'] ?? '',
       reportUrl: json['reportUrl'] ?? '',
+      prescriptions: (json['prescriptions'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      labReports: (json['labReports'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      medicalDocuments: (json['medicalDocuments'] as List?)?.map((e) => e.toString()).toList() ?? [],
       patientProfile: patient is Map ? (patient['profilePictureUrl'] ?? '') : '',
       patientLocation: patient is Map ? (patient['location'] ?? '') : '',
       patientDob: (patient is Map && patient['dateOfBirth'] != null) 
@@ -181,12 +190,18 @@ class CallRequestService {
     String? reportUrl,
     int? duration,
     String? status,
+    List<String>? prescriptions,
+    List<String>? labReports,
+    List<String>? medicalDocuments,
   }) async {
     final body = <String, dynamic>{};
     if (report != null) body['report'] = report;
     if (reportUrl != null) body['reportUrl'] = reportUrl;
     if (duration != null) body['duration'] = duration;
     if (status != null) body['status'] = status;
+    if (prescriptions != null) body['prescriptions'] = prescriptions;
+    if (labReports != null) body['labReports'] = labReports;
+    if (medicalDocuments != null) body['medicalDocuments'] = medicalDocuments;
 
     final response = await http.patch(
       Uri.parse('${ApiConstants.baseUrl}/call-requests/$callRequestId'),
@@ -202,7 +217,8 @@ class CallRequestService {
 
   Future<String?> uploadReportFile({
     required String token,
-    required File file,
+    required List<int> bytes,
+    required String filename,
   }) async {
     final request = http.MultipartRequest(
       'POST',
@@ -211,7 +227,11 @@ class CallRequestService {
     
     // Add file
     request.files.add(
-      await http.MultipartFile.fromPath('file', file.path),
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: filename,
+      ),
     );
 
     // Add headers (Authorization if needed, though upload route might be public or check generic auth)

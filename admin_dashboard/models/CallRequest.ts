@@ -10,6 +10,9 @@ export interface ICallRequest extends Document {
   duration?: number; // Duration in seconds
   report?: string; // Doctor's notes/report
   reportUrl?: string; // URL of uploaded report file
+  prescriptions?: string[];
+  labReports?: string[];
+  medicalDocuments?: string[];
 }
 
 const CallRequestSchema: Schema = new Schema(
@@ -31,6 +34,9 @@ const CallRequestSchema: Schema = new Schema(
     duration: { type: Number, default: 0 },
     report: { type: String, default: '' },
     reportUrl: { type: String, default: '' },
+    prescriptions: { type: [String], default: [] },
+    labReports: { type: [String], default: [] },
+    medicalDocuments: { type: [String], default: [] },
   },
   { timestamps: true }
 );

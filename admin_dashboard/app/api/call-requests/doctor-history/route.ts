@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import CallRequest from '@/models/CallRequest';
+import Patient from '@/models/Patient';
+import Doctor from '@/models/Doctor';
 import { verifyToken } from '@/lib/auth-utils';
 
 const getAuthUser = (request: Request) => {
@@ -19,6 +21,12 @@ const getAuthUser = (request: Request) => {
 export async function GET(request: Request) {
   try {
     await dbConnect();
+    
+    // Ensure models are registered for populate
+    if (!Patient || !Doctor) {
+      throw new Error('Models not loaded');
+    }
+
     const authUser = getAuthUser(request);
     if (!authUser?.id || authUser.role !== 'doctor') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

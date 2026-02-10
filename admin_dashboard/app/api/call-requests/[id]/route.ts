@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import CallRequest from '@/models/CallRequest';
+import Patient from '@/models/Patient';
+import Doctor from '@/models/Doctor';
 import { verifyToken } from '@/lib/auth-utils';
 
 const getAuthUser = (request: Request) => {
@@ -22,6 +24,12 @@ export async function GET(
 ) {
   try {
     await dbConnect();
+    
+    // Ensure models are registered for populate
+    if (!Patient || !Doctor) {
+      throw new Error('Models not loaded');
+    }
+
     const { id } = await props.params;
     const authUser = getAuthUser(request);
     if (!authUser?.id) {
@@ -69,7 +77,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { status, duration, report, reportUrl } = await request.json();
+    const { status, duration, report, reportUrl, prescriptions, labReports, medicalDocuments } = await request.json();
     
     // Allow updating report separately or with status
     if (status && !['accepted', 'declined', 'cancelled', 'timeout', 'ringing', 'completed'].includes(status)) {
@@ -92,6 +100,9 @@ export async function PATCH(
     if (duration !== undefined) callRequest.duration = duration;
     if (report !== undefined) callRequest.report = report;
     if (reportUrl !== undefined) callRequest.reportUrl = reportUrl;
+    if (prescriptions !== undefined) callRequest.prescriptions = prescriptions;
+    if (labReports !== undefined) callRequest.labReports = labReports;
+    if (medicalDocuments !== undefined) callRequest.medicalDocuments = medicalDocuments;
     
     await callRequest.save();
 

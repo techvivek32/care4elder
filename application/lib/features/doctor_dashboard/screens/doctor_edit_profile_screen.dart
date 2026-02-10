@@ -133,7 +133,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
         name: _nameController.text.trim(),
         specialty: _specialtyController.text.trim(),
         email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: '+91${_phoneController.text.trim()}',
         qualifications: _qualificationsController.text.trim(),
         experience: _experienceController.text.trim(),
         about: _aboutController.text.trim(),
@@ -232,6 +232,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
                       label: 'Phone Number',
                       icon: Icons.phone_outlined,
                       keyboardType: TextInputType.phone,
+                      prefixText: '+91 ',
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(10),
@@ -394,6 +395,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     int maxLines = 1,
+    String? prefixText,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -421,6 +423,12 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
           labelText: label,
           labelStyle: GoogleFonts.roboto(color: Colors.grey),
           prefixIcon: Icon(icon, color: AppColors.primaryBlue),
+          prefixText: prefixText,
+          prefixStyle: GoogleFonts.roboto(
+            color: AppColors.textDark,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,

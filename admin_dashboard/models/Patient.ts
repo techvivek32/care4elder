@@ -15,6 +15,11 @@ export interface IPatient extends Document {
   otp?: string;
   otpExpiry?: Date;
   medicalHistory: Record<string, any>;
+  dateOfBirth?: Date;
+  location?: string;
+  profilePictureUrl?: string;
+  bloodGroup?: string;
+  allergies?: string;
 }
 
 const PatientSchema: Schema = new Schema({
@@ -31,7 +36,12 @@ const PatientSchema: Schema = new Schema({
   isEmailVerified: { type: Boolean, default: false },
   otp: { type: String, select: false },
   otpExpiry: { type: Date, select: false },
-  medicalHistory: { type: Object, default: {} }
+  medicalHistory: { type: Object, default: {} },
+  dateOfBirth: { type: Date },
+  location: { type: String },
+  profilePictureUrl: { type: String },
+  bloodGroup: { type: String },
+  allergies: { type: String }
 }, { timestamps: true });
 
 const Patient: Model<IPatient> = mongoose.models.Patient || mongoose.model<IPatient>('Patient', PatientSchema);

@@ -44,3 +44,31 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to fetch patient' }, { status: 500 });
   }
 }
+
+export async function PUT(
+  request: Request,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    await dbConnect();
+    const { id } = await props.params;
+    const body = await request.json();
+
+    const patient = await Patient.findByIdAndUpdate(id, body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!patient) {
+      return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(patient);
+  } catch (error) {
+    console.error('Update Patient Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to update patient' },
+      { status: 500 }
+    );
+  }
+}

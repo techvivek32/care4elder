@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import '../../features/auth/services/auth_service.dart';
 
 class UserProfile {
   String id;
@@ -6,7 +10,7 @@ class UserProfile {
   String email;
   String phoneNumber;
   String profilePictureUrl;
-  DateTime dateOfBirth;
+  DateTime? dateOfBirth;
   String location;
   String bloodGroup;
   String allergies;
@@ -17,7 +21,7 @@ class UserProfile {
     required this.email,
     required this.phoneNumber,
     required this.profilePictureUrl,
-    required this.dateOfBirth,
+    this.dateOfBirth,
     required this.location,
     required this.bloodGroup,
     required this.allergies,
@@ -46,6 +50,35 @@ class UserProfile {
       allergies: allergies ?? this.allergies,
     );
   }
+
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      id: json['_id'] ?? json['id'] ?? '',
+      fullName: json['name'] ?? '',
+      email: json['email'] ?? '',
+      phoneNumber: json['phone'] ?? '',
+      profilePictureUrl: json['profilePictureUrl'] ?? '',
+      dateOfBirth: json['dateOfBirth'] != null
+          ? DateTime.parse(json['dateOfBirth'])
+          : null,
+      location: json['location'] ?? '',
+      bloodGroup: json['bloodGroup'] ?? '',
+      allergies: json['allergies'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': fullName,
+      'email': email,
+      'phone': phoneNumber,
+      'profilePictureUrl': profilePictureUrl,
+      'dateOfBirth': dateOfBirth?.toIso8601String(),
+      'location': location,
+      'bloodGroup': bloodGroup,
+      'allergies': allergies,
+    };
+  }
 }
 
 class ProfileService extends ChangeNotifier {
@@ -58,8 +91,10 @@ class ProfileService extends ChangeNotifier {
   UserProfile? _currentUser;
   bool _isLoading = false;
   String? _error;
+  static const String _baseUrl = 'http://localhost:3000/api';
 
   // Mock list of known relatives (simulating data from other parts of the app)
+  // TODO: Fetch this from backend if needed
   final List<Map<String, String>> knownRelatives = [
     {'name': 'Jane Doe', 'relation': 'Wife', 'phone': '9876543210'},
     {'name': 'Mike Doe', 'relation': 'Son', 'phone': '9876543211'},
@@ -69,46 +104,94 @@ class ProfileService extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Simulate API call to fetch profile
+  // Fetch profile from backend
   Future<void> fetchProfile() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 1)); // Simulate delay
-      // Mock data if not already set
-      _currentUser ??= UserProfile(
-        id: '1',
-        fullName: 'John Doe',
-        email: 'john.doe@example.com',
-        phoneNumber: '+91 98765 43210',
-        profilePictureUrl: '',
-        dateOfBirth: DateTime(1950, 5, 15),
-        location: 'Mumbai, India',
-        bloodGroup: 'O+',
-        allergies: 'Peanuts, Penicillin',
+      final authService = AuthService();
+      final patientId = await authService.getPatientId();
+      final token = await authService.getToken();
+
+      if (patientId == null || token == null) {
+        // If no user is logged in, we can't fetch profile
+        _error = 'User not authenticated';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/patients/$patientId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
       );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _currentUser = UserProfile.fromJson(data);
+      } else {
+        _error = 'Failed to fetch profile: ${response.statusCode}';
+        if (kDebugMode) {
+          print('Fetch Profile Error: ${response.body}');
+        }
+      }
     } catch (e) {
-      _error = 'Failed to fetch profile';
+      _error = 'Failed to fetch profile: $e';
+      if (kDebugMode) {
+        print('Fetch Profile Exception: $e');
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Simulate API call to update profile
+  // Update profile in backend
   Future<bool> updateProfile(UserProfile updatedProfile) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 1)); // Simulate delay
-      _currentUser = updatedProfile;
-      return true;
+      final authService = AuthService();
+      final patientId = await authService.getPatientId();
+      final token = await authService.getToken();
+
+      if (patientId == null || token == null) {
+        _error = 'User not authenticated';
+        return false;
+      }
+
+      final response = await http.put(
+        Uri.parse('$_baseUrl/patients/$patientId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(updatedProfile.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _currentUser = UserProfile.fromJson(data);
+        return true;
+      } else {
+        _error = 'Failed to update profile: ${response.statusCode}';
+        if (kDebugMode) {
+          print('Update Profile Error: ${response.body}');
+        }
+        return false;
+      }
     } catch (e) {
-      _error = 'Failed to update profile';
+      _error = 'Failed to update profile: $e';
+      if (kDebugMode) {
+        print('Update Profile Exception: $e');
+      }
       return false;
     } finally {
       _isLoading = false;

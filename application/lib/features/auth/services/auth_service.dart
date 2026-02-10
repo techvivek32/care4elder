@@ -23,6 +23,7 @@ class AuthService {
   );
 
   static const String _userKey = 'user_session';
+  static const String _patientIdKey = 'patient_id';
 
   // OTP Storage: phone -> {code, expiresAt, attempts}
   final Map<String, Map<String, dynamic>> _otpStore = {};
@@ -197,6 +198,10 @@ class AuthService {
         // Save user info
         if (data['user'] != null) {
             await _storage.write(key: _userKey, value: jsonEncode(data['user']));
+            final userId = data['user']['id'] ?? data['user']['_id'];
+            if (userId != null) {
+              await _storage.write(key: _patientIdKey, value: userId);
+            }
         }
         return data;
       } else {
@@ -230,6 +235,14 @@ class AuthService {
       if (kDebugMode) print('Resend OTP Error: $e');
       rethrow;
     }
+  }
+
+  Future<String?> getPatientId() async {
+    return await _storage.read(key: _patientIdKey);
+  }
+
+  Future<String?> getToken() async {
+    return await _storage.read(key: 'auth_token');
   }
 
   /// Send OTP to phone number (Legacy/Mock - Deprecated for Registration)

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/profile_service.dart';
 
 class PatientDashboardScreen extends StatefulWidget {
   const PatientDashboardScreen({super.key});
@@ -42,6 +43,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   void initState() {
     super.initState();
     _startCarouselTimer();
+    ProfileService().fetchProfile();
   }
 
   @override
@@ -107,38 +109,44 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Good morning,',
-                                    style: GoogleFonts.roboto(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.9,
+                              child: ListenableBuilder(
+                                listenable: ProfileService(),
+                                builder: (context, child) {
+                                  final user = ProfileService().currentUser;
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Good morning,',
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.9,
+                                          ),
+                                          fontSize: 14,
+                                        ),
                                       ),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'John Doe',
-                                    style: GoogleFonts.roboto(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Stay safe and healthy',
-                                    style: GoogleFonts.roboto(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.8,
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        user?.fullName ?? 'User',
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Stay safe and healthy',
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.8,
+                                          ),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(width: 16),

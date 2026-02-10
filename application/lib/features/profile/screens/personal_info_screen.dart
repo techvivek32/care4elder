@@ -26,17 +26,37 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   @override
   void initState() {
     super.initState();
-    final user = _profileService.currentUser;
-    _nameController = TextEditingController(text: user?.fullName ?? '');
-    _emailController = TextEditingController(text: user?.email ?? '');
-    _phoneController = TextEditingController(text: user?.phoneNumber ?? '');
-    _locationController = TextEditingController(text: user?.location ?? '');
-    _selectedDob = user?.dateOfBirth;
-    _dobController = TextEditingController(
-      text: _selectedDob != null
+    _nameController = TextEditingController();
+    _emailController = TextEditingController();
+    _phoneController = TextEditingController();
+    _locationController = TextEditingController();
+    _dobController = TextEditingController();
+    
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    // Initialize with cached data if available
+    _updateControllers(_profileService.currentUser);
+    
+    // Fetch fresh data
+    await _profileService.fetchProfile();
+    if (mounted) {
+      _updateControllers(_profileService.currentUser);
+    }
+  }
+
+  void _updateControllers(UserProfile? user) {
+    setState(() {
+      _nameController.text = user?.fullName ?? '';
+      _emailController.text = user?.email ?? '';
+      _phoneController.text = user?.phoneNumber ?? '';
+      _locationController.text = user?.location ?? '';
+      _selectedDob = user?.dateOfBirth;
+      _dobController.text = _selectedDob != null
           ? DateFormat('yyyy-MM-dd').format(_selectedDob!)
-          : '',
-    );
+          : '';
+    });
   }
 
   @override

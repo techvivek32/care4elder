@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Doctor from '@/models/Doctor';
 import { verifyToken } from '@/lib/auth-utils';
+import mongoose from 'mongoose';
 
 const getAuthUser = (request: Request) => {
   const authHeader = request.headers.get('authorization');
@@ -29,9 +30,16 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (authUser.role !== 'admin' && authUser.id !== id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Invalid Doctor ID' }, { status: 400 });
     }
+
+    // Allow public access to doctor details for patients and other users
+    // Only restrict if sensitive data needs to be hidden, but for now allow read access
+    // if (authUser.role !== 'admin' && authUser.id !== id) {
+    //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // }
 
     const doctor = await Doctor.findById(id);
     if (!doctor) {

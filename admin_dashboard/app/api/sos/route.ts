@@ -24,6 +24,26 @@ export async function GET(request: Request) {
   }
 }
 
+export async function POST(request: Request) {
+  try {
+    await dbConnect();
+    const body = await request.json();
+    
+    // Create new alert
+    const alert = await SOSAlert.create({
+      patientId: body.patientId,
+      location: body.location,
+      status: 'active',
+      timestamp: new Date()
+    });
+    
+    return NextResponse.json(alert, { status: 201 });
+  } catch (error) {
+    console.error('Error creating SOS alert:', error);
+    return NextResponse.json({ error: 'Failed to create SOS alert' }, { status: 500 });
+  }
+}
+
 export async function PATCH(request: Request) {
     try {
         await dbConnect();

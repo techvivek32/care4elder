@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/emergency_audit_service.dart';
+import '../services/sos_service.dart';
 import '../widgets/cancellation_dialog.dart';
 import '../widgets/emergency_map.dart';
 import '../widgets/safety_tips_section.dart';
@@ -19,6 +20,7 @@ class SosScreen extends StatefulWidget {
 }
 
 class _SosScreenState extends State<SosScreen> {
+  final SOSService _sosService = SOSService();
   bool _isActive = false;
   bool _isActivating = false;
   String? _activationError;
@@ -29,10 +31,23 @@ class _SosScreenState extends State<SosScreen> {
   void initState() {
     super.initState();
     _loadContacts();
+    _checkActiveState();
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _handleFallDetection();
       });
+    }
+  }
+
+  Future<void> _checkActiveState() async {
+    final isActive = await _sosService.isSosActive();
+    if (isActive && mounted) {
+      setState(() {
+        _isActive = true;
+        _isActivating = false;
+        _etaRemaining = const Duration(minutes: 8); // Should calculate based on start time
+      });
+      _startEtaTimer();
     }
   }
 
@@ -192,7 +207,8 @@ class _SosScreenState extends State<SosScreen> {
     });
     _logEvent('activation_requested');
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      await _sosService.startSOS();
+
       if (!mounted) return;
       setState(() {
         _isActive = true;
@@ -207,7 +223,7 @@ class _SosScreenState extends State<SosScreen> {
         _isActivating = false;
         _activationError = 'Activation failed. Please try again.';
       });
-      _logEvent('activation_failed');
+      _logEvent('activation_failed: $error');
     }
   }
 
@@ -239,10 +255,12 @@ class _SosScreenState extends State<SosScreen> {
     );
 
     if (result != null && mounted) {
+      await _sosService.stopSOS();
+
       // Log cancellation
       EmergencyAuditService().logCancellation(
         reason: result['reason'] as CancellationReason,
-        userId: 'current_user_id', // Mock user ID
+        userId: ProfileService().currentUser?.id ?? 'unknown',
         comments: result['comments'] as String?,
         alertDetails: {
           'activationTime': DateTime.now()

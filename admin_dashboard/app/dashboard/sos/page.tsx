@@ -1,7 +1,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AlertOctagon, CheckCircle, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { AlertOctagon, CheckCircle, MapPin, ExternalLink, Trash2 } from 'lucide-react';
 
 async function fetchActiveSOS() {
   const res = await fetch('/api/sos');
@@ -19,6 +20,14 @@ async function resolveSOS(id: string) {
   return res.json();
 }
 
+async function deleteSOS(id: string) {
+  const res = await fetch(`/api/sos/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete alert');
+  return res.json();
+}
+
 export default function SOSPage() {
   const queryClient = useQueryClient();
   const { data: alerts, isLoading, error } = useQuery({
@@ -27,11 +36,18 @@ export default function SOSPage() {
     refetchInterval: 5000, // Real-time polling
   });
 
-  const mutation = useMutation({
+  const resolveMutation = useMutation({
     mutationFn: resolveSOS,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-sos'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteSOS,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-sos'] });
     }
   });
 
@@ -61,12 +77,20 @@ export default function SOSPage() {
                    <MapPin className="h-4 w-4 mr-1" /> Location: {JSON.stringify(alert.location)}
                 </div>
               </div>
-              <button
-                onClick={() => mutation.mutate(alert._id)}
-                className="bg-white text-red-600 px-4 py-2 border border-red-200 rounded-md shadow-sm hover:bg-red-100 flex items-center"
-              >
-                <CheckCircle className="mr-2 h-5 w-5" /> Mark Resolved
-              </button>
+              <div className="flex flex-col space-y-2">
+                <Link
+                  href={`/dashboard/sos/${alert._id}`}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-700 flex items-center justify-center"
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" /> View Details
+                </Link>
+                <button
+                  onClick={() => mutation.mutate(alert._id)}
+                  className="bg-white text-red-600 px-4 py-2 border border-red-200 rounded-md shadow-sm hover:bg-red-100 flex items-center justify-center"
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" /> Mark Resolved
+                </button>
+              </div>
             </div>
           ))
         )}

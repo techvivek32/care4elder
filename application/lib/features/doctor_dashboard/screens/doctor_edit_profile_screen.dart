@@ -26,6 +26,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
   final _qualificationsController = TextEditingController();
   final _experienceController = TextEditingController();
   final _aboutController = TextEditingController();
+  final _hospitalController = TextEditingController();
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -47,6 +48,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
     _qualificationsController.dispose();
     _experienceController.dispose();
     _aboutController.dispose();
+    _hospitalController.dispose();
     super.dispose();
   }
 
@@ -71,6 +73,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
           _qualificationsController.text = profile.qualifications;
           _experienceController.text = profile.experience;
           _aboutController.text = profile.about;
+          _hospitalController.text = profile.hospitalAffiliation;
           _currentImageUrl = profile.profileImage;
           _isLoading = false;
         });
@@ -137,6 +140,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
         qualifications: _qualificationsController.text.trim(),
         experience: _experienceController.text.trim(),
         about: _aboutController.text.trim(),
+        hospitalAffiliation: _hospitalController.text.trim(),
         profileImage: uploadedImageUrl,
       );
 
@@ -257,6 +261,13 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
                       icon: Icons.work_outline,
                       keyboardType: TextInputType.number,
                       validator: (v) => v?.isEmpty == true ? 'Experience is required' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _hospitalController,
+                      label: 'Hospital/Clinic Affiliation',
+                      icon: Icons.local_hospital_outlined,
+                      validator: (v) => v?.isEmpty == true ? 'Hospital Affiliation is required' : null,
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(

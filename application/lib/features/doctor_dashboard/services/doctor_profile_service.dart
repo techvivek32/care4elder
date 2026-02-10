@@ -32,6 +32,7 @@ class DoctorProfileData {
   String qualifications;
   String experience;
   String about;
+  String hospitalAffiliation;
   String? profileImage;
   Map<String, dynamic>? consultationFees;
   Map<String, dynamic>? bankDetails;
@@ -45,6 +46,7 @@ class DoctorProfileData {
     required this.qualifications,
     required this.experience,
     required this.about,
+    this.hospitalAffiliation = '',
     this.profileImage,
     this.consultationFees,
     this.bankDetails,
@@ -64,6 +66,7 @@ class DoctorProfileData {
           json['experienceYears']?.toString() ??
           '',
       about: json['about'] ?? '',
+      hospitalAffiliation: json['hospitalAffiliation'] ?? '',
       profileImage: _resolveImageUrl(rawImage),
       consultationFees: json['consultationFees'],
       bankDetails: json['bankDetails'],
@@ -80,6 +83,7 @@ class DoctorProfileData {
       'qualifications': qualifications,
       'experience': experience,
       'about': about,
+      'hospitalAffiliation': hospitalAffiliation,
       'profileImage': profileImage,
       'consultationFees': consultationFees,
       'bankDetails': bankDetails,
@@ -95,6 +99,7 @@ class DoctorProfileData {
     String? qualifications,
     String? experience,
     String? about,
+    String? hospitalAffiliation,
     String? profileImage,
     Map<String, dynamic>? consultationFees,
     Map<String, dynamic>? bankDetails,
@@ -108,6 +113,7 @@ class DoctorProfileData {
       qualifications: qualifications ?? this.qualifications,
       experience: experience ?? this.experience,
       about: about ?? this.about,
+      hospitalAffiliation: hospitalAffiliation ?? this.hospitalAffiliation,
       profileImage: profileImage ?? this.profileImage,
       consultationFees: consultationFees ?? this.consultationFees,
       bankDetails: bankDetails ?? this.bankDetails,
@@ -195,6 +201,7 @@ class DoctorProfileService extends ChangeNotifier {
         'qualifications': updatedData.qualifications,
         'experience': updatedData.experience,
         'about': updatedData.about,
+        'hospitalAffiliation': updatedData.hospitalAffiliation,
         'profileImage': updatedData.profileImage,
         'consultationFees': updatedData.consultationFees,
         'bankDetails': updatedData.bankDetails,

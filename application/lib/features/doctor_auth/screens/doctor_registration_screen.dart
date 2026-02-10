@@ -380,7 +380,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _hospitalController,
-                  label: 'Hospital/Clinic Affiliation',
+                  label: 'Hospital/Clinic Address',
                   hint: 'e.g. City General Hospital',
                   validator: (value) => value?.isEmpty ?? true
                       ? 'Please enter affiliation'

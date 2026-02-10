@@ -238,6 +238,16 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildInfoCard(
+                    icon: Icons.local_hospital_outlined,
+                    iconBg: const Color(0xFFFCE4EC),
+                    iconColor: Colors.pink,
+                    label: 'Hospital/Clinic',
+                    value: profile.hospitalAffiliation.isNotEmpty
+                        ? profile.hospitalAffiliation
+                        : 'Not added',
+                  ),
+                  const SizedBox(height: 16),
+                  _buildInfoCard(
                     icon: Icons.phone_outlined,
                     iconBg: const Color(0xFFE3F2FD),
                     iconColor: Colors.blue,

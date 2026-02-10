@@ -282,4 +282,55 @@ class ProfileService extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> deductFromWallet(double amount) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final authService = AuthService();
+      final patientId = await authService.getPatientId();
+      final token = await authService.getToken();
+
+      if (patientId == null || token == null) {
+        _error = 'User not authenticated';
+        return false;
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/patients/$patientId/wallet/deduct'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'amount': amount,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          // Update local balance
+          if (_currentUser != null) {
+            _currentUser = _currentUser!.copyWith(
+              walletBalance: (data['newBalance'] as num).toDouble(),
+            );
+          }
+          return true;
+        }
+      }
+
+      final errorData = jsonDecode(response.body);
+      _error = errorData['error'] ?? 'Failed to deduct from wallet';
+      return false;
+    } catch (e) {
+      _error = 'Failed to deduct from wallet: $e';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

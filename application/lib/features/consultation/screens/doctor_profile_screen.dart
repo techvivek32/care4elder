@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/profile_service.dart';
 
 class DoctorProfileScreen extends StatefulWidget {
   final String doctorId;
@@ -413,7 +415,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        context.push('/patient/doctor/${doctor.id}/call');
+                        _showConsultationDialog(context, doctor);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFF5252),
@@ -449,6 +451,263 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showConsultationDialog(BuildContext context, Doctor doctor) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _ConsultationTypeSheet(doctor: doctor),
+    );
+  }
+}
+
+class _ConsultationTypeSheet extends StatefulWidget {
+  final Doctor doctor;
+
+  const _ConsultationTypeSheet({required this.doctor});
+
+  @override
+  State<_ConsultationTypeSheet> createState() => _ConsultationTypeSheetState();
+}
+
+class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
+  String _selectedType = 'consultation'; // 'consultation' or 'emergency'
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final double fee = _selectedType == 'consultation' 
+        ? widget.doctor.consultationFee 
+        : widget.doctor.emergencyFee;
+    
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Select Consultation Type',
+            style: GoogleFonts.roboto(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildOption(
+            title: 'Standard Consultation',
+            price: widget.doctor.consultationFee,
+            value: 'consultation',
+            icon: Icons.video_call_rounded,
+          ),
+          const SizedBox(height: 16),
+          _buildOption(
+            title: 'Emergency Call',
+            price: widget.doctor.emergencyFee,
+            value: 'emergency',
+            icon: Icons.emergency_rounded,
+            isEmergency: true,
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _handleProceed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                disabledBackgroundColor: AppColors.primaryBlue.withOpacity(0.6),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      'Pay ₹$fee & Call',
+                      style: GoogleFonts.roboto(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOption({
+    required String title,
+    required double price,
+    required String value,
+    required IconData icon,
+    bool isEmergency = false,
+  }) {
+    final isSelected = _selectedType == value;
+    
+    return InkWell(
+      onTap: () => setState(() => _selectedType = value),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? (isEmergency ? Colors.red[50] : AppColors.primaryBlue.withOpacity(0.1))
+              : Colors.grey[50],
+          border: Border.all(
+            color: isSelected
+                ? (isEmergency ? Colors.red : AppColors.primaryBlue)
+                : Colors.grey[300]!,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isEmergency ? Colors.red[100] : Colors.blue[100],
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isEmergency ? Colors.red : AppColors.primaryBlue,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.roboto(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  if (isEmergency)
+                    Text(
+                      'Immediate response',
+                      style: GoogleFonts.roboto(
+                        fontSize: 12,
+                        color: Colors.red,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Text(
+              '₹$price',
+              style: GoogleFonts.roboto(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isEmergency ? Colors.red : AppColors.primaryBlue,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Radio<String>(
+              value: value,
+              groupValue: _selectedType,
+              activeColor: isEmergency ? Colors.red : AppColors.primaryBlue,
+              onChanged: (val) => setState(() => _selectedType = val!),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleProceed() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      final profileService = context.read<ProfileService>();
+      final walletBalance = profileService.currentUser?.walletBalance ?? 0;
+      final fee = _selectedType == 'consultation' 
+          ? widget.doctor.consultationFee 
+          : widget.doctor.emergencyFee;
+
+      if (walletBalance < fee) {
+        if (mounted) {
+          Navigator.pop(context); // Close sheet
+          _showInsufficientBalanceDialog(context, fee, walletBalance);
+        }
+        return;
+      }
+
+      final success = await profileService.deductFromWallet(fee);
+      
+      if (mounted) {
+        if (success) {
+          Navigator.pop(context); // Close sheet
+          context.push('/patient/doctor/${widget.doctor.id}/call');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(profileService.error ?? 'Transaction failed')),
+          );
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showInsufficientBalanceDialog(BuildContext context, double required, double available) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Insufficient Balance', style: GoogleFonts.roboto(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('You need ₹$required for this consultation, but your wallet balance is ₹$available.'),
+            const SizedBox(height: 16),
+            Text('Please recharge your wallet to proceed.'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.push('/patient/profile/wallet');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Recharge Now'),
           ),
         ],
       ),

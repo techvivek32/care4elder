@@ -16,6 +16,7 @@ class Doctor {
   final String about;
   final String profileImage;
   final double consultationFee;
+  final double emergencyFee;
   final bool isAvailable;
   final double rating; // Not in backend yet, default to 0 or mock
   final int reviews;   // Not in backend yet, default to 0 or mock
@@ -33,6 +34,7 @@ class Doctor {
     this.about = '',
     this.profileImage = '',
     this.consultationFee = 0.0,
+    this.emergencyFee = 0.0,
     this.isAvailable = true,
     this.rating = 0.0,
     this.reviews = 0,
@@ -52,6 +54,9 @@ class Doctor {
       about: json['about'] ?? '',
       profileImage: json['profileImage'] ?? '',
       consultationFee: (json['consultationFee'] ?? 0).toDouble(),
+      emergencyFee: (json['consultationFees'] != null && json['consultationFees']['emergency'] != null)
+          ? (json['consultationFees']['emergency'] as num).toDouble()
+          : (json['consultationFee'] ?? 0).toDouble() * 1.5, // Default to 1.5x if not set
       isAvailable: json['isAvailable'] ?? true,
       rating: (json['rating'] ?? 0).toDouble(),
       reviews: json['reviews'] ?? 0,

@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Patient from '@/models/Patient';
+import Setting from '@/models/Setting';
 import Razorpay from 'razorpay';
-
-const razorpay = new Razorpay({
-  key_id: 'rzp_test_RlUAkt1HzIvV4j',
-  key_secret: 'sJTXltlLKxoz1f0tjwf8hdTM',
-});
 
 export async function POST(
   request: Request,
@@ -14,6 +10,21 @@ export async function POST(
 ) {
   try {
     await dbConnect();
+
+    // Fetch Settings
+    const settings = await Setting.findOne();
+    if (!settings || !settings.razorpayKeyId || !settings.razorpayKeySecret) {
+      return NextResponse.json(
+        { error: 'Payment gateway not configured' },
+        { status: 503 } // Service Unavailable
+      );
+    }
+
+    const razorpay = new Razorpay({
+      key_id: settings.razorpayKeyId,
+      key_secret: settings.razorpayKeySecret,
+    });
+
     const { id } = await props.params;
     const { paymentId, amount } = await request.json();
 

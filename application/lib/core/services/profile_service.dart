@@ -92,11 +92,13 @@ class ProfileService extends ChangeNotifier {
   factory ProfileService() => _instance;
   ProfileService._internal() {
     fetchProfile(); // Initial fetch
+    fetchConfig();
   }
 
   UserProfile? _currentUser;
   bool _isLoading = false;
   String? _error;
+  String? _razorpayKeyId;
 
   // Mock list of known relatives (simulating data from other parts of the app)
   // TODO: Fetch this from backend if needed
@@ -108,6 +110,25 @@ class ProfileService extends ChangeNotifier {
   UserProfile? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String? get razorpayKeyId => _razorpayKeyId;
+
+  // Fetch app configuration
+  Future<void> fetchConfig() async {
+    try {
+      // Note: Config endpoint might not require auth, or use default public access
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl.replaceAll('/api', '')}/api/config'));
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _razorpayKeyId = data['razorpayKeyId'];
+        notifyListeners();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Fetch Config Exception: $e');
+      }
+    }
+  }
 
   // Fetch profile from backend
   Future<void> fetchProfile() async {

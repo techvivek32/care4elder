@@ -101,9 +101,18 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
 
     final profileService = Provider.of<ProfileService>(context, listen: false);
     final user = profileService.currentUser;
+    final keyId = profileService.razorpayKeyId;
+
+    if (keyId == null || keyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Payment configuration missing. Please try again later.')),
+      );
+      profileService.fetchConfig();
+      return;
+    }
 
     var options = {
-      'key': 'rzp_test_RlUAkt1HzIvV4j',
+      'key': keyId,
       'amount': (amount * 100).toInt(), // Amount in paise
       'name': 'Care4Elder',
       'description': 'Wallet Recharge',
@@ -240,7 +249,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                           style: GoogleFonts.roboto(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primaryBlue,
+                            color: AppColors.textDark,
                           ),
                           decoration: InputDecoration(
                             border: InputBorder.none,

@@ -25,6 +25,11 @@ const SOSAlertSchema: Schema = new Schema({
       remark: { type: String, default: '' }
     },
     service: {
+      selectedServices: [{
+        name: { type: String }, // 'Ambulance', 'Police', 'Fire Dept'
+        eta: { type: String },
+        status: { type: String, default: 'active' }
+      }],
       remark: { type: String, default: '' }
     }
   },

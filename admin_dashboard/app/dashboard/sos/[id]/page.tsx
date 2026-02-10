@@ -29,7 +29,10 @@ export default function SOSDetailPage() {
   const [localCallStatus, setLocalCallStatus] = useState({
     patient: { status: 'pending', remark: '' },
     emergencyContact: { status: 'pending', remark: '' },
-    service: { remark: '' }
+    service: { 
+        selectedServices: [] as any[], // Array of { name, eta, status }
+        remark: '' 
+    }
   });
 
   // Sync with server data
@@ -45,6 +48,7 @@ export default function SOSDetailPage() {
           remark: alertData.callStatus.emergencyContact?.remark || '' 
         },
         service: { 
+          selectedServices: alertData.callStatus.service?.selectedServices || [],
           remark: alertData.callStatus.service?.remark || '' 
         }
       });
@@ -388,8 +392,74 @@ export default function SOSDetailPage() {
                     <span className="bg-black text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">3</span>
                     Service / Action Taken
                  </h3>
+                 
+                 <div className="space-y-4 mb-4">
+                    <label className="block text-sm font-medium text-black mb-1">Select Emergency Services</label>
+                    {['Ambulance', 'Police', 'Fire Dept'].map((serviceName) => {
+                        const isSelected = localCallStatus.service.selectedServices.some((s: any) => s.name === serviceName);
+                        const serviceData = localCallStatus.service.selectedServices.find((s: any) => s.name === serviceName) || {};
+                        
+                        return (
+                            <div key={serviceName} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center">
+                                        <input 
+                                            type="checkbox"
+                                            className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mr-3"
+                                            checked={isSelected}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                setLocalCallStatus(prev => {
+                                                    let newServices = [...prev.service.selectedServices];
+                                                    if (checked) {
+                                                        // Add service
+                                                        newServices.push({ name: serviceName, eta: '', status: 'active' });
+                                                    } else {
+                                                        // Remove service
+                                                        newServices = newServices.filter((s: any) => s.name !== serviceName);
+                                                    }
+                                                    return { ...prev, service: { ...prev.service, selectedServices: newServices } };
+                                                });
+                                            }}
+                                        />
+                                        <span className="font-semibold text-black text-lg">{serviceName}</span>
+                                    </div>
+                                    {isSelected && (
+                                        <span className="text-green-600 text-sm font-medium flex items-center">
+                                            <CheckCircle className="h-4 w-4 mr-1" /> Active
+                                        </span>
+                                    )}
+                                </div>
+                                
+                                {isSelected && (
+                                    <div className="ml-8 mt-2">
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Estimated Time of Arrival (ETA)</label>
+                                        <input 
+                                            type="text" 
+                                            className="w-full md:w-1/2 border-gray-300 rounded-md shadow-sm p-2 text-black text-sm"
+                                            placeholder="e.g. 8 mins"
+                                            value={serviceData.eta || ''}
+                                            onChange={(e) => {
+                                                setLocalCallStatus(prev => {
+                                                    const newServices = prev.service.selectedServices.map((s: any) => {
+                                                        if (s.name === serviceName) {
+                                                            return { ...s, eta: e.target.value };
+                                                        }
+                                                        return s;
+                                                    });
+                                                    return { ...prev, service: { ...prev.service, selectedServices: newServices } };
+                                                });
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                 </div>
+
                  <div>
-                    <label className="block text-sm font-medium text-black mb-1">Service Remarks</label>
+                    <label className="block text-sm font-medium text-black mb-1">Overall Remarks</label>
                     <textarea 
                        className="w-full border-gray-300 rounded-md shadow-sm p-2 text-black"
                        rows={3}
@@ -407,7 +477,7 @@ export default function SOSDetailPage() {
                        {updateStatusMutation.isPending ? 'Saving...' : (
                            <>
                                <Save className="h-4 w-4 mr-2" /> 
-                               {alertData?.callStatus?.service?.remark ? 'Update' : 'Save & Complete'}
+                               {(alertData?.callStatus?.service?.remark || (alertData?.callStatus?.service?.selectedServices && alertData.callStatus.service.selectedServices.length > 0)) ? 'Update' : 'Save & Complete'}
                            </>
                        )}
                     </button>

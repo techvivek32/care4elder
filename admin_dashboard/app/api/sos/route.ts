@@ -82,6 +82,9 @@ export async function PATCH(request: Request) {
                 if (callStatus.service.remark !== undefined) {
                     updateData['callStatus.service.remark'] = callStatus.service.remark;
                 }
+                if (callStatus.service.selectedServices) {
+                    updateData['callStatus.service.selectedServices'] = callStatus.service.selectedServices;
+                }
             }
         }
 

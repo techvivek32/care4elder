@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/services/profile_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/emergency_audit_service.dart';
 import '../widgets/cancellation_dialog.dart';
@@ -27,9 +28,32 @@ class _SosScreenState extends State<SosScreen> {
   @override
   void initState() {
     super.initState();
+    _loadContacts();
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _handleFallDetection();
+      });
+    }
+  }
+
+  Future<void> _loadContacts() async {
+    final profileService = ProfileService();
+    if (profileService.currentUser == null) {
+      await profileService.fetchProfile();
+    }
+
+    if (profileService.currentUser != null && mounted) {
+      setState(() {
+        _contacts = profileService.currentUser!.emergencyContacts.map((c) {
+          return {
+            'name': c.name,
+            'relation': c.relation,
+            'phone': c.phone,
+            'status': 'Notified',
+            'initial': c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
+            'color': Colors.blue,
+          };
+        }).toList();
       });
     }
   }
@@ -114,24 +138,7 @@ class _SosScreenState extends State<SosScreen> {
     return result ?? false;
   }
 
-  final List<Map<String, dynamic>> _contacts = [
-    {
-      'name': 'John Doe',
-      'relation': 'Son',
-      'phone': '+15551234567',
-      'status': 'Notified',
-      'initial': 'JD',
-      'color': Colors.blue,
-    },
-    {
-      'name': 'Jane Smith',
-      'relation': 'Daughter',
-      'phone': '+15559876543',
-      'status': 'Called',
-      'initial': 'JS',
-      'color': Colors.blue,
-    },
-  ];
+  List<Map<String, dynamic>> _contacts = [];
 
   final List<Map<String, dynamic>> _services = [
     {
@@ -469,9 +476,9 @@ class _SosScreenState extends State<SosScreen> {
           const SizedBox(height: 32),
           const EmergencyMap(),
           const SizedBox(height: 24),
-          _buildServicesCard(),
-          const SizedBox(height: 24),
           _buildContactsCard(),
+          const SizedBox(height: 24),
+          _buildServicesCard(),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,

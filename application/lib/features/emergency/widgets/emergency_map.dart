@@ -2,16 +2,107 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/app_colors.dart';
 
-class EmergencyMap extends StatelessWidget {
+class EmergencyMap extends StatefulWidget {
   const EmergencyMap({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Default location (New Delhi for demo)
-    final center = LatLng(28.6139, 77.2090);
+  State<EmergencyMap> createState() => _EmergencyMapState();
+}
 
+class _EmergencyMapState extends State<EmergencyMap> {
+  LatLng _currentCenter = LatLng(28.6139, 77.2090); // Default: New Delhi
+  final MapController _mapController = MapController();
+  bool _isLoading = true;
+  String _locationStatus = 'Locating...';
+
+  @override
+  void initState() {
+    super.initState();
+    _determinePosition();
+  }
+
+  Future<void> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (mounted) {
+        setState(() {
+          _locationStatus = 'Location services are disabled.';
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        if (mounted) {
+          setState(() {
+            _locationStatus = 'Location permissions are denied';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        setState(() {
+          _locationStatus = 'Location permissions are permanently denied.';
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.bestForNavigation,
+      );
+      _updateLocation(position);
+
+      // Start listening to location updates with high accuracy
+      const LocationSettings locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 0,
+      );
+      
+      Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) {
+        _updateLocation(position);
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _locationStatus = 'Error getting location';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _updateLocation(Position position) {
+    if (!mounted) return;
+    setState(() {
+      _currentCenter = LatLng(position.latitude, position.longitude);
+      _isLoading = false;
+      _locationStatus = 'Location Active';
+    });
+    _mapController.move(_currentCenter, 15.0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -81,8 +172,9 @@ class EmergencyMap extends StatelessWidget {
               child: Stack(
                 children: [
                   FlutterMap(
+                    mapController: _mapController,
                     options: MapOptions(
-                      initialCenter: center,
+                      initialCenter: _currentCenter,
                       initialZoom: 13.0,
                     ),
                     children: [
@@ -94,7 +186,7 @@ class EmergencyMap extends StatelessWidget {
                       MarkerLayer(
                         markers: [
                           Marker(
-                            point: center,
+                            point: _currentCenter,
                             width: 80,
                             height: 80,
                             child: Container(
@@ -122,28 +214,6 @@ class EmergencyMap extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                          // Nearby Hospital
-                          Marker(
-                            point: LatLng(28.62, 77.21),
-                            width: 40,
-                            height: 40,
-                            child: const Icon(
-                              Icons.local_hospital,
-                              color: Colors.red,
-                              size: 30,
-                            ),
-                          ),
-                          // Nearby Police Station
-                          Marker(
-                            point: LatLng(28.61, 77.20),
-                            width: 40,
-                            height: 40,
-                            child: const Icon(
-                              Icons.local_police,
-                              color: Colors.blue,
-                              size: 30,
                             ),
                           ),
                         ],
@@ -177,7 +247,9 @@ class EmergencyMap extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '123 Main St, New Delhi',
+                            _isLoading
+                                ? 'Locating...'
+                                : '${_currentCenter.latitude.toStringAsFixed(4)}, ${_currentCenter.longitude.toStringAsFixed(4)}',
                             style: GoogleFonts.roboto(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,

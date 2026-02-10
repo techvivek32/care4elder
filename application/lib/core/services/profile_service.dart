@@ -16,6 +16,7 @@ class UserProfile {
   String bloodGroup;
   String allergies;
   double walletBalance;
+  List<EmergencyContact> emergencyContacts;
 
   UserProfile({
     required this.id,
@@ -28,6 +29,7 @@ class UserProfile {
     required this.bloodGroup,
     required this.allergies,
     this.walletBalance = 0.0,
+    this.emergencyContacts = const [],
   });
 
   UserProfile copyWith({
@@ -41,6 +43,7 @@ class UserProfile {
     String? bloodGroup,
     String? allergies,
     double? walletBalance,
+    List<EmergencyContact>? emergencyContacts,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -53,6 +56,7 @@ class UserProfile {
       bloodGroup: bloodGroup ?? this.bloodGroup,
       allergies: allergies ?? this.allergies,
       walletBalance: walletBalance ?? this.walletBalance,
+      emergencyContacts: emergencyContacts ?? this.emergencyContacts,
     );
   }
 
@@ -70,6 +74,10 @@ class UserProfile {
       bloodGroup: json['bloodGroup'] ?? '',
       allergies: json['allergies'] ?? '',
       walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0.0,
+      emergencyContacts: (json['emergencyContacts'] as List?)
+              ?.map((e) => EmergencyContact.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 
@@ -83,6 +91,35 @@ class UserProfile {
       'location': location,
       'bloodGroup': bloodGroup,
       'allergies': allergies,
+      'emergencyContacts': emergencyContacts.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class EmergencyContact {
+  final String name;
+  final String relation;
+  final String phone;
+
+  EmergencyContact({
+    required this.name,
+    required this.relation,
+    required this.phone,
+  });
+
+  factory EmergencyContact.fromJson(Map<String, dynamic> json) {
+    return EmergencyContact(
+      name: json['name'] ?? '',
+      relation: json['relation'] ?? '',
+      phone: json['phone'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'relation': relation,
+      'phone': phone,
     };
   }
 }

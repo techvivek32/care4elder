@@ -12,10 +12,10 @@ export async function GET(request: Request) {
       throw new Error('Patient model not loaded');
     }
 
-    // Fetch active alerts and populate patient details
-    const alerts = await SOSAlert.find({ status: 'active' })
+    // Fetch all alerts (active and resolved), sorted by status (active first) then timestamp
+    const alerts = await SOSAlert.find({})
       .populate('patientId', 'name phone emergencyContacts')
-      .sort({ timestamp: -1 });
+      .sort({ status: 1, timestamp: -1 }); // 'active' comes before 'resolved' alphabetically? No, 'a' < 'r'. So 1 is ascending.
       
     return NextResponse.json(alerts);
   } catch (error) {
@@ -47,11 +47,61 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
     try {
         await dbConnect();
-        const { id, status } = await request.json();
+        const body = await request.json();
+        console.log('PATCH /api/sos received:', body); // Debug log
+
+        const { id, status, callStatus } = body;
         
-        const alert = await SOSAlert.findByIdAndUpdate(id, { status }, { new: true });
+        if (!id) {
+            console.error('Missing ID in PATCH request');
+            return NextResponse.json({ error: 'Alert ID is required' }, { status: 400 });
+        }
+
+        const updateData: any = {};
+        if (status) updateData.status = status;
+        
+        // Handle granular updates for callStatus using dot notation (Flattened for safety)
+        if (callStatus) {
+            if (callStatus.patient) {
+                if (callStatus.patient.status) {
+                    updateData['callStatus.patient.status'] = callStatus.patient.status;
+                }
+                if (callStatus.patient.remark !== undefined) {
+                    updateData['callStatus.patient.remark'] = callStatus.patient.remark;
+                }
+            }
+            if (callStatus.emergencyContact) {
+                if (callStatus.emergencyContact.status) {
+                    updateData['callStatus.emergencyContact.status'] = callStatus.emergencyContact.status;
+                }
+                if (callStatus.emergencyContact.remark !== undefined) {
+                    updateData['callStatus.emergencyContact.remark'] = callStatus.emergencyContact.remark;
+                }
+            }
+            if (callStatus.service) {
+                if (callStatus.service.remark !== undefined) {
+                    updateData['callStatus.service.remark'] = callStatus.service.remark;
+                }
+            }
+        }
+
+        console.log('Updating SOSAlert with:', updateData); // Debug log
+
+        const alert = await SOSAlert.findByIdAndUpdate(
+            id, 
+            { $set: updateData }, 
+            { new: true, runValidators: true } 
+        ).populate('patientId', 'name phone emergencyContacts'); // Return populated document
+
+        if (!alert) {
+            console.error('Alert not found for ID:', id);
+            return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+        }
+
+        console.log('Updated alert:', alert); // Debug log
         return NextResponse.json(alert);
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to update alert' }, { status: 500 });
+    } catch (error: any) {
+        console.error('Failed to update alert:', error);
+        return NextResponse.json({ error: 'Failed to update alert', details: error.message }, { status: 500 });
     }
 }

@@ -15,6 +15,19 @@ const SOSAlertSchema: Schema = new Schema({
     enum: ['active', 'resolved'], 
     default: 'active' 
   },
+  callStatus: {
+    patient: {
+      status: { type: String, enum: ['picked_up', 'not_picked_up', 'pending'], default: 'pending' },
+      remark: { type: String, default: '' }
+    },
+    emergencyContact: {
+      status: { type: String, enum: ['picked_up', 'not_picked_up', 'skipped', 'pending'], default: 'pending' },
+      remark: { type: String, default: '' }
+    },
+    service: {
+      remark: { type: String, default: '' }
+    }
+  },
   timestamp: { type: Date, default: Date.now }
 }, { timestamps: true });
 

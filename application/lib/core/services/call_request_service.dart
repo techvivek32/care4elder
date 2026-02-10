@@ -24,6 +24,7 @@ class CallRequestData {
   final String patientProfile;
   final String patientLocation;
   final DateTime? patientDob;
+  final String? doctorProfileImage;
 
   CallRequestData({
     required this.id,
@@ -45,6 +46,7 @@ class CallRequestData {
     this.patientProfile = '',
     this.patientLocation = '',
     this.patientDob,
+    this.doctorProfileImage,
   });
 
   factory CallRequestData.fromJson(Map<String, dynamic> json) {
@@ -72,6 +74,7 @@ class CallRequestData {
       patientDob: (patient is Map && patient['dateOfBirth'] != null) 
           ? DateTime.tryParse(patient['dateOfBirth']) 
           : null,
+      doctorProfileImage: doctor is Map ? (doctor['profileImage']) : null,
     );
   }
 }
@@ -170,6 +173,24 @@ class CallRequestService {
   }) async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}/call-requests/doctor-history'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => CallRequestData.fromJson(json)).toList();
+    }
+    return [];
+  }
+
+  Future<List<CallRequestData>> getPatientHistory({
+    required String token,
+  }) async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/call-requests/patient-history'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

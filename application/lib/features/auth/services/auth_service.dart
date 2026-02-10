@@ -32,6 +32,11 @@ class AuthService {
 
   bool enableDevOtpBypass = true;
 
+  /// Get stored auth token
+  Future<String?> getToken() async {
+    return await _storage.read(key: 'auth_token');
+  }
+
   /// Register Patient
   Future<Map<String, dynamic>> registerPatient({
     required String name,
@@ -239,10 +244,6 @@ class AuthService {
 
   Future<String?> getPatientId() async {
     return await _storage.read(key: _patientIdKey);
-  }
-
-  Future<String?> getToken() async {
-    return await _storage.read(key: 'auth_token');
   }
 
   /// Send OTP to phone number (Legacy/Mock - Deprecated for Registration)

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../auth/services/auth_service.dart';
+import '../../../core/services/call_request_service.dart';
+import 'patient_record_detail_screen.dart';
 import 'dart:ui';
 
 class MedicalRecordsScreen extends StatefulWidget {
@@ -11,8 +15,49 @@ class MedicalRecordsScreen extends StatefulWidget {
 }
 
 class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
+  bool _isLoading = true;
+  List<CallRequestData> _records = [];
+  final CallRequestService _callRequestService = CallRequestService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecords();
+  }
+
+  Future<void> _fetchRecords() async {
+    try {
+      final token = await AuthService().getToken();
+      if (token != null) {
+        final records = await _callRequestService.getPatientHistory(token: token);
+        if (mounted) {
+          setState(() {
+            _records = records;
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+      debugPrint('Error fetching records: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Calculate counts
+    int prescriptionsCount = 0;
+    int labReportsCount = 0;
+    int medicalDocsCount = 0;
+
+    for (var record in _records) {
+      prescriptionsCount += record.prescriptions.length;
+      labReportsCount += record.labReports.length;
+      medicalDocsCount += record.medicalDocuments.length;
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -42,11 +87,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         ),
         toolbarHeight: 80,
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          // Mock refresh delay
-          await Future.delayed(const Duration(seconds: 1));
-        },
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+        onRefresh: _fetchRecords,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -55,26 +99,66 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             children: [
               _buildCategoryCard(
                 title: 'Prescriptions',
-                count: '12 files',
+                count: '$prescriptionsCount files',
                 icon: Icons.description_outlined,
                 color: Colors.blue,
+                onTap: () {
+                  final allPrescriptions = _records.expand((r) => r.prescriptions).toList();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PatientCategoryFilesScreen(
+                        title: 'Prescriptions',
+                        files: allPrescriptions,
+                        icon: Icons.description_outlined,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               _buildCategoryCard(
                 title: 'Lab Reports',
-                count: '8 files',
+                count: '$labReportsCount files',
                 icon: Icons.science_outlined,
                 color: Colors.green,
+                onTap: () {
+                  final allLabReports = _records.expand((r) => r.labReports).toList();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PatientCategoryFilesScreen(
+                        title: 'Lab Reports',
+                        files: allLabReports,
+                        icon: Icons.science_outlined,
+                        color: Colors.green,
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               _buildCategoryCard(
                 title: 'Medical Documents',
-                count: '5 files',
+                count: '$medicalDocsCount files',
                 icon: Icons.folder_open_outlined,
                 color: Colors.orange,
+                onTap: () {
+                  final allMedicalDocs = _records.expand((r) => r.medicalDocuments).toList();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PatientCategoryFilesScreen(
+                        title: 'Medical Documents',
+                        files: allMedicalDocs,
+                        icon: Icons.folder_open_outlined,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 24),
-              _buildUploadButton(),
               const SizedBox(height: 32),
               Text(
                 'Recent Records',
@@ -85,23 +169,35 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildRecentRecordItem(
-                title: 'Blood Test Report',
-                subtitle: 'Jan 15, 2026 • Dr. Priya Sharma',
-                icon: Icons.description_outlined,
-              ),
-              const SizedBox(height: 12),
-              _buildRecentRecordItem(
-                title: 'Prescription - Fever',
-                subtitle: 'Jan 10, 2026 • Dr. Kevin Chen',
-                icon: Icons.description_outlined,
-              ),
-              const SizedBox(height: 12),
-              _buildRecentRecordItem(
-                title: 'X-Ray Report',
-                subtitle: 'Jan 5, 2026 • Dr. Emily Watson',
-                icon: Icons.description_outlined,
-              ),
+              if (_records.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      'No records found',
+                      style: GoogleFonts.roboto(color: AppColors.textGrey),
+                    ),
+                  ),
+                )
+              else
+                ..._records.take(5).map((record) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PatientRecordDetailScreen(callRequest: record),
+                        ),
+                      );
+                    },
+                    child: _buildRecentRecordItem(
+                      title: 'Consultation Report',
+                      subtitle: '${DateFormat('MMM d, yyyy').format(record.createdAt)} • ${record.doctorName}',
+                      icon: Icons.description_outlined,
+                    ),
+                  ),
+                )),
               const SizedBox(height: 32),
             ],
           ),
@@ -115,56 +211,60 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required String count,
     required IconData icon,
     required Color color,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(16),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(icon, color: Colors.white, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.roboto(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                Text(
-                  count,
-                  style: GoogleFonts.roboto(
-                    fontSize: 14,
-                    color: AppColors.textGrey,
-                  ),
-                ),
-              ],
+          ],
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: Colors.white, size: 28),
             ),
-          ),
-          Icon(Icons.chevron_right, color: Colors.grey.shade400),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.roboto(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  Text(
+                    count,
+                    style: GoogleFonts.roboto(
+                      fontSize: 14,
+                      color: AppColors.textGrey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+          ],
+        ),
       ),
     );
   }

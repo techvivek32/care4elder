@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import '../../../core/constants/api_constants.dart';
 
 /// Service to handle Authentication logic.
 class AuthService {
@@ -13,7 +14,7 @@ class AuthService {
 
   final _storage = const FlutterSecureStorage();
   
-  static const String _baseUrl = 'https://care4elder.cloud/api'; 
+  static String get _baseUrl => ApiConstants.baseUrl; 
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: '374189587484-63hansfrfo6jpa5aoc3ea7fft7tv73rh.apps.googleusercontent.com',

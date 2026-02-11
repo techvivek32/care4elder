@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../constants/api_constants.dart';
 import '../../features/auth/services/auth_service.dart';
 
 class Doctor {
@@ -69,7 +70,7 @@ class DoctorService extends ChangeNotifier {
   factory DoctorService() => _instance;
   DoctorService._internal();
 
-  static const String _baseUrl = 'https://care4elder.cloud/api';
+  static String get _baseUrl => ApiConstants.baseUrl;
 
   List<Doctor> _doctors = [];
   bool _isLoading = false;

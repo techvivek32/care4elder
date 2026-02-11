@@ -103,23 +103,32 @@ class SOSService {
       final sosId = await getActiveSosId();
       if (sosId != null) {
         final token = await _authService.getToken();
+        final requestBody = <String, dynamic>{
+          'id': sosId,
+          'status': 'resolved',
+          if (cancellationReason != null) 'cancellationReason': cancellationReason,
+          if (cancellationReason != null) 'reason': cancellationReason,
+          if (cancellationComments != null) 'cancellationComments': cancellationComments,
+          if (cancellationComments != null) 'comments': cancellationComments,
+        };
+        print('SOS Stop payload: ${jsonEncode(requestBody)}');
         final response = await http.patch(
           Uri.parse('${ApiConstants.baseUrl}/sos'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token',
           },
-          body: jsonEncode({
-            'id': sosId,
-            'status': 'resolved',
-            if (cancellationReason != null) 'cancellationReason': cancellationReason,
-            if (cancellationComments != null) 'cancellationComments': cancellationComments,
-          }),
+          body: jsonEncode(requestBody),
         );
 
         if (response.statusCode != 200) {
+          print('SOS Stop failed: ${response.statusCode} ${response.body}');
           throw Exception('Failed to update SOS status: ${response.body}');
         }
+
+        print('SOS Stop success: ${response.statusCode} ${response.body}');
+      } else {
+        throw Exception('No active SOS found');
       }
       
       // Clear Local State
@@ -129,11 +138,7 @@ class SOSService {
       await prefs.remove(_sosStartTimeKey);
     } catch (e) {
       print('SOS Stop Error: $e');
-      // Even if API fails, we should probably clear local state or retry
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_isSosActiveKey);
-      await prefs.remove(_activeSosIdKey);
-      await prefs.remove(_sosStartTimeKey);
+      rethrow;
     }
   }
 }

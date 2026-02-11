@@ -47,4 +47,5 @@ class ApiConstants {
   static String get upload => '$baseUrl/upload';
   static String get doctorRegister => '$baseUrl/auth/doctor/register';
   static String get heroSections => '$baseUrl/hero-sections';
+  static String get healthTips => '$baseUrl/health-tips';
 }

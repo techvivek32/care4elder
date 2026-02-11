@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/services/hero_service.dart';
+import '../../../core/services/health_tip_service.dart';
 
 class PatientDashboardScreen extends StatefulWidget {
   const PatientDashboardScreen({super.key});
@@ -19,13 +20,22 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   int _carouselIndex = 0;
   Timer? _carouselTimer;
   List<HeroSection> _heroSections = [];
+  List<HealthTip> _healthTips = [];
   bool _isLoadingHeroes = true;
+  bool _isLoadingTips = true;
 
   @override
   void initState() {
     super.initState();
-    _loadHeroSections();
+    _loadData();
     ProfileService().fetchProfile();
+  }
+
+  Future<void> _loadData() async {
+    await Future.wait([
+      _loadHeroSections(),
+      _loadHealthTips(),
+    ]);
   }
 
   Future<void> _loadHeroSections() async {
@@ -47,6 +57,62 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         });
       }
     }
+  }
+
+  Future<void> _loadHealthTips() async {
+    try {
+      final tips = await HealthTipService.fetchHealthTips();
+      if (mounted) {
+        setState(() {
+          _healthTips = tips;
+          _isLoadingTips = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingTips = false;
+        });
+      }
+    }
+  }
+
+  void _showTipDetails(HealthTip tip) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          tip.title,
+          style: GoogleFonts.roboto(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textDark,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            tip.description,
+            style: GoogleFonts.roboto(
+              fontSize: 15,
+              color: AppColors.textGrey,
+              height: 1.5,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Close',
+              style: GoogleFonts.roboto(
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryBlue,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -374,48 +440,75 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Stay Hydrated',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Drink at least 8 glasses of water daily.',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 13,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.8,
+                      _isLoadingTips
+                          ? const Center(child: CircularProgressIndicator())
+                          : _healthTips.isEmpty
+                              ? const Text('No health tips available')
+                              : Column(
+                                  children: _healthTips.asMap().entries.map((entry) {
+                                    final index = entry.key;
+                                    final tip = entry.value;
+                                    final colors = [
+                                      AppColors.primaryBlue,
+                                      Colors.green.shade600,
+                                      Colors.orange.shade600,
+                                      Colors.purple.shade600,
+                                      Colors.red.shade600,
+                                    ];
+                                    final cardColor = colors[index % colors.length];
+
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 12.0),
+                                      child: GestureDetector(
+                                        onTap: () => _showTipDetails(tip),
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(20),
+                                          decoration: BoxDecoration(
+                                            color: cardColor,
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      tip.title,
+                                                      style: GoogleFonts.roboto(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      tip.description,
+                                                      style: GoogleFonts.roboto(
+                                                        fontSize: 13,
+                                                        color: Colors.white.withValues(alpha: 0.8),
+                                                      ),
+                                                      maxLines: 2,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.arrow_forward_ios,
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(
-                              Icons.water_drop,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                          ],
-                        ),
-                      ),
+                                    );
+                                  }).toList(),
+                                ),
 
                       // Extra padding for bottom nav
                       const SizedBox(height: 80),

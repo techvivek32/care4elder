@@ -164,13 +164,6 @@ class ProfileService extends ChangeNotifier {
   String? _error;
   String? _razorpayKeyId;
 
-  // Mock list of known relatives (simulating data from other parts of the app)
-  // TODO: Fetch this from backend if needed
-  final List<Map<String, String>> knownRelatives = [
-    {'name': 'Jane Doe', 'relation': 'Wife', 'phone': '9876543210'},
-    {'name': 'Mike Doe', 'relation': 'Son', 'phone': '9876543211'},
-  ];
-
   UserProfile? get currentUser => _currentUser;
   List<WalletTransaction> get walletHistory => _walletHistory;
   bool get isLoading => _isLoading;

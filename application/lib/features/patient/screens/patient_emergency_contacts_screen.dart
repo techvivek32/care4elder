@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
 import '../../../core/services/profile_service.dart';
@@ -305,57 +307,95 @@ class _PatientEmergencyContactsScreenState
     setState(() {});
   }
 
-  void _showRelativesDialog() {
-    final relatives = ProfileService().knownRelatives;
-    if (relatives.isEmpty) {
-      _showError('No known relatives found.');
+  Future<void> _importFromContacts() async {
+    if (kIsWeb) {
+      _showError('Contacts import is not supported on web.');
       return;
     }
 
+    if (await FlutterContacts.requestPermission()) {
+      setState(() => _isLoading = true);
+      try {
+        List<Contact> contacts = await FlutterContacts.getContacts(
+          withProperties: true,
+          withPhoto: false,
+        );
+
+        // Filter out contacts without phone numbers
+        contacts = contacts.where((c) => c.phones.isNotEmpty).toList();
+
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _showContactsPicker(contacts);
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _showError('Failed to load contacts: $e');
+        }
+      }
+    } else {
+      _showError('Contacts permission denied.');
+    }
+  }
+
+  void _showContactsPicker(List<Contact> contacts) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Select from Known Relatives',
-              style: GoogleFonts.roboto(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Text(
+                'Select from Contacts',
+                style: GoogleFonts.roboto(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: relatives.length,
-                separatorBuilder: (ctx, i) => const Divider(),
-                itemBuilder: (ctx, i) {
-                  final rel = relatives[i];
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.primaryBlue.withValues(
-                        alpha: 0.1,
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollController,
+                  itemCount: contacts.length,
+                  separatorBuilder: (ctx, i) => const Divider(),
+                  itemBuilder: (ctx, i) {
+                    final contact = contacts[i];
+                    final phone = contact.phones.first.number;
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: AppColors.primaryBlue.withValues(
+                          alpha: 0.1,
+                        ),
+                        child: Text(contact.displayName.isNotEmpty
+                            ? contact.displayName[0].toUpperCase()
+                            : '?'),
                       ),
-                      child: Text(rel['name']?[0] ?? '?'),
-                    ),
-                    title: Text(rel['name'] ?? ''),
-                    subtitle: Text('${rel['relation']} • ${rel['phone']}'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _importRelative(rel);
-                    },
-                  );
-                },
+                      title: Text(contact.displayName),
+                      subtitle: Text(phone),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _importRelative({
+                          'name': contact.displayName,
+                          'phone': phone.replaceAll(RegExp(r'\D'), ''),
+                          'relation': 'Other',
+                        });
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -393,38 +433,37 @@ class _PatientEmergencyContactsScreenState
           key: _formKey,
           child: Column(
             children: [
-              // Import from Relatives Button
-              if (ProfileService().knownRelatives.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: TextButton.icon(
-                      onPressed: _showRelativesDialog,
-                      icon: const Icon(
-                        Icons.people_outline,
+              // Import from Contacts Button
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: _isLoading ? null : _importFromContacts,
+                    icon: const Icon(
+                      Icons.contacts_outlined,
+                      color: AppColors.primaryBlue,
+                    ),
+                    label: Text(
+                      'Import from Contacts',
+                      style: GoogleFonts.roboto(
                         color: AppColors.primaryBlue,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
                       ),
-                      label: Text(
-                        'Import from Known Relatives',
-                        style: GoogleFonts.roboto(
-                          color: AppColors.primaryBlue,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: AppColors.primaryBlue.withValues(
+                        alpha: 0.1,
                       ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        backgroundColor: AppColors.primaryBlue.withValues(
-                          alpha: 0.1,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
                 ),
+              ),
 
               Expanded(
                 child: AnimatedList(

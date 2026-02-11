@@ -53,5 +53,7 @@
 	<string>Bluetooth access is required for audio devices during calls</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Bluetooth access is required for audio devices during calls</string>
+	<key>NSContactsUsageDescription</key>
+	<string>We need access to your contacts to let you import emergency relatives.</string>
 </dict>
 </plist>

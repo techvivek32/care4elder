@@ -245,22 +245,23 @@ export default function SOSDetailPage() {
 
               {alertData.status === 'resolved' && (
                 <div className="pt-4 mt-4 border-t border-gray-100">
-                  {(alertData.cancellationReason?.trim() || alertData.cancellationComments?.trim()) ? (
+                  {((alertData.cancellationReason && String(alertData.cancellationReason).trim() !== '') || 
+                    (alertData.cancellationComments && String(alertData.cancellationComments).trim() !== '')) ? (
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                       <h3 className="text-sm font-bold text-black mb-2 flex items-center">
                         <XCircle className="h-4 w-4 mr-2 text-red-500" /> Cancellation Details
                       </h3>
-                      {alertData.cancellationReason && (
+                      {alertData.cancellationReason && String(alertData.cancellationReason).trim() !== '' && (
                         <div className="mb-2">
                           <span className="text-xs text-gray-500 block font-semibold text-gray-600">Reason</span>
-                          <span className="text-sm font-bold text-black">{alertData.cancellationReason}</span>
+                          <span className="text-sm font-bold text-black">{String(alertData.cancellationReason)}</span>
                         </div>
                       )}
-                      {alertData.cancellationComments && (
+                      {alertData.cancellationComments && String(alertData.cancellationComments).trim() !== '' && (
                         <div>
                           <span className="text-xs text-gray-500 block font-semibold text-gray-600">Comments</span>
                           <span className="text-sm text-black italic bg-white p-2 rounded border border-gray-100 block mt-1">
-                            "{alertData.cancellationComments}"
+                            "{String(alertData.cancellationComments)}"
                           </span>
                         </div>
                       )}

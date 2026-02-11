@@ -50,7 +50,22 @@ export async function PATCH(request: Request) {
         const body = await request.json();
         console.log('PATCH /api/sos received:', body); // Debug log
 
-        const { id, status, callStatus, cancellationReason, cancellationComments } = body;
+        const id = body?.id ?? body?._id ?? body?.alertId;
+        const status = body?.status ?? body?.alertStatus;
+        const callStatus = body?.callStatus;
+        const rawCancellationReason =
+          body?.cancellationReason ??
+          body?.reason ??
+          body?.cancelReason ??
+          body?.cancellation_reason ??
+          body?.cancellationDetails?.reason;
+        const rawCancellationComments =
+          body?.cancellationComments ??
+          body?.comments ??
+          body?.comment ??
+          body?.cancellation_comments ??
+          body?.cancellationComment ??
+          body?.cancellationDetails?.comments;
         
         if (!id) {
             console.error('Missing ID in PATCH request');
@@ -58,14 +73,23 @@ export async function PATCH(request: Request) {
         }
 
         const updateData: any = {};
-        if (status) updateData.status = status;
-        if (cancellationReason) {
-            updateData.cancellationReason = cancellationReason;
-            console.log('Setting cancellationReason:', cancellationReason);
+        
+        // Fix status update - check for null/undefined instead of truthiness
+        if (status !== undefined && status !== null) {
+            updateData.status = status;
+            console.log('Update: setting status to', status);
         }
-        if (cancellationComments !== undefined) {
-            updateData.cancellationComments = cancellationComments;
-            console.log('Setting cancellationComments:', cancellationComments);
+        
+        // Ensure cancellation details are captured if provided
+        // We check for null/undefined to allow empty strings if necessary
+        if (rawCancellationReason !== undefined && rawCancellationReason !== null) {
+            updateData.cancellationReason = String(rawCancellationReason);
+            console.log('Update: setting cancellationReason to', updateData.cancellationReason);
+        }
+        
+        if (rawCancellationComments !== undefined && rawCancellationComments !== null) {
+            updateData.cancellationComments = String(rawCancellationComments);
+            console.log('Update: setting cancellationComments to', updateData.cancellationComments);
         }
         
         // Handle granular updates for callStatus using dot notation (Flattened for safety)

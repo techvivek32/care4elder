@@ -2,10 +2,18 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ISOSAlert extends Document {
   patientId: mongoose.Types.ObjectId;
-  location: string | any; // Can be GeoJSON later
+  location: string | any;
   status: 'active' | 'resolved';
   cancellationReason?: string;
   cancellationComments?: string;
+  callStatus?: {
+    patient?: { status?: string; remark?: string };
+    emergencyContact?: { status?: string; remark?: string };
+    service?: { 
+      selectedServices?: Array<{ name: string; eta: string; status: string }>;
+      remark?: string;
+    };
+  };
   timestamp: Date;
 }
 

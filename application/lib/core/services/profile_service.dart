@@ -66,7 +66,7 @@ class UserProfile {
       fullName: json['name'] ?? '',
       email: json['email'] ?? '',
       phoneNumber: json['phone'] ?? '',
-      profilePictureUrl: json['profilePictureUrl'] ?? '',
+      profilePictureUrl: ApiConstants.resolveImageUrl(json['profilePictureUrl'] as String?),
       dateOfBirth: json['dateOfBirth'] != null
           ? DateTime.parse(json['dateOfBirth'])
           : null,

@@ -53,7 +53,7 @@ class Doctor {
       hospitalAffiliation: json['hospitalAffiliation'] ?? '',
       qualifications: json['qualifications'] ?? '',
       about: json['about'] ?? '',
-      profileImage: json['profileImage'] ?? '',
+      profileImage: ApiConstants.resolveImageUrl(json['profileImage'] as String?),
       consultationFee: (json['consultationFee'] ?? 0).toDouble(),
       emergencyFee: (json['consultationFees'] != null && json['consultationFees']['emergency'] != null)
           ? (json['consultationFees']['emergency'] as num).toDouble()

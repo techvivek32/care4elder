@@ -7,20 +7,8 @@ import '../../../core/constants/api_constants.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
 
 String? _resolveImageUrl(String? url) {
-  if (url == null || url.isEmpty) {
-    return null;
-  }
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
-  }
-  final baseUrl = ApiConstants.baseUrl;
-  final baseHost = baseUrl.endsWith('/api')
-      ? baseUrl.substring(0, baseUrl.length - 4)
-      : baseUrl;
-  if (url.startsWith('/')) {
-    return '$baseHost$url';
-  }
-  return '$baseHost/$url';
+  if (url == null || url.isEmpty) return null;
+  return ApiConstants.resolveImageUrl(url);
 }
 
 class DoctorProfileData {

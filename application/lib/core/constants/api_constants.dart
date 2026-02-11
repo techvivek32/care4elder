@@ -19,6 +19,29 @@ class ApiConstants {
     return 'https://care4elder.cloud/api';
   }
 
+  static String resolveImageUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return '';
+    }
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    final base = baseUrl.endsWith('/api')
+        ? baseUrl.substring(0, baseUrl.length - 4)
+        : baseUrl;
+
+    // Remove leading slash if present in the URL
+    final cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+
+    // Ensure 'uploads/' is part of the path if it's a relative path from the server
+    if (!cleanUrl.startsWith('uploads/')) {
+      return '$base/uploads/$cleanUrl';
+    }
+
+    return '$base/$cleanUrl';
+  }
+
   static String get sendOtp => '$baseUrl/auth/send-otp';
   static String get verifyOtp => '$baseUrl/auth/verify-otp';
   static String get upload => '$baseUrl/upload';

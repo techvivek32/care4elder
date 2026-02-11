@@ -46,4 +46,5 @@ class ApiConstants {
   static String get verifyOtp => '$baseUrl/auth/verify-otp';
   static String get upload => '$baseUrl/upload';
   static String get doctorRegister => '$baseUrl/auth/doctor/register';
+  static String get heroSections => '$baseUrl/hero-sections';
 }

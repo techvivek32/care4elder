@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/call_request_service.dart';
+import '../../../core/services/hero_service.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
 import '../services/doctor_profile_service.dart';
 
@@ -27,27 +28,8 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   Timer? _carouselTimer;
-
-  final List<Map<String, dynamic>> _carouselItems = [
-    {
-      'title': 'Manage Consultations',
-      'subtitle': 'Efficiently track and manage your patient requests.',
-      'color': Colors.blue.shade100,
-      'icon': Icons.medical_services,
-    },
-    {
-      'title': 'Track Earnings',
-      'subtitle': 'Monitor your professional growth and earnings daily.',
-      'color': Colors.green.shade100,
-      'icon': Icons.account_balance_wallet,
-    },
-    {
-      'title': 'Stay Available',
-      'subtitle': 'Keep your status active to receive new patient calls.',
-      'color': Colors.orange.shade100,
-      'icon': Icons.event_available,
-    },
-  ];
+  List<HeroSection> _heroSections = [];
+  bool _isLoadingHeroes = true;
 
   @override
   void initState() {
@@ -56,13 +38,35 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     _unreadCountNotifier = NotificationService().unreadCountNotifier;
     _loadProfile();
     _startIncomingCallPolling();
-    _startCarouselTimer();
+    _loadHeroSections();
+  }
+
+  Future<void> _loadHeroSections() async {
+    try {
+      final heroes = await HeroService.fetchHeroSections('doctor');
+      if (mounted) {
+        setState(() {
+          _heroSections = heroes;
+          _isLoadingHeroes = false;
+        });
+        if (_heroSections.isNotEmpty) {
+          _startCarouselTimer();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingHeroes = false;
+        });
+      }
+    }
   }
 
   void _startCarouselTimer() {
+    _carouselTimer?.cancel();
     _carouselTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (_pageController.hasClients) {
-        _currentPage = (_currentPage + 1) % _carouselItems.length;
+      if (_pageController.hasClients && _heroSections.isNotEmpty) {
+        _currentPage = (_currentPage + 1) % _heroSections.length;
         _pageController.animateToPage(
           _currentPage,
           duration: const Duration(milliseconds: 500),
@@ -278,6 +282,17 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   Widget _buildCarousel() {
+    if (_isLoadingHeroes) {
+      return const SizedBox(
+        height: 180,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_heroSections.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       children: [
         SizedBox(
@@ -289,54 +304,58 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 _currentPage = index;
               });
             },
-            itemCount: _carouselItems.length,
+            itemCount: _heroSections.length,
             itemBuilder: (context, index) {
-              final item = _carouselItems[index];
+              final item = _heroSections[index];
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
-                  color: item['color'],
+                  color: Colors.blue.shade50,
                   borderRadius: BorderRadius.circular(24),
+                  image: DecorationImage(
+                    image: NetworkImage(item.imageUrl),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -20,
-                      bottom: -20,
-                      child: Icon(
-                        item['icon'],
-                        size: 120,
-                        color: Colors.white.withValues(
-                          alpha: 0.5,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.7),
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        item.title,
+                        style: GoogleFonts.roboto(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            item['title'],
-                            style: GoogleFonts.roboto(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textDark,
-                            ),
+                      if (item.subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          item.subtitle,
+                          style: GoogleFonts.roboto(
+                            fontSize: 14,
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            item['subtitle'],
-                            style: GoogleFonts.roboto(
-                              fontSize: 14,
-                              color: AppColors.textGrey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -347,7 +366,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            _carouselItems.length,
+            _heroSections.length,
             (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(horizontal: 4),

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/profile_service.dart';
+import '../../../core/services/hero_service.dart';
 
 class PatientDashboardScreen extends StatefulWidget {
   const PatientDashboardScreen({super.key});
@@ -17,33 +18,35 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   final PageController _pageController = PageController();
   int _carouselIndex = 0;
   Timer? _carouselTimer;
-
-  final List<Map<String, dynamic>> _carouselItems = [
-    {
-      'title': 'Stay Safe',
-      'subtitle': 'Always keep your emergency contacts updated.',
-      'color': Colors.red.shade100,
-      'icon': Icons.security,
-    },
-    {
-      'title': 'Healthy Living',
-      'subtitle': 'Drink water and take your meds on time.',
-      'color': Colors.blue.shade100,
-      'icon': Icons.local_drink,
-    },
-    {
-      'title': 'Regular Checkups',
-      'subtitle': 'Schedule a visit with your doctor today.',
-      'color': Colors.green.shade100,
-      'icon': Icons.calendar_today,
-    },
-  ];
+  List<HeroSection> _heroSections = [];
+  bool _isLoadingHeroes = true;
 
   @override
   void initState() {
     super.initState();
-    _startCarouselTimer();
+    _loadHeroSections();
     ProfileService().fetchProfile();
+  }
+
+  Future<void> _loadHeroSections() async {
+    try {
+      final heroes = await HeroService.fetchHeroSections('patient');
+      if (mounted) {
+        setState(() {
+          _heroSections = heroes;
+          _isLoadingHeroes = false;
+        });
+        if (_heroSections.isNotEmpty) {
+          _startCarouselTimer();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingHeroes = false;
+        });
+      }
+    }
   }
 
   @override
@@ -54,10 +57,11 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   }
 
   void _startCarouselTimer() {
+    _carouselTimer?.cancel();
     _carouselTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (_pageController.hasClients) {
+      if (_pageController.hasClients && _heroSections.isNotEmpty) {
         int nextPage = _carouselIndex + 1;
-        if (nextPage >= _carouselItems.length) {
+        if (nextPage >= _heroSections.length) {
           nextPage = 0;
         }
         _pageController.animateToPage(
@@ -213,90 +217,102 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                       const SizedBox(height: 32),
 
                       // Carousel (Replacing SOS Button)
-                      SizedBox(
-                        height: 180,
-                        child: PageView.builder(
-                          controller: _pageController,
-                          onPageChanged: (index) {
-                            setState(() {
-                              _carouselIndex = index;
-                            });
-                          },
-                          itemCount: _carouselItems.length,
-                          itemBuilder: (context, index) {
-                            final item = _carouselItems[index];
-                            return Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              decoration: BoxDecoration(
-                                color: item['color'],
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    right: -20,
-                                    bottom: -20,
-                                    child: Icon(
-                                      item['icon'],
-                                      size: 120,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.5,
+                      if (_isLoadingHeroes)
+                        const SizedBox(
+                          height: 180,
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      else if (_heroSections.isNotEmpty)
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: 180,
+                              child: PageView.builder(
+                                controller: _pageController,
+                                onPageChanged: (index) {
+                                  setState(() {
+                                    _carouselIndex = index;
+                                  });
+                                },
+                                itemCount: _heroSections.length,
+                                itemBuilder: (context, index) {
+                                  final item = _heroSections[index];
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(24),
+                                      image: DecorationImage(
+                                        image: NetworkImage(item.imageUrl),
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(24.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          item['title'],
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.textDark,
-                                          ),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(24),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withValues(alpha: 0.7),
+                                          ],
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          item['subtitle'],
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 14,
-                                            color: AppColors.textGrey,
+                                      ),
+                                      padding: const EdgeInsets.all(24.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            item.title,
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                          if (item.subtitle.isNotEmpty) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              item.subtitle,
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 14,
+                                                color: Colors.white.withValues(alpha: 0.9),
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Carousel Indicators
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          _carouselItems.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _carouselIndex == index ? 24 : 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: _carouselIndex == index
-                                  ? AppColors.primaryBlue
-                                  : Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(4),
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            // Carousel Indicators
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                _heroSections.length,
+                                (index) => AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                                  width: _carouselIndex == index ? 24 : 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: _carouselIndex == index
+                                        ? AppColors.primaryBlue
+                                        : Colors.grey.shade300,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
 
                       const SizedBox(height: 32),
 

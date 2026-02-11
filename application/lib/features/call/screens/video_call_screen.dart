@@ -86,10 +86,36 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   }
 
   Future<void> _initAgora() async {
-    // request permission
-    await [Permission.microphone, Permission.camera].request();
+    // 1. Request permissions properly and check results
+    final statuses = await [
+      Permission.microphone,
+      Permission.camera,
+    ].request();
 
-    // Create the engine
+    final isMicGranted = statuses[Permission.microphone]?.isGranted ?? false;
+    final isCameraGranted = statuses[Permission.camera]?.isGranted ?? false;
+
+    if (!isMicGranted || !isCameraGranted) {
+      if (mounted) {
+        String message = 'Permissions required:';
+        if (!isMicGranted) message += ' Microphone';
+        if (!isCameraGranted) message += '${!isMicGranted ? "," : ""} Camera';
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            action: SnackBarAction(
+              label: 'Settings',
+              onPressed: () => openAppSettings(),
+            ),
+          ),
+        );
+        context.pop();
+      }
+      return;
+    }
+
+    // 2. Create the engine
       _engine = createAgoraRtcEngine();
       await _engine.initialize(RtcEngineContext(
         appId: _appId,
@@ -126,7 +152,12 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
     await _engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
     await _engine.enableVideo();
+    await _engine.enableAudio(); // Explicitly enable audio
     await _engine.startPreview();
+
+    // Set default audio route to speaker
+    await _engine.setEnableSpeakerphone(_speakerOn);
+    await _engine.setDefaultAudioRouteToSpeakerphone(_speakerOn);
 
     // Fetch token from backend
     try {
@@ -136,7 +167,11 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
           token: token,
           channelId: widget.channelName,
           uid: _localUid,
-          options: const ChannelMediaOptions(),
+          options: const ChannelMediaOptions(
+            publishCameraTrack: true,
+            publishMicrophoneTrack: true,
+            clientRoleType: ClientRoleType.clientRoleBroadcaster,
+          ),
         );
         setState(() {
           _isLoading = false;
@@ -185,6 +220,8 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       _muted = !_muted;
     });
     _engine.muteLocalAudioStream(_muted);
+    // Also ensure microphone is actually enabled/disabled at the engine level
+    _engine.enableLocalAudio(!_muted);
   }
 
   void _onToggleSpeaker() {
@@ -192,6 +229,8 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       _speakerOn = !_speakerOn;
     });
     _engine.setEnableSpeakerphone(_speakerOn);
+    // Explicitly set the audio route to ensure it switches between earpiece and speaker
+    _engine.setDefaultAudioRouteToSpeakerphone(_speakerOn);
   }
 
   void _onCallEnd() {

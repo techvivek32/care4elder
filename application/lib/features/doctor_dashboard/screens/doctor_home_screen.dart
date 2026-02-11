@@ -23,6 +23,32 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   bool _checkingIncoming = false;
   String? _activeCallId;
 
+  // Carousel controller and timer
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _carouselTimer;
+
+  final List<Map<String, dynamic>> _carouselItems = [
+    {
+      'title': 'Manage Consultations',
+      'subtitle': 'Efficiently track and manage your patient requests.',
+      'color': Colors.blue.shade100,
+      'icon': Icons.medical_services,
+    },
+    {
+      'title': 'Track Earnings',
+      'subtitle': 'Monitor your professional growth and earnings daily.',
+      'color': Colors.green.shade100,
+      'icon': Icons.account_balance_wallet,
+    },
+    {
+      'title': 'Stay Available',
+      'subtitle': 'Keep your status active to receive new patient calls.',
+      'color': Colors.orange.shade100,
+      'icon': Icons.event_available,
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +56,20 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     _unreadCountNotifier = NotificationService().unreadCountNotifier;
     _loadProfile();
     _startIncomingCallPolling();
+    _startCarouselTimer();
+  }
+
+  void _startCarouselTimer() {
+    _carouselTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_pageController.hasClients) {
+        _currentPage = (_currentPage + 1) % _carouselItems.length;
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   Future<void> _loadProfile() async {
@@ -57,6 +97,8 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   @override
   void dispose() {
     _incomingCallTimer?.cancel();
+    _carouselTimer?.cancel();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -188,6 +230,10 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               _buildHeader(),
               const SizedBox(height: 24),
 
+              // Carousel
+              _buildCarousel(),
+              const SizedBox(height: 24),
+
               // Status Card
               _buildStatusCard(),
               const SizedBox(height: 24),
@@ -228,6 +274,95 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCarousel() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 180,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: _carouselItems.length,
+            itemBuilder: (context, index) {
+              final item = _carouselItems[index];
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: item['color'],
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      right: -20,
+                      bottom: -20,
+                      child: Icon(
+                        item['icon'],
+                        size: 120,
+                        color: Colors.white.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            item['title'],
+                            style: GoogleFonts.roboto(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            item['subtitle'],
+                            style: GoogleFonts.roboto(
+                              fontSize: 14,
+                              color: AppColors.textGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Carousel Indicators
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            _carouselItems.length,
+            (index) => AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentPage == index ? 24 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: _currentPage == index
+                    ? AppColors.primaryBlue
+                    : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

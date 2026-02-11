@@ -322,12 +322,12 @@ final router = GoRouter(
     GoRoute(
       path: '/patient/doctor/:id/call',
       builder: (context, state) {
-        final id = state.pathParameters['id']!;
         final extra = state.extra as Map<String, dynamic>?;
+        final channelName = extra?['channelName'] ?? state.pathParameters['id']!;
         final name = extra?['doctorName'] ?? 'Doctor';
         final callRequestId = extra?['callRequestId'];
         return VideoCallScreen(
-          channelName: id,
+          channelName: channelName,
           remoteUserName: name,
           callRequestId: callRequestId,
           isDoctor: false,

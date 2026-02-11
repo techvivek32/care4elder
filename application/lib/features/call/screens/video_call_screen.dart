@@ -52,7 +52,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   void initState() {
     super.initState();
     // Generate a random UID if not provided, to ensure unique identification
-    _localUid = widget.uid ?? (Random().nextInt(1000000) + 1);
+    _localUid = widget.isDoctor ? 1 : 2;
     _initAgora();
     _startTimer();
     _startCallStatusPolling();
@@ -129,6 +129,8 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
           setState(() {
             _localUserJoined = true;
           });
+          // Ensure speakerphone is on after joining
+          _engine.setEnableSpeakerphone(_speakerOn);
         },
         onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
           debugPrint("remote user $remoteUid joined");
@@ -145,7 +147,12 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
         },
         onTokenPrivilegeWillExpire: (RtcConnection connection, String token) {
           debugPrint('Token expiring');
-          // Handle token renewal if needed
+        },
+        onError: (ErrorCodeType err, String msg) {
+          debugPrint('Agora Error: $err, $msg');
+        },
+        onConnectionStateChanged: (RtcConnection connection, ConnectionStateType state, ConnectionChangedReasonType reason) {
+          debugPrint('Connection state changed: $state, reason: $reason');
         },
       ),
     );
@@ -155,9 +162,13 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
     await _engine.enableAudio(); // Explicitly enable audio
     await _engine.startPreview();
 
-    // Set default audio route to speaker
-    await _engine.setEnableSpeakerphone(_speakerOn);
-    await _engine.setDefaultAudioRouteToSpeakerphone(_speakerOn);
+    // Set default audio route to speaker - wrap in try-catch to avoid crash on some devices
+    try {
+      await _engine.setEnableSpeakerphone(_speakerOn);
+      await _engine.setDefaultAudioRouteToSpeakerphone(_speakerOn);
+    } catch (e) {
+      debugPrint('Error setting speakerphone: $e');
+    }
 
     // Fetch token from backend
     try {

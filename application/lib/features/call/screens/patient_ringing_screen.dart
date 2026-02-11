@@ -59,15 +59,13 @@ class _PatientRingingScreenState extends State<PatientRingingScreen> {
       if (call.status == 'accepted') {
         _ending = true;
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => VideoCallScreen(
-                channelName: widget.channelName,
-                remoteUserName: widget.doctorName,
-                callRequestId: widget.callRequestId,
-                isDoctor: false,
-              ),
-            ),
+          context.pushReplacement(
+            '/patient/doctor/${widget.callRequestId}/call',
+            extra: {
+              'channelName': widget.channelName,
+              'doctorName': widget.doctorName,
+              'callRequestId': widget.callRequestId,
+            },
           );
         }
       } else if (call.status == 'declined') {

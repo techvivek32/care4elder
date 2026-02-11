@@ -98,12 +98,12 @@ class SOSService {
     }
   }
 
-  Future<void> stopSOS() async {
+  Future<void> stopSOS({String? cancellationReason, String? cancellationComments}) async {
     try {
       final sosId = await getActiveSosId();
       if (sosId != null) {
         final token = await _authService.getToken();
-        await http.patch(
+        final response = await http.patch(
           Uri.parse('${ApiConstants.baseUrl}/sos'),
           headers: {
             'Content-Type': 'application/json',
@@ -112,8 +112,14 @@ class SOSService {
           body: jsonEncode({
             'id': sosId,
             'status': 'resolved',
+            if (cancellationReason != null) 'cancellationReason': cancellationReason,
+            if (cancellationComments != null) 'cancellationComments': cancellationComments,
           }),
         );
+
+        if (response.statusCode != 200) {
+          throw Exception('Failed to update SOS status: ${response.body}');
+        }
       }
       
       // Clear Local State

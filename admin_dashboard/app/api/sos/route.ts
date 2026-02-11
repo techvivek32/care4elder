@@ -50,7 +50,7 @@ export async function PATCH(request: Request) {
         const body = await request.json();
         console.log('PATCH /api/sos received:', body); // Debug log
 
-        const { id, status, callStatus } = body;
+        const { id, status, callStatus, cancellationReason, cancellationComments } = body;
         
         if (!id) {
             console.error('Missing ID in PATCH request');
@@ -59,6 +59,14 @@ export async function PATCH(request: Request) {
 
         const updateData: any = {};
         if (status) updateData.status = status;
+        if (cancellationReason) {
+            updateData.cancellationReason = cancellationReason;
+            console.log('Setting cancellationReason:', cancellationReason);
+        }
+        if (cancellationComments !== undefined) {
+            updateData.cancellationComments = cancellationComments;
+            console.log('Setting cancellationComments:', cancellationComments);
+        }
         
         // Handle granular updates for callStatus using dot notation (Flattened for safety)
         if (callStatus) {

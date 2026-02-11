@@ -329,27 +329,49 @@ class _SosScreenState extends State<SosScreen> {
     );
 
     if (result != null && mounted) {
-      await _sosService.stopSOS();
-
-      // Log cancellation
-      EmergencyAuditService().logCancellation(
-        reason: result['reason'] as CancellationReason,
-        userId: ProfileService().currentUser?.id ?? 'unknown',
-        comments: result['comments'] as String?,
-        alertDetails: {
-          'activationTime': DateTime.now()
-              .subtract(const Duration(minutes: 1))
-              .toString(),
-          'location': 'New Delhi, India', // Consistent with map mock
-          'services_notified': ['Ambulance', 'Police'],
-        },
-      );
-
-      _logEvent('activation_cancelled');
       setState(() {
-        _isActive = false;
+        _isActivating = true; // Use the same loading state
       });
-      _etaTimer?.cancel();
+
+      try {
+        final reason = result['reason'] as CancellationReason;
+        final comments = result['comments'] as String?;
+
+        await _sosService.stopSOS(
+          cancellationReason: reason.label,
+          cancellationComments: comments,
+        );
+
+        // Log cancellation
+        EmergencyAuditService().logCancellation(
+          reason: reason,
+          userId: ProfileService().currentUser?.id ?? 'unknown',
+          comments: comments,
+          alertDetails: {
+            'activationTime': DateTime.now()
+                .subtract(const Duration(minutes: 1))
+                .toString(),
+            'location': 'New Delhi, India', // Consistent with map mock
+            'services_notified': ['Ambulance', 'Police'],
+          },
+        );
+
+        _logEvent('activation_cancelled');
+        if (mounted) {
+          setState(() {
+            _isActive = false;
+            _isActivating = false;
+          });
+          _etaTimer?.cancel();
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isActivating = false;
+            _activationError = 'Failed to stop SOS: $e';
+          });
+        }
+      }
     }
   }
 

@@ -7,7 +7,13 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 async function fetchSOSDetail(id: string) {
-  const res = await fetch(`/api/sos/${id}`);
+  const res = await fetch(`/api/sos/${id}?t=${Date.now()}`, {
+    cache: 'no-store',
+    headers: {
+      'Pragma': 'no-cache',
+      'Cache-Control': 'no-cache'
+    }
+  });
   if (!res.ok) throw new Error('Failed to fetch SOS detail');
   return res.json();
 }
@@ -128,6 +134,14 @@ export default function SOSDetailPage() {
           <ArrowLeft className="h-6 w-6 text-black" />
         </Link>
         <h1 className="text-2xl font-bold text-black">Emergency Alert Details</h1>
+        <button 
+          onClick={() => refetch()} 
+          disabled={isLoading}
+          className="ml-auto flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <Clock className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -189,17 +203,19 @@ export default function SOSDetailPage() {
               <Clock className="mr-2 h-5 w-5 text-orange-500" /> Alert Status
             </h2>
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-black">Status</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  alertData.status === 'active' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+              <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <span className="text-sm font-semibold text-gray-700">Current Status</span>
+                <span className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider ${
+                  alertData.status === 'active' 
+                    ? 'bg-red-500 text-white animate-pulse shadow-sm shadow-red-200' 
+                    : 'bg-green-600 text-white shadow-sm shadow-green-200'
                 }`}>
                   {alertData.status.toUpperCase()}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-black">Started At</span>
-                <span className="font-medium text-sm text-black">
+              <div className="flex justify-between items-center px-3">
+                <span className="text-xs text-gray-500">Alert Initiated</span>
+                <span className="font-bold text-sm text-black">
                   {new Date(alertData.timestamp).toLocaleString()}
                 </span>
               </div>
@@ -218,12 +234,45 @@ export default function SOSDetailPage() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ id: alertData._id, status: 'resolved' })
                         });
-                        router.refresh();
+                        refetch();
                       }
                     }}
                   >
                     <CheckCircle className="mr-2 h-4 w-4" /> Mark as Resolved
                   </button>
+                </div>
+              )}
+
+              {alertData.status === 'resolved' && (
+                <div className="pt-4 mt-4 border-t border-gray-100">
+                  {(alertData.cancellationReason?.trim() || alertData.cancellationComments?.trim()) ? (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h3 className="text-sm font-bold text-black mb-2 flex items-center">
+                        <XCircle className="h-4 w-4 mr-2 text-red-500" /> Cancellation Details
+                      </h3>
+                      {alertData.cancellationReason && (
+                        <div className="mb-2">
+                          <span className="text-xs text-gray-500 block font-semibold text-gray-600">Reason</span>
+                          <span className="text-sm font-bold text-black">{alertData.cancellationReason}</span>
+                        </div>
+                      )}
+                      {alertData.cancellationComments && (
+                        <div>
+                          <span className="text-xs text-gray-500 block font-semibold text-gray-600">Comments</span>
+                          <span className="text-sm text-black italic bg-white p-2 rounded border border-gray-100 block mt-1">
+                            "{alertData.cancellationComments}"
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                      <p className="text-xs text-blue-700 flex items-center">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Alert resolved (No specific cancellation details provided).
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

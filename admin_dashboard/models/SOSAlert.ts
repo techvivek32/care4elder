@@ -4,6 +4,8 @@ export interface ISOSAlert extends Document {
   patientId: mongoose.Types.ObjectId;
   location: string | any; // Can be GeoJSON later
   status: 'active' | 'resolved';
+  cancellationReason?: string;
+  cancellationComments?: string;
   timestamp: Date;
 }
 
@@ -15,6 +17,8 @@ const SOSAlertSchema: Schema = new Schema({
     enum: ['active', 'resolved'], 
     default: 'active' 
   },
+  cancellationReason: { type: String },
+  cancellationComments: { type: String },
   callStatus: {
     patient: {
       status: { type: String, enum: ['picked_up', 'not_picked_up', 'pending'], default: 'pending' },

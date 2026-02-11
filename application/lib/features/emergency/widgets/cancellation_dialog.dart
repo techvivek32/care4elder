@@ -89,7 +89,7 @@ class _CancellationDialogState extends State<CancellationDialog> {
               ),
               const SizedBox(height: 24),
               DropdownButtonFormField<CancellationReason>(
-                initialValue: _selectedReason,
+                value: _selectedReason,
                 decoration: InputDecoration(
                   labelText: 'Reason (Required)',
                   border: OutlineInputBorder(

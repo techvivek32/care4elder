@@ -13,9 +13,7 @@ class AuthService {
 
   final _storage = const FlutterSecureStorage();
   
-  // Use localhost for web/iOS simulator, 10.0.2.2 for Android emulator
-  // For this environment, we will assume localhost is accessible
-  static const String _baseUrl = 'http://localhost:3000/api'; 
+  static const String _baseUrl = 'https://care4elder.cloud/api'; 
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: '374189587484-63hansfrfo6jpa5aoc3ea7fft7tv73rh.apps.googleusercontent.com',

@@ -69,7 +69,7 @@ class DoctorService extends ChangeNotifier {
   factory DoctorService() => _instance;
   DoctorService._internal();
 
-  static const String _baseUrl = 'http://localhost:3000/api';
+  static const String _baseUrl = 'https://care4elder.cloud/api';
 
   List<Doctor> _doctors = [];
   bool _isLoading = false;

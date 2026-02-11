@@ -14,6 +14,7 @@ class HotwordService {
   final stt.SpeechToText _speech = stt.SpeechToText();
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isListening = false;
+  bool _isAttemptingListen = false;
   DateTime? _lastTrigger;
   final Duration _cooldown = const Duration(seconds: 20);
   final List<String> _keywords = [
@@ -55,34 +56,41 @@ class HotwordService {
     _isListening = false;
   }
 
-  void _listen() {
-    if (!_isListening) return;
+  void _listen() async {
+    if (!_isListening || _isAttemptingListen || _speech.isListening) return;
 
-    _speech.listen(
-      listenMode: stt.ListenMode.confirmation, // Better for keyword spotting
-      partialResults: true,
-      onResult: (result) {
-        final text = result.recognizedWords.toLowerCase();
-        if (text.isEmpty) return;
-        
-        for (final k in _keywords) {
-          if (text.contains(k)) {
-            final now = DateTime.now();
-            if (_lastTrigger == null || now.difference(_lastTrigger!) > _cooldown) {
-              _lastTrigger = now;
-              _triggerSos();
+    try {
+      _isAttemptingListen = true;
+      await _speech.listen(
+        listenMode: stt.ListenMode.confirmation, // Better for keyword spotting
+        partialResults: true,
+        onResult: (result) {
+          final text = result.recognizedWords.toLowerCase();
+          if (text.isEmpty) return;
+          
+          for (final k in _keywords) {
+            if (text.contains(k)) {
+              final now = DateTime.now();
+              if (_lastTrigger == null || now.difference(_lastTrigger!) > _cooldown) {
+                _lastTrigger = now;
+                _triggerSos();
+              }
+              break;
             }
-            break;
           }
-        }
-      },
-    );
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) print('Speech Listen Error: $e');
+    } finally {
+      _isAttemptingListen = false;
+    }
 
     // Watchdog to ensure it stays listening
     _restartTimer?.cancel();
     _restartTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (!_isListening) return;
-      if (!_speech.isListening) {
+      if (!_speech.isListening && !_isAttemptingListen) {
         _listen();
       }
     });
@@ -102,10 +110,10 @@ class HotwordService {
   void _onStatus(String status) {
     if (kDebugMode) print('Speech Status: $status');
     if (status.toLowerCase() == 'notlistening') {
-      if (_isListening) {
+      if (_isListening && !_isAttemptingListen) {
         // Delay slightly before restarting to avoid tight loops
         Future.delayed(const Duration(milliseconds: 500), () {
-          if (_isListening && !_speech.isListening) {
+          if (_isListening && !_speech.isListening && !_isAttemptingListen) {
             _listen();
           }
         });
@@ -115,9 +123,9 @@ class HotwordService {
 
   void _onError(Object error) {
     if (kDebugMode) print('Speech Error: $error');
-    if (_isListening) {
+    if (_isListening && !_isAttemptingListen) {
       Future.delayed(const Duration(seconds: 2), () {
-        if (_isListening && !_speech.isListening) {
+        if (_isListening && !_speech.isListening && !_isAttemptingListen) {
           _listen();
         }
       });

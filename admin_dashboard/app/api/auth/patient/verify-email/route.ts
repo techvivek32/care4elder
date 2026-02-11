@@ -50,7 +50,7 @@ export async function POST(req: Request) {
 
     // Generate tokens
     const token = signToken({ id: patient._id, role: 'patient' });
-    const refreshToken = await createRefreshToken(patient._id as string, 'Patient');
+    const refreshToken = await createRefreshToken(patient._id.toString(), 'Patient');
 
     return NextResponse.json({
       message: 'Email verified successfully',

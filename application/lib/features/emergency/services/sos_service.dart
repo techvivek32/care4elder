@@ -32,10 +32,31 @@ class SOSService {
 
   Future<void> startSOS() async {
     try {
-      // 1. Get Location
+      // 1. Check/Request Permissions
+      bool serviceEnabled;
+      LocationPermission permission;
+
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied, we cannot request permissions.');
+      }
+
+      // 2. Get Location
       final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       
-      // 2. Get User ID
+      // 3. Get User ID
       if (_profileService.currentUser == null) {
         await _profileService.fetchProfile();
       }

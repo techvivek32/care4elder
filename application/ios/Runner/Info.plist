@@ -55,5 +55,11 @@
 	<string>Bluetooth access is required for audio devices during calls</string>
 	<key>NSContactsUsageDescription</key>
 	<string>We need access to your contacts to let you import emergency relatives.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to provide emergency services when you activate SOS.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>We need your location to provide emergency services even when the app is in background.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need your location to provide emergency services when you activate SOS.</string>
 </dict>
 </plist>

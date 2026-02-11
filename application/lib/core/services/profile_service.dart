@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 import '../../features/auth/services/auth_service.dart';
@@ -425,5 +426,74 @@ class ProfileService extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<String?> uploadProfileImage(PlatformFile file) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final uploadRequest = http.MultipartRequest(
+        'POST',
+        Uri.parse(ApiConstants.upload),
+      );
+
+      if (kIsWeb) {
+        if (file.bytes != null) {
+          uploadRequest.files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              file.bytes!,
+              filename: file.name,
+            ),
+          );
+        }
+      } else {
+        if (file.path != null) {
+          uploadRequest.files.add(
+            await http.MultipartFile.fromPath(
+              'file',
+              file.path!,
+              filename: file.name,
+            ),
+          );
+        }
+      }
+
+      final response = await uploadRequest.send();
+      final responseBody = await _readStreamedBody(response);
+
+      if (response.statusCode == 200) {
+        final respJson = jsonDecode(responseBody);
+        if (respJson is Map && respJson['urls'] != null) {
+          final urls = List<String>.from(respJson['urls']);
+          if (urls.isNotEmpty) {
+            final imageUrl = ApiConstants.resolveImageUrl(urls.first);
+            return imageUrl;
+          }
+        }
+      }
+      
+      _error = 'Failed to upload image: ${response.statusCode}';
+      return null;
+    } catch (e) {
+      _error = 'Failed to upload image: $e';
+      if (kDebugMode) {
+        print('Upload Image Exception: $e');
+      }
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String> _readStreamedBody(http.StreamedResponse response) async {
+    final bytes = await response.stream.toBytes();
+    if (bytes.isEmpty) {
+      return '';
+    }
+    return utf8.decode(bytes, allowMalformed: true);
   }
 }

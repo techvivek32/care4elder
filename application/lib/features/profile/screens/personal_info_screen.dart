@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
@@ -81,6 +82,61 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
         _selectedDob = picked;
         _dobController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
+    }
+  }
+
+  Future<void> _pickProfileImage() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+        withData: true,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        final imageUrl = await _profileService.uploadProfileImage(file);
+
+        if (imageUrl != null) {
+          final updatedProfile = _profileService.currentUser?.copyWith(
+            profilePictureUrl: imageUrl,
+          );
+
+          if (updatedProfile != null) {
+            final success = await _profileService.updateProfile(updatedProfile);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    success
+                        ? 'Profile picture updated successfully'
+                        : 'Failed to update profile picture',
+                  ),
+                  backgroundColor: success ? Colors.green : Colors.red,
+                ),
+              );
+            }
+          }
+        } else {
+          if (mounted && _profileService.error != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(_profileService.error!),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -169,53 +225,70 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           key: _formKey,
           child: Column(
             children: [
-              Center(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey.shade200,
-                      backgroundImage:
-                          _profileService
-                                  .currentUser
-                                  ?.profilePictureUrl
-                                  .isNotEmpty ==
-                              true
-                          ? NetworkImage(
-                              _profileService.currentUser!.profilePictureUrl,
-                            )
-                          : null,
-                      child:
-                          _profileService
-                                  .currentUser
-                                  ?.profilePictureUrl
-                                  .isEmpty ==
-                              true
-                          ? const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Colors.grey,
-                            )
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryBlue,
-                          shape: BoxShape.circle,
+              ListenableBuilder(
+                listenable: _profileService,
+                builder: (context, child) {
+                  return Center(
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.grey.shade200,
+                          backgroundImage: _profileService
+                                      .currentUser?.profilePictureUrl
+                                      .isNotEmpty ==
+                                  true
+                              ? NetworkImage(
+                                  _profileService.currentUser!.profilePictureUrl,
+                                )
+                              : null,
+                          child: _profileService.currentUser?.profilePictureUrl
+                                      .isEmpty ==
+                                  true
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: Colors.grey,
+                                )
+                              : null,
                         ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 20,
+                        if (_profileService.isLoading)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: _profileService.isLoading ? null : _pickProfileImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: AppColors.primaryBlue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 32),
               _buildTextField(

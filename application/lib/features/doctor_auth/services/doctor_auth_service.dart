@@ -484,6 +484,12 @@ class DoctorAuthService extends ChangeNotifier {
     await _storage.delete(key: _doctorIdKey);
   }
 
+  // Check if doctor is signed in
+  Future<bool> isSignedIn() async {
+    final token = await getDoctorToken();
+    return token != null;
+  }
+
   // Update Registration Data
   void updateRegistrationData({
     String? phoneNumber,

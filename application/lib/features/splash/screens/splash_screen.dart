@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
+import '../../doctor_auth/services/doctor_auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,19 +20,32 @@ class _SplashScreenState extends State<SplashScreen> {
     // Navigate based on auth state after 3 seconds
     Future.delayed(const Duration(seconds: 3), () async {
       if (mounted) {
-        bool isLoggedIn = false;
+        bool isPatientLoggedIn = false;
+        bool isDoctorLoggedIn = false;
         try {
-          isLoggedIn = await AuthService()
+          isPatientLoggedIn = await AuthService()
               .isSignedIn()
               .timeout(const Duration(milliseconds: 200), onTimeout: () {
                 return false;
               });
+          
+          if (!isPatientLoggedIn) {
+            isDoctorLoggedIn = await DoctorAuthService()
+                .isSignedIn()
+                .timeout(const Duration(milliseconds: 200), onTimeout: () {
+                  return false;
+                });
+          }
         } catch (_) {
-          isLoggedIn = false;
+          isPatientLoggedIn = false;
+          isDoctorLoggedIn = false;
         }
+
         if (mounted) {
-          if (isLoggedIn) {
+          if (isPatientLoggedIn) {
             context.go('/patient/dashboard');
+          } else if (isDoctorLoggedIn) {
+            context.go('/doctor/home');
           } else {
             context.go('/selection');
           }

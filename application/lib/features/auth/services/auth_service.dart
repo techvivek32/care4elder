@@ -53,7 +53,7 @@ class AuthService {
           'email': email,
           'password': password,
           'phone': phone,
-          // 'dob': dob // Backend doesn't seem to take DOB yet, but we can send it if updated
+          'dob': dob
         }),
       );
 

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/profile_service.dart';
 import '../../auth/services/auth_service.dart';
 
 class PatientOtpScreen extends StatefulWidget {
@@ -106,7 +108,40 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
     try {
       if (widget.isSignup && widget.email != null) {
         // Verify Email OTP (Backend)
-        await AuthService().verifyPatientEmail(widget.email!, otp);
+        final result = await AuthService().verifyPatientEmail(widget.email!, otp);
+        
+        // Update ProfileService with registration data (like DOB)
+        if (mounted && widget.signupData != null) {
+          final profileService = Provider.of<ProfileService>(context, listen: false);
+          
+          // Initial user profile from registration data and verification response
+          final userData = result['user'] ?? {};
+          final dobStr = widget.signupData!['dob'];
+          
+          if (profileService.currentUser == null) {
+            // Create initial profile if not exists
+            profileService.updateLocalProfile(UserProfile(
+              id: userData['id'] ?? userData['_id'] ?? '',
+              fullName: userData['name'] ?? widget.signupData!['name'] ?? '',
+              email: userData['email'] ?? widget.email!,
+              phoneNumber: userData['phone'] ?? widget.phoneNumber,
+              profilePictureUrl: '',
+              dateOfBirth: dobStr != null ? DateTime.tryParse(dobStr) : null,
+              location: '',
+              bloodGroup: '',
+              allergies: '',
+            ));
+          } else {
+            // Update existing profile with DOB if it's missing
+            if (dobStr != null && profileService.currentUser?.dateOfBirth == null) {
+              profileService.updateLocalProfile(
+                profileService.currentUser!.copyWith(
+                  dateOfBirth: DateTime.tryParse(dobStr),
+                )
+              );
+            }
+          }
+        }
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

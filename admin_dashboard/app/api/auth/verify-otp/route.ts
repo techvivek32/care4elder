@@ -55,6 +55,7 @@ export async function POST(req: Request) {
                 name: user.name,
                 email: user.email,
                 role: normalizedRole.toLowerCase(),
+                dateOfBirth: 'dateOfBirth' in user ? (user as any).dateOfBirth : undefined,
                 ...(normalizedRole === 'Doctor' && 'verificationStatus' in user
                   ? { verificationStatus: user.verificationStatus }
                   : {})

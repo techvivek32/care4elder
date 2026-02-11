@@ -271,6 +271,12 @@ class ProfileService extends ChangeNotifier {
     }
   }
 
+  // Update local profile without backend call
+  void updateLocalProfile(UserProfile profile) {
+    _currentUser = profile;
+    notifyListeners();
+  }
+
   // Update profile in backend
   Future<bool> updateProfile(UserProfile updatedProfile) async {
     _isLoading = true;

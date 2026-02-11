@@ -61,6 +61,7 @@ export async function POST(req: Request) {
         name: patient.name,
         email: patient.email,
         role: 'patient',
+        dateOfBirth: patient.dateOfBirth,
         isRelativeVerified: patient.isRelativeVerified
       }
     });

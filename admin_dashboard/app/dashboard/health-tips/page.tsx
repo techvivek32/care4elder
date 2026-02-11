@@ -151,28 +151,28 @@ export default function HealthTipsPage() {
             >
               <X className="w-6 h-6" />
             </button>
-            <h2 className="text-xl font-bold mb-6">
+            <h2 className="text-xl font-bold mb-6 text-gray-900">
               {editingTip ? 'Edit Health Tip' : 'Add New Health Tip'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title (Tagline)</label>
+                <label className="block text-sm font-medium text-gray-900 mb-1">Title (Tagline)</label>
                 <input
                   type="text"
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900"
                   placeholder="e.g., Stay Hydrated!"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-gray-900 mb-1">Description</label>
                 <textarea
                   required
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-32"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-32 text-gray-900"
                   placeholder="Enter full health tip details..."
                 />
               </div>
@@ -184,7 +184,7 @@ export default function HealthTipsPage() {
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">Active</label>
+                <label htmlFor="isActive" className="ml-2 text-sm text-gray-900">Active</label>
               </div>
               <button
                 type="submit"

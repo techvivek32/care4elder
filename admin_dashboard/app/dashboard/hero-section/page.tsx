@@ -247,7 +247,7 @@ export default function HeroSectionPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
             <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-800">
+              <h2 className="text-xl font-bold text-gray-900">
                 {editingHero ? 'Edit Slide' : 'Add New Slide'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
@@ -257,34 +257,34 @@ export default function HeroSectionPage() {
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <label className="block text-sm font-medium text-gray-900 mb-1">Title</label>
                 <input
                   type="text"
                   required
                   value={formData.title}
                   onChange={e => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900"
                   placeholder="Slide title"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle</label>
+                <label className="block text-sm font-medium text-gray-900 mb-1">Subtitle</label>
                 <input
                   type="text"
                   value={formData.subtitle}
                   onChange={e => setFormData({ ...formData, subtitle: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900"
                   placeholder="Slide subtitle"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
+                <label className="block text-sm font-medium text-gray-900 mb-1">Target Audience</label>
                 <select
                   value={formData.type}
                   onChange={e => setFormData({ ...formData, type: e.target.value as any })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900"
                 >
                   <option value="patient">Patient App</option>
                   <option value="doctor">Doctor App</option>
@@ -293,7 +293,7 @@ export default function HeroSectionPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Slide Image</label>
+                <label className="block text-sm font-medium text-gray-900 mb-1">Slide Image</label>
                 <div className="mt-1 flex items-center space-x-4">
                   {formData.imageUrl ? (
                     <div className="relative w-24 h-24 border rounded-lg overflow-hidden bg-gray-50">
@@ -327,7 +327,7 @@ export default function HeroSectionPage() {
                   onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Active Slide</label>
+                <label htmlFor="isActive" className="text-sm font-medium text-gray-900">Active Slide</label>
               </div>
 
               <div className="flex justify-end space-x-3 pt-6 border-t">

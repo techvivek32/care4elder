@@ -6,10 +6,12 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/settings_service.dart';
 import 'core/services/profile_service.dart';
+import 'core/services/hotword_service.dart';
 import 'router.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  HotwordService().start();
   runApp(const MyApp());
 }
 

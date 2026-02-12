@@ -258,20 +258,20 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
               </div>
               
               {doctor.bankDetails && (
-                <div className="mt-4 pt-4 border-t">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Bank Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Holder Name</span>
-                      <span className="text-gray-900">{doctor.bankDetails.accountHolderName || '-'}</span>
+                <div className="mt-4 pt-4 border-t bg-gray-50 p-3 rounded-lg">
+                  <h4 className="text-sm font-bold text-black mb-3 border-b pb-1">Bank Information</h4>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between border-b border-gray-200 pb-1">
+                      <span className="text-gray-700 font-semibold">Holder Name</span>
+                      <span className="text-black font-bold">{doctor.bankDetails.accountHolderName || '-'}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-gray-200 pb-1">
+                      <span className="text-gray-700 font-semibold">Account No</span>
+                      <span className="text-black font-bold font-mono tracking-tight">{doctor.bankDetails.accountNumber || '-'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Account No</span>
-                      <span className="text-gray-900">{doctor.bankDetails.accountNumber || '-'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">IFSC Code</span>
-                      <span className="text-gray-900">{doctor.bankDetails.ifscCode || '-'}</span>
+                      <span className="text-gray-700 font-semibold">IFSC Code</span>
+                      <span className="text-black font-bold font-mono tracking-tight">{doctor.bankDetails.ifscCode || '-'}</span>
                     </div>
                   </div>
                 </div>

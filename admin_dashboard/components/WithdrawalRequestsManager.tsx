@@ -160,18 +160,18 @@ export default function WithdrawalRequestsManager({ doctorId }: { doctorId: stri
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-3 border-t border-b border-gray-200">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4 border-t border-b border-gray-200 bg-white rounded-md px-3 shadow-sm">
                     <div>
-                      <div className="text-xs text-gray-500 uppercase font-semibold">Account Holder</div>
-                      <div className="text-sm font-medium">{request.bankDetails.accountHolderName}</div>
+                      <div className="text-xs text-gray-700 uppercase font-bold mb-1">Account Holder</div>
+                      <div className="text-base font-bold text-black">{request.bankDetails.accountHolderName}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase font-semibold">Account Number</div>
-                      <div className="text-sm font-medium font-mono">{request.bankDetails.accountNumber}</div>
+                      <div className="text-xs text-gray-700 uppercase font-bold mb-1">Account Number</div>
+                      <div className="text-base font-bold text-black font-mono tracking-wider">{request.bankDetails.accountNumber}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase font-semibold">IFSC Code</div>
-                      <div className="text-sm font-medium font-mono">{request.bankDetails.ifscCode}</div>
+                      <div className="text-xs text-gray-700 uppercase font-bold mb-1">IFSC Code</div>
+                      <div className="text-base font-bold text-black font-mono tracking-wider">{request.bankDetails.ifscCode}</div>
                     </div>
                   </div>
 

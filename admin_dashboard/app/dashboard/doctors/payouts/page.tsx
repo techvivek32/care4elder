@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DollarSign, Check } from 'lucide-react';
+import { IndianRupee, Check } from 'lucide-react';
 
 async function fetchPayouts() {
   const res = await fetch('/api/doctors/payouts');
@@ -54,8 +54,8 @@ export default function PayoutsPage() {
                       Bank: {doctor.bankDetails?.bankName || 'N/A'} • {doctor.bankDetails?.accountNumber || 'N/A'}
                     </p>
                     <div className="mt-1 flex items-center text-sm text-gray-500">
-                       <DollarSign className="h-4 w-4 text-green-500 mr-1" />
-                       <span className="font-bold text-green-600 text-lg">${doctor.walletBalance}</span>
+                       <IndianRupee className="h-4 w-4 text-green-500 mr-1" />
+                       <span className="font-bold text-green-600 text-lg">₹{doctor.walletBalance}</span>
                     </div>
                   </div>
                   <button

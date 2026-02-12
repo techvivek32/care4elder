@@ -98,6 +98,8 @@ export async function PATCH(
 
     // Check if rating is being added for the first time
     const isNewRating = rating !== undefined && callRequest.rating === undefined;
+    const isBecomingCompleted = status === 'completed' && callRequest.status !== 'completed';
+    const isBecomingFailed = ['declined', 'cancelled', 'timeout'].includes(status) && !['declined', 'cancelled', 'timeout', 'completed'].includes(callRequest.status);
 
     if (status) callRequest.status = status;
     if (duration !== undefined) callRequest.duration = duration;
@@ -110,6 +112,24 @@ export async function PATCH(
     if (ratingComment !== undefined) callRequest.ratingComment = ratingComment;
     
     await callRequest.save();
+
+    // If the call is completed, update the doctor's wallet balance
+    if (isBecomingCompleted) {
+      const doctor = await Doctor.findById(callRequest.doctorId);
+      if (doctor) {
+        doctor.walletBalance = (doctor.walletBalance || 0) + (callRequest.baseFee || 0);
+        await doctor.save();
+      }
+    }
+
+    // If the call failed (declined/cancelled/timeout), refund the patient
+    if (isBecomingFailed) {
+      const patient = await Patient.findById(callRequest.patientId);
+      if (patient) {
+        patient.walletBalance = (patient.walletBalance || 0) + (callRequest.fee || 0);
+        await patient.save();
+      }
+    }
 
     // If a new rating was added, update the doctor's average rating
     if (isNewRating) {

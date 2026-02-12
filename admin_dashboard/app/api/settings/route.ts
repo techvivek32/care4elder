@@ -38,7 +38,7 @@ export async function PUT(request: Request) {
 
     await dbConnect();
     const body = await request.json();
-    const { razorpayKeyId, razorpayKeySecret } = body;
+    const { razorpayKeyId, razorpayKeySecret, standardCommission, emergencyCommission } = body;
 
     let settings = await Setting.findOne();
 
@@ -48,6 +48,8 @@ export async function PUT(request: Request) {
 
     if (razorpayKeyId !== undefined) settings.razorpayKeyId = razorpayKeyId;
     if (razorpayKeySecret !== undefined) settings.razorpayKeySecret = razorpayKeySecret;
+    if (standardCommission !== undefined) settings.standardCommission = Number(standardCommission);
+    if (emergencyCommission !== undefined) settings.emergencyCommission = Number(emergencyCommission);
 
     await settings.save();
 

@@ -14,6 +14,8 @@ class CallRequestData {
   final String doctorName;
   final String consultationType;
   final double fee;
+  final double baseFee;
+  final double commission;
   final DateTime createdAt;
   final int duration;
   final String report;
@@ -38,6 +40,8 @@ class CallRequestData {
     required this.doctorName,
     required this.consultationType,
     required this.fee,
+    this.baseFee = 0,
+    this.commission = 0,
     required this.createdAt,
     this.duration = 0,
     this.report = '',
@@ -66,6 +70,8 @@ class CallRequestData {
       doctorName: doctor is Map ? (doctor['name'] ?? 'Doctor') : 'Doctor',
       consultationType: json['consultationType'] ?? 'consultation',
       fee: (json['fee'] as num?)?.toDouble() ?? 0,
+      baseFee: (json['baseFee'] as num?)?.toDouble() ?? 0,
+      commission: (json['commission'] as num?)?.toDouble() ?? 0,
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
       duration: (json['duration'] as num?)?.toInt() ?? 0,
       report: json['report'] ?? '',

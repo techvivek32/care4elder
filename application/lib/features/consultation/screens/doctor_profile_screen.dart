@@ -498,7 +498,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '₹${doctor.consultationFee}',
+                        '₹${doctor.totalConsultationFee.toStringAsFixed(0)}',
                         style: GoogleFonts.roboto(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -579,8 +579,8 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
   @override
   Widget build(BuildContext context) {
     final double fee = _selectedType == 'consultation' 
-        ? widget.doctor.consultationFee 
-        : widget.doctor.emergencyFee;
+        ? widget.doctor.totalConsultationFee 
+        : widget.doctor.totalEmergencyFee;
     
     return Container(
       padding: const EdgeInsets.all(24),
@@ -603,14 +603,14 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
           const SizedBox(height: 24),
           _buildOption(
             title: 'Standard Consultation',
-            price: widget.doctor.consultationFee,
+            price: widget.doctor.totalConsultationFee,
             value: 'consultation',
             icon: Icons.video_call_rounded,
           ),
           const SizedBox(height: 16),
           _buildOption(
             title: 'Emergency Call',
-            price: widget.doctor.emergencyFee,
+            price: widget.doctor.totalEmergencyFee,
             value: 'emergency',
             icon: Icons.emergency_rounded,
             isEmergency: true,
@@ -638,7 +638,7 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
                       ),
                     )
                   : Text(
-                      'Pay ₹$fee & Call',
+                      'Pay ₹${fee.toStringAsFixed(0)} & Call',
                       style: GoogleFonts.roboto(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -718,7 +718,7 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
               ),
             ),
             Text(
-              '₹$price',
+              '₹${price.toStringAsFixed(0)}',
               style: GoogleFonts.roboto(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -747,8 +747,8 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
       final callService = CallRequestService();
       final walletBalance = profileService.currentUser?.walletBalance ?? 0;
       final fee = _selectedType == 'consultation' 
-          ? widget.doctor.consultationFee 
-          : widget.doctor.emergencyFee;
+          ? widget.doctor.totalConsultationFee 
+          : widget.doctor.totalEmergencyFee;
 
       if (widget.doctor.status == 'offline') {
         if (mounted) {

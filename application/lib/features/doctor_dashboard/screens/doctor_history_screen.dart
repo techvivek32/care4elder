@@ -63,7 +63,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
           duration: '${(data.duration / 60).ceil()} min',
           date: data.createdAt,
           status: data.status == 'completed' ? HistoryStatus.completed : HistoryStatus.cancelled,
-          price: data.fee.toInt(),
+          price: data.baseFee > 0 ? data.baseFee.toInt() : data.fee.toInt(),
           image: data.patientProfile.isNotEmpty ? data.patientProfile : '',
           notes: data.report,
           prescription: '',

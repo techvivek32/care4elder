@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
+import './settings_service.dart';
 import '../../features/auth/services/auth_service.dart';
 
 class Doctor {
@@ -42,6 +43,17 @@ class Doctor {
     this.reviews = 0,
     this.status = 'offline',
   });
+
+  // Calculate total fee with commission
+  double get totalConsultationFee {
+    final commission = SettingsService().standardCommission;
+    return consultationFee * (1 + (commission / 100));
+  }
+
+  double get totalEmergencyFee {
+    final commission = SettingsService().emergencyCommission;
+    return emergencyFee * (1 + (commission / 100));
+  }
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
     return Doctor(

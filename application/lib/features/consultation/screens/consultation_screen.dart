@@ -362,7 +362,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                           ),
                                         ),
                                         Text(
-                                          '₹${doctor.consultationFee}',
+                                          '₹${doctor.totalConsultationFee.toStringAsFixed(0)}',
                                           style: GoogleFonts.roboto(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,

@@ -5,7 +5,9 @@ export interface ICallRequest extends Document {
   patientId: mongoose.Types.ObjectId;
   status: 'ringing' | 'accepted' | 'declined' | 'cancelled' | 'timeout' | 'completed';
   consultationType: 'consultation' | 'emergency';
-  fee: number;
+  fee: number; // Total fee paid by patient
+  baseFee: number; // Fee earned by doctor
+  commission: number; // Commission amount taken by admin
   channelName: string;
   duration?: number; // Duration in seconds
   report?: string; // Doctor's notes/report
@@ -32,6 +34,8 @@ const CallRequestSchema: Schema = new Schema(
       default: 'consultation',
     },
     fee: { type: Number, required: true },
+    baseFee: { type: Number, required: true, default: 0 },
+    commission: { type: Number, required: true, default: 0 },
     channelName: { type: String, default: '' },
     duration: { type: Number, default: 0 },
     report: { type: String, default: '' },

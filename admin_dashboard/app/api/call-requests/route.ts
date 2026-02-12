@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db';
 import CallRequest from '@/models/CallRequest';
 import Doctor from '@/models/Doctor';
 import Patient from '@/models/Patient';
+import Setting from '@/models/Setting';
 import { verifyToken } from '@/lib/auth-utils';
 
 const getAuthUser = (request: Request) => {
@@ -53,11 +54,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
     }
 
+    // Get commission settings
+    const settings = await Setting.findOne();
+    const isEmergency = consultationType === 'emergency';
+    const commissionPercentage = isEmergency 
+      ? (settings?.emergencyCommission ?? 0) 
+      : (settings?.standardCommission ?? 0);
+
+    const commission = (fee * commissionPercentage) / (100 + commissionPercentage);
+    const baseFee = fee - commission;
+
     const callRequest = await CallRequest.create({
       doctorId,
       patientId,
       consultationType: consultationType ?? 'consultation',
       fee,
+      baseFee,
+      commission,
     });
 
     if (!callRequest.channelName) {

@@ -490,6 +490,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 ],
               ),
             ),
+            /*
             GestureDetector(
               onTap: () => context.push('/doctor/notifications'),
               child: Container(
@@ -542,6 +543,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 ),
               ),
             ),
+            */
           ],
         );
       },

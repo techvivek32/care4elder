@@ -39,6 +39,7 @@ class AppSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               _buildSectionHeader('General'),
+              /*
               _buildSwitchTile(
                 context: context,
                 title: 'Notifications',
@@ -48,6 +49,7 @@ class AppSettingsScreen extends StatelessWidget {
                 onChanged: (value) => settings.setNotifications(value),
               ),
               const SizedBox(height: 12),
+              */
               _buildListTile(
                 context: context,
                 title: 'Language',

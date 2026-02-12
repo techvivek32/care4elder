@@ -73,6 +73,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                     ],
                   ),
                   child: Column(
+                    /*
                     children: [
                       _buildSettingItem(
                         icon: Icons.notifications_none,
@@ -89,6 +90,8 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                         ),
                       ),
                     ],
+                    */
+                    children: [],
                   ),
                 ),
                 const SizedBox(height: 24),

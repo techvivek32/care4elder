@@ -229,6 +229,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                 ),
                               ),
                               const SizedBox(width: 16),
+                              /*
                               GestureDetector(
                                 onTap: () =>
                                     context.push('/patient/notifications'),
@@ -285,6 +286,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                   ),
                                 ),
                               ),
+                              */
                             ],
                           ),
                         ),

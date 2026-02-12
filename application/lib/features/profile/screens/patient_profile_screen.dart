@@ -80,6 +80,7 @@ class PatientProfileScreen extends StatelessWidget {
               onTap: () => context.push('/patient/contacts'),
             ),
             const SizedBox(height: 16),
+            /*
             _buildMenuItem(
               context,
               icon: Icons.notifications_none,
@@ -87,6 +88,7 @@ class PatientProfileScreen extends StatelessWidget {
               onTap: () => context.push('/patient/notifications'),
             ),
             const SizedBox(height: 16),
+            */
             _buildMenuItem(
               context,
               icon: Icons.settings_applications_outlined,

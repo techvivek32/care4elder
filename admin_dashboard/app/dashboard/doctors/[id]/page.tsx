@@ -6,6 +6,7 @@ import {
   Award, CreditCard, Activity, CheckCircle, XCircle, Clock 
 } from 'lucide-react';
 import Link from 'next/link';
+import WithdrawalRequestsManager from '@/components/WithdrawalRequestsManager';
 
 async function getDoctor(id: string) {
   await dbConnect();
@@ -133,6 +134,9 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
               </div>
             </div>
           </div>
+
+          {/* Withdrawal Requests Section */}
+          <WithdrawalRequestsManager doctorId={doctor._id} />
 
           {/* Documents Section */}
           <div className="bg-white shadow rounded-lg p-6">

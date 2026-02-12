@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Doctor from '@/models/Doctor';
+import CallRequest from '@/models/CallRequest';
 import { verifyToken } from '@/lib/auth-utils';
 import mongoose from 'mongoose';
 
@@ -46,7 +47,17 @@ export async function GET(
       return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
     }
 
-    return NextResponse.json(doctor);
+    // Get total completed consultations count
+    const totalConsultations = await CallRequest.countDocuments({
+      doctorId: id,
+      status: 'completed'
+    });
+
+    const doctorObj = doctor.toObject();
+    return NextResponse.json({
+      ...doctorObj,
+      totalConsultations
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Failed to fetch doctor' }, { status: 500 });

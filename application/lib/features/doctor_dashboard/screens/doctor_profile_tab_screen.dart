@@ -224,9 +224,23 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                           );
                         },
                       ),
-                      const SizedBox(width: 12),
-                      _buildStatCard('0', 'Consultations'), // Need to fetch real consultations count
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
+                      _buildStatCard(
+                        profile.totalConsultations.toString(),
+                        'Consultations',
+                        onTap: () {
+                          context.push('/doctor/history');
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      _buildStatCard(
+                        '₹${profile.walletBalance.toStringAsFixed(0)}',
+                        'Earnings',
+                        onTap: () {
+                          context.push('/doctor/earnings');
+                        },
+                      ),
+                      const SizedBox(width: 8),
                       _buildStatCard(
                         profile.reviews.toString(),
                         'Reviews',

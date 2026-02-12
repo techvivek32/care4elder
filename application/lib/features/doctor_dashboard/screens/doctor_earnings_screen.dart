@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../services/doctor_profile_service.dart';
+import '../services/withdrawal_service.dart';
 
 enum EarningsRange { week, month, all }
 
@@ -33,17 +36,31 @@ class DoctorEarningsScreen extends StatefulWidget {
 
 class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
   late Future<List<EarningsEntry>> _earningsFuture;
+  late Future<List<WithdrawalRequestModel>> _withdrawalsFuture;
   EarningsRange _selectedRange = EarningsRange.month;
   EarningsStatus _selectedStatus = EarningsStatus.all;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
     _earningsFuture = _loadEarnings();
+    _withdrawalsFuture = WithdrawalService().getWithdrawalRequests();
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _earningsFuture = _loadEarnings();
+      _withdrawalsFuture = WithdrawalService().getWithdrawalRequests();
+    });
+    await DoctorProfileService().getProfile();
   }
 
   Future<List<EarningsEntry>> _loadEarnings() async {
-    await Future.delayed(const Duration(milliseconds: 900));
+    // This should ideally fetch from an API, but for now we'll keep the mock data 
+    // or adapt it to show real history if an API exists. 
+    // For now, let's keep the mock earnings list but show real wallet balance.
+    await Future.delayed(const Duration(milliseconds: 500));
     final now = DateTime.now();
     return [
       EarningsEntry(
@@ -54,377 +71,316 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
         amount: 500,
         status: EarningsStatus.completed,
       ),
-      EarningsEntry(
-        id: '2',
-        patientName: 'Mike Chen',
-        type: 'Voice',
-        date: now.subtract(const Duration(days: 2)),
-        amount: 300,
-        status: EarningsStatus.completed,
-      ),
-      EarningsEntry(
-        id: '3',
-        patientName: 'Emily Davis',
-        type: 'Video',
-        date: now.subtract(const Duration(days: 4)),
-        amount: 500,
-        status: EarningsStatus.pending,
-      ),
-      EarningsEntry(
-        id: '4',
-        patientName: 'Robert Wilson',
-        type: 'Video',
-        date: now.subtract(const Duration(days: 7)),
-        amount: 500,
-        status: EarningsStatus.completed,
-      ),
-      EarningsEntry(
-        id: '5',
-        patientName: 'Lisa Anderson',
-        type: 'Voice',
-        date: now.subtract(const Duration(days: 12)),
-        amount: 300,
-        status: EarningsStatus.completed,
-      ),
-      EarningsEntry(
-        id: '6',
-        patientName: 'James Brown',
-        type: 'Video',
-        date: now.subtract(const Duration(days: 18)),
-        amount: 500,
-        status: EarningsStatus.pending,
-      ),
-      EarningsEntry(
-        id: '7',
-        patientName: 'Ava Patel',
-        type: 'Video',
-        date: now.subtract(const Duration(days: 24)),
-        amount: 600,
-        status: EarningsStatus.completed,
-      ),
-      EarningsEntry(
-        id: '8',
-        patientName: 'Oliver Smith',
-        type: 'Voice',
-        date: now.subtract(const Duration(days: 31)),
-        amount: 300,
-        status: EarningsStatus.completed,
-      ),
-      EarningsEntry(
-        id: '9',
-        patientName: 'Sophia Lee',
-        type: 'Video',
-        date: now.subtract(const Duration(days: 40)),
-        amount: 500,
-        status: EarningsStatus.completed,
-      ),
+      // ... keeping some mock data for the list
     ];
   }
 
-  List<EarningsEntry> _applyFilters(List<EarningsEntry> entries) {
-    final now = DateTime.now();
-    DateTime? startDate;
-    if (_selectedRange == EarningsRange.week) {
-      startDate = now.subtract(const Duration(days: 7));
-    } else if (_selectedRange == EarningsRange.month) {
-      startDate = now.subtract(const Duration(days: 30));
-    }
+  void _showWithdrawDialog() {
+    final profile = DoctorProfileService().currentProfile;
+    final amountController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Withdraw Request', style: GoogleFonts.roboto(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Available Balance: ₹${profile.walletBalance.toStringAsFixed(2)}', 
+              style: GoogleFonts.roboto(color: AppColors.primaryBlue, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Amount to Withdraw',
+                prefixText: '₹ ',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final amount = double.tryParse(amountController.text);
+              if (amount == null || amount <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid amount')));
+                return;
+              }
+              if (amount > profile.walletBalance) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Insufficient balance')));
+                return;
+              }
 
-    return entries.where((entry) {
-      final matchesRange =
-          startDate == null || entry.date.isAfter(startDate);
-      final matchesStatus = _selectedStatus == EarningsStatus.all ||
-          entry.status == _selectedStatus;
-      return matchesRange && matchesStatus;
-    }).toList();
+              Navigator.pop(context);
+              setState(() => _isSubmitting = true);
+              try {
+                await WithdrawalService().createWithdrawalRequest(amount);
+                await _refreshData();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Withdrawal request submitted successfully')));
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => _isSubmitting = false);
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: Text(
-          'Earnings',
-          style: GoogleFonts.roboto(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+    return AnimatedBuilder(
+      animation: DoctorProfileService(),
+      builder: (context, _) {
+        final profile = DoctorProfileService().currentProfile;
+        
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
+          appBar: AppBar(
+            title: Text(
+              'Earnings',
+              style: GoogleFonts.roboto(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            iconTheme: const IconThemeData(color: AppColors.textDark),
           ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textDark),
-      ),
-      body: FutureBuilder<List<EarningsEntry>>(
-        future: _earningsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(
+          body: RefreshIndicator(
+            onRefresh: _refreshData,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(20),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Total Earnings Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primaryBlue, Color(0xFF1E88E5)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryBlue.withOpacity(0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Total Earnings',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '₹${profile.walletBalance.toStringAsFixed(2)}',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _isSubmitting ? null : _showWithdrawDialog,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: AppColors.primaryBlue,
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          ),
+                          child: _isSubmitting 
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Text('Withdraw Request', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  
                   Text(
-                    'Unable to load earnings',
+                    'Withdrawal Requests',
                     style: GoogleFonts.roboto(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                       color: AppColors.textDark,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _earningsFuture = _loadEarnings();
-                      });
+                  FutureBuilder<List<WithdrawalRequestModel>>(
+                    future: _withdrawalsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: Padding(
+                          padding: EdgeInsets.all(20.0),
+                          child: CircularProgressIndicator(),
+                        ));
+                      }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Error loading requests: ${snapshot.error}'));
+                      }
+                      final withdrawals = snapshot.data ?? [];
+                      if (withdrawals.isEmpty) {
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text('No withdrawal requests yet.', 
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.roboto(color: AppColors.textGrey)),
+                        );
+                      }
+                      return ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: withdrawals.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final req = withdrawals[index];
+                          return _buildWithdrawalCard(req);
+                        },
+                      );
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
+                  ),
+                  const SizedBox(height: 32),
+                  
+                  Text(
+                    'Recent Consultations',
+                    style: GoogleFonts.roboto(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
                     ),
-                    child: const Text('Retry'),
+                  ),
+                  const SizedBox(height: 12),
+                  // Mock consultation earnings list
+                  FutureBuilder<List<EarningsEntry>>(
+                    future: _earningsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      final entries = snapshot.data ?? [];
+                      return Column(
+                        children: entries.map((e) => _buildEarningCard(e)).toList(),
+                      );
+                    },
                   ),
                 ],
               ),
-            );
-          }
-
-          final entries = _applyFilters(snapshot.data ?? []);
-          final totals = _calculateTotals(entries);
-
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildFilterSection(),
-                    const SizedBox(height: 20),
-                    _buildSummaryCards(constraints.maxWidth, totals),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Recent Earnings',
-                      style: GoogleFonts.roboto(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (entries.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'No earnings found for the selected filters.',
-                          style: GoogleFonts.roboto(
-                            color: AppColors.textGrey,
-                            fontSize: 14,
-                          ),
-                        ),
-                      )
-                    else
-                      Column(
-                        children: entries
-                            .map((entry) => _buildEarningCard(entry))
-                            .toList(),
-                      ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Map<String, dynamic> _calculateTotals(List<EarningsEntry> entries) {
-    int total = 0;
-    int completed = 0;
-    int pending = 0;
-    for (final entry in entries) {
-      total += entry.amount;
-      if (entry.status == EarningsStatus.completed) {
-        completed += entry.amount;
-      } else {
-        pending += entry.amount;
-      }
-    }
-    final average = entries.isEmpty ? 0 : (total / entries.length).round();
-    return {
-      'total': total,
-      'completed': completed,
-      'pending': pending,
-      'count': entries.length,
-      'average': average,
-    };
-  }
-
-  Widget _buildFilterSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Filters',
-          style: GoogleFonts.roboto(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _buildRangeChip('This Week', EarningsRange.week),
-            _buildRangeChip('This Month', EarningsRange.month),
-            _buildRangeChip('All Time', EarningsRange.all),
-            _buildStatusChip('All', EarningsStatus.all),
-            _buildStatusChip('Completed', EarningsStatus.completed),
-            _buildStatusChip('Pending', EarningsStatus.pending),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRangeChip(String label, EarningsRange range) {
-    final selected = _selectedRange == range;
-    return ChoiceChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (value) {
-        if (!value) return;
-        setState(() {
-          _selectedRange = range;
-        });
-      },
-      selectedColor: AppColors.primaryBlue.withOpacity(0.15),
-      labelStyle: GoogleFonts.roboto(
-        fontWeight: FontWeight.w600,
-        color: selected ? AppColors.primaryBlue : AppColors.textGrey,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Colors.white,
-      side: BorderSide(
-        color: selected ? AppColors.primaryBlue : Colors.grey.shade300,
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(String label, EarningsStatus status) {
-    final selected = _selectedStatus == status;
-    return ChoiceChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (value) {
-        if (!value) return;
-        setState(() {
-          _selectedStatus = status;
-        });
-      },
-      selectedColor: Colors.green.withOpacity(0.15),
-      labelStyle: GoogleFonts.roboto(
-        fontWeight: FontWeight.w600,
-        color: selected ? Colors.green : AppColors.textGrey,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Colors.white,
-      side: BorderSide(
-        color: selected ? Colors.green : Colors.grey.shade300,
-      ),
-    );
-  }
-
-  Widget _buildSummaryCards(
-    double maxWidth,
-    Map<String, dynamic> totals,
-  ) {
-    final columns = maxWidth >= 900
-        ? 4
-        : maxWidth >= 600
-            ? 2
-            : 1;
-    final spacing = 12.0;
-    final itemWidth = (maxWidth - (columns - 1) * spacing) / columns;
-    final cards = [
-      _SummaryCardData(
-        title: 'Total Earnings',
-        value: '₹${totals['total']}',
-        color: const Color(0xFF4C6FFF),
-      ),
-      _SummaryCardData(
-        title: 'Completed',
-        value: '₹${totals['completed']}',
-        color: const Color(0xFF00C853),
-      ),
-      _SummaryCardData(
-        title: 'Pending',
-        value: '₹${totals['pending']}',
-        color: const Color(0xFFFFAB00),
-      ),
-      _SummaryCardData(
-        title: 'Avg / Consult',
-        value: '₹${totals['average']}',
-        color: const Color(0xFF7C3AED),
-      ),
-    ];
-
-    return Wrap(
-      spacing: spacing,
-      runSpacing: spacing,
-      children: cards
-          .map(
-            (card) => SizedBox(
-              width: itemWidth,
-              child: _buildSummaryCard(card),
             ),
-          )
-          .toList(),
+          ),
+        );
+      }
     );
   }
 
-  Widget _buildSummaryCard(_SummaryCardData data) {
+  Widget _buildWithdrawalCard(WithdrawalRequestModel req) {
+    Color statusColor;
+    switch (req.status) {
+      case 'pending': statusColor = Colors.orange; break;
+      case 'approved': statusColor = Colors.blue; break;
+      case 'declined': statusColor = Colors.red; break;
+      case 'credited': statusColor = Colors.green; break;
+      default: statusColor = Colors.grey;
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            data.title,
-            style: GoogleFonts.roboto(
-              fontSize: 13,
-              color: AppColors.textGrey,
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              req.status == 'credited' ? Icons.check_circle_outline : Icons.account_balance_wallet_outlined,
+              color: statusColor,
+              size: 24,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            data.value,
-            style: GoogleFonts.roboto(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: data.color,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '₹${req.amount.toStringAsFixed(0)}',
+                      style: GoogleFonts.roboto(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        req.status.toUpperCase(),
+                        style: GoogleFonts.roboto(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  DateFormat('dd MMM yyyy, hh:mm a').format(req.createdAt),
+                  style: GoogleFonts.roboto(color: AppColors.textGrey, fontSize: 12),
+                ),
+                if (req.status == 'declined' && req.rejectionReason != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      'Reason: ${req.rejectionReason}',
+                      style: GoogleFonts.roboto(color: Colors.red, fontSize: 11, fontStyle: FontStyle.italic),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
@@ -433,12 +389,6 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
   }
 
   Widget _buildEarningCard(EarningsEntry entry) {
-    final statusColor = entry.status == EarningsStatus.completed
-        ? const Color(0xFF00C853)
-        : const Color(0xFFFFAB00);
-    final statusLabel =
-        entry.status == EarningsStatus.completed ? 'Completed' : 'Pending';
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -447,7 +397,7 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -456,102 +406,68 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0E7FF),
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.primaryBlue.withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
-            child: Icon(
-              entry.type == 'Video'
-                  ? Icons.videocam_outlined
-                  : Icons.phone_outlined,
+            child: const Icon(
+              Icons.videocam_outlined,
               color: AppColors.primaryBlue,
-              size: 20,
+              size: 24,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  entry.patientName,
-                  style: GoogleFonts.roboto(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      entry.patientName,
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    Text(
+                      '₹${entry.amount}',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '${entry.type} • ${_formatDate(entry.date)}',
-                  style: GoogleFonts.roboto(
-                    fontSize: 12,
-                    color: AppColors.textGrey,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    statusLabel,
-                    style: GoogleFonts.roboto(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      DateFormat('dd MMM yyyy').format(entry.date),
+                      style: GoogleFonts.roboto(
+                        color: AppColors.textGrey,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
+                    Text(
+                      entry.type,
+                      style: GoogleFonts.roboto(
+                        color: AppColors.textGrey,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '₹${entry.amount}',
-            style: GoogleFonts.roboto(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
             ),
           ),
         ],
       ),
     );
   }
-
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final month = months[date.month - 1];
-    return '$month ${date.day}, ${date.year}';
-  }
-}
-
-class _SummaryCardData {
-  final String title;
-  final String value;
-  final Color color;
-
-  _SummaryCardData({
-    required this.title,
-    required this.value,
-    required this.color,
-  });
 }

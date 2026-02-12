@@ -26,6 +26,8 @@ class DoctorProfileData {
   String status;
   double rating;
   int reviews;
+  double walletBalance;
+  int totalConsultations;
   Map<String, dynamic>? consultationFees;
   Map<String, dynamic>? bankDetails;
 
@@ -44,6 +46,8 @@ class DoctorProfileData {
     this.status = 'offline',
     this.rating = 0.0,
     this.reviews = 0,
+    this.walletBalance = 0.0,
+    this.totalConsultations = 0,
     this.consultationFees,
     this.bankDetails,
   });
@@ -68,6 +72,8 @@ class DoctorProfileData {
       status: json['status'] ?? 'offline',
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviews: (json['reviews'] as num?)?.toInt() ?? 0,
+      walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0.0,
+      totalConsultations: (json['totalConsultations'] as num?)?.toInt() ?? 0,
       consultationFees: json['consultationFees'],
       bankDetails: json['bankDetails'],
     );
@@ -89,6 +95,8 @@ class DoctorProfileData {
       'status': status,
       'rating': rating,
       'reviews': reviews,
+      'walletBalance': walletBalance,
+      'totalConsultations': totalConsultations,
       'consultationFees': consultationFees,
       'bankDetails': bankDetails,
     };
@@ -109,6 +117,8 @@ class DoctorProfileData {
     String? status,
     double? rating,
     int? reviews,
+    double? walletBalance,
+    int? totalConsultations,
     Map<String, dynamic>? consultationFees,
     Map<String, dynamic>? bankDetails,
   }) {
@@ -127,6 +137,8 @@ class DoctorProfileData {
       status: status ?? this.status,
       rating: rating ?? this.rating,
       reviews: reviews ?? this.reviews,
+      walletBalance: walletBalance ?? this.walletBalance,
+      totalConsultations: totalConsultations ?? this.totalConsultations,
       consultationFees: consultationFees ?? this.consultationFees,
       bankDetails: bankDetails ?? this.bankDetails,
     );

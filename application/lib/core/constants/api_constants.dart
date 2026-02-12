@@ -27,19 +27,31 @@ class ApiConstants {
       return url;
     }
 
-    final base = baseUrl.endsWith('/api')
-        ? baseUrl.substring(0, baseUrl.length - 4)
-        : baseUrl;
-
-    // Remove leading slash if present in the URL
-    final cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-
-    // Ensure 'uploads/' is part of the path if it's a relative path from the server
-    if (!cleanUrl.startsWith('uploads/')) {
-      return '$base/uploads/$cleanUrl';
+    // Get the base URL and remove trailing slash if any
+    String base = baseUrl;
+    if (base.endsWith('/')) {
+      base = base.substring(0, base.length - 1);
     }
 
-    return '$base/$cleanUrl';
+    // Determine the root domain (without /api)
+    String rootBase = base;
+    if (base.endsWith('/api')) {
+      rootBase = base.substring(0, base.length - 4);
+    }
+
+    // Remove leading slash from the provided url
+    String cleanUrl = url;
+    if (cleanUrl.startsWith('/')) {
+      cleanUrl = cleanUrl.substring(1);
+    }
+
+    // If the URL already starts with 'uploads/', just prepend rootBase
+    if (cleanUrl.startsWith('uploads/')) {
+      return '$rootBase/$cleanUrl';
+    }
+
+    // Otherwise, prepend rootBase/uploads/
+    return '$rootBase/uploads/$cleanUrl';
   }
 
   static String get sendOtp => '$baseUrl/auth/send-otp';

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/services/hero_service.dart';
@@ -316,51 +318,88 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                     final item = _heroSections[index];
                                     return Container(
                                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.surfaceVariant,
+                                      child: ClipRRect(
                                         borderRadius: BorderRadius.circular(24),
-                                        image: DecorationImage(
-                                          image: NetworkImage(item.imageUrl),
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(24),
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.transparent,
-                                              Colors.black.withOpacity(0.7),
-                                            ],
-                                          ),
-                                        ),
-                                        padding: const EdgeInsets.all(24.0),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.end,
+                                        child: Stack(
+                                          fit: StackFit.expand,
                                           children: [
-                                            Text(
-                                              item.title,
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
+                                            // Image with placeholder and error handling
+                                            CachedNetworkImage(
+                                              imageUrl: item.imageUrl,
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) => Container(
+                                                color: colorScheme.surfaceVariant,
+                                                child: const Center(
+                                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                                ),
+                                              ),
+                                              errorWidget: (context, url, error) {
+                                                if (kDebugMode) {
+                                                  print('Error loading image: $url, error: $error');
+                                                }
+                                                return Container(
+                                                  color: colorScheme.surfaceVariant,
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.image_not_supported_outlined,
+                                                        color: colorScheme.primary.withOpacity(0.5),
+                                                        size: 40,
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      Text(
+                                                        'Image not available',
+                                                        style: GoogleFonts.roboto(
+                                                          fontSize: 12,
+                                                          color: colorScheme.onSurfaceVariant,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            // Gradient Overlay
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Colors.transparent,
+                                                    Colors.black.withOpacity(0.7),
+                                                  ],
+                                                ),
+                                              ),
+                                              padding: const EdgeInsets.all(24.0),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                children: [
+                                                  Text(
+                                                    item.title,
+                                                    style: GoogleFonts.roboto(
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  if (item.subtitle.isNotEmpty) ...[
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      item.subtitle,
+                                                      style: GoogleFonts.roboto(
+                                                        fontSize: 14,
+                                                        color: Colors.white.withOpacity(0.9),
+                                                      ),
+                                                      maxLines: 2,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ],
+                                                ],
                                               ),
                                             ),
-                                            if (item.subtitle.isNotEmpty) ...[
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                item.subtitle,
-                                                style: GoogleFonts.roboto(
-                                                  fontSize: 14,
-                                                  color: Colors.white.withOpacity(0.9),
-                                                ),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
                                           ],
                                         ),
                                       ),

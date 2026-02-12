@@ -9,24 +9,25 @@ import { getToken } from "next-auth/jwt";
 
 const getAuthUser = async (request: Request) => {
   try {
-    // 1. Check for NextAuth session (Admin Dashboard)
+    // 1. Check for NextAuth token (More reliable for API routes)
+    const token = await getToken({ 
+      req: request as any, 
+      secret: process.env.NEXTAUTH_SECRET 
+    });
+
+    if (token) {
+      return {
+        id: token.id as string,
+        role: (token.role as string) || 'admin'
+      };
+    }
+
+    // 2. Check for NextAuth session (Admin Dashboard fallback)
     const session = await getServerSession(authOptions);
     if (session?.user) {
       return { 
         id: (session.user as any).id, 
         role: (session.user as any).role || 'admin' 
-      };
-    }
-
-    // 2. Check for NextAuth token (Alternative for some environments)
-    const token = await getToken({ 
-      req: request as any, 
-      secret: process.env.NEXTAUTH_SECRET 
-    });
-    if (token) {
-      return {
-        id: token.id as string,
-        role: (token.role as string) || 'admin'
       };
     }
 

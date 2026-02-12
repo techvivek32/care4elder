@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Doctor from '@/models/Doctor';
 import CallRequest from '@/models/CallRequest';
+import WithdrawalRequest from '@/models/WithdrawalRequest';
 import { verifyToken } from '@/lib/auth-utils';
 import mongoose from 'mongoose';
 
@@ -48,10 +49,35 @@ export async function GET(
     }
 
     // Get total completed consultations count
-    const totalConsultations = await CallRequest.countDocuments({
+    const completedCalls = await CallRequest.find({
       doctorId: id,
       status: 'completed'
     });
+    
+    const totalConsultations = completedCalls.length;
+
+    // Recalculate wallet balance to ensure it's accurate
+    const totalEarnings = completedCalls.reduce((sum, call) => {
+      return sum + (call.baseFee || call.fee || 0);
+    }, 0);
+
+    const creditedWithdrawals = await WithdrawalRequest.find({
+      doctorId: id,
+      status: 'credited'
+    });
+
+    const totalWithdrawn = creditedWithdrawals.reduce((sum, req) => {
+      return sum + (req.amount || 0);
+    }, 0);
+
+    const calculatedBalance = Math.max(0, totalEarnings - totalWithdrawn);
+
+    // Update doctor's wallet balance if it's different
+    if (doctor.walletBalance !== calculatedBalance) {
+      doctor.walletBalance = calculatedBalance;
+      await doctor.save();
+      console.log(`Synced doctor ${id} wallet balance to ${calculatedBalance}`);
+    }
 
     const doctorObj = doctor.toObject();
     return NextResponse.json({

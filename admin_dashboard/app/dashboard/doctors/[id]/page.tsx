@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import dbConnect from '@/lib/db';
 import Doctor from '@/models/Doctor';
 import CallRequest from '@/models/CallRequest';
+import WithdrawalRequest from '@/models/WithdrawalRequest';
 import { 
   User, Phone, Mail, FileText, Calendar, Briefcase, 
   Award, CreditCard, Activity, CheckCircle, XCircle, Clock,
@@ -13,17 +14,41 @@ import WithdrawalRequestsManager from '@/components/WithdrawalRequestsManager';
 async function getDoctor(id: string) {
   await dbConnect();
   try {
-    const doctor = await Doctor.findById(id).lean();
+    const doctor = await Doctor.findById(id);
     if (!doctor) return null;
     
     // Get total completed consultations count
-    const totalConsultations = await CallRequest.countDocuments({
+    const completedCalls = await CallRequest.find({
       doctorId: id,
       status: 'completed'
     });
+    
+    const totalConsultations = completedCalls.length;
+
+    // Recalculate wallet balance to ensure it's accurate
+    const totalEarnings = completedCalls.reduce((sum, call) => {
+      return sum + (call.baseFee || call.fee || 0);
+    }, 0);
+
+    const creditedWithdrawals = await WithdrawalRequest.find({
+      doctorId: id,
+      status: 'credited'
+    });
+
+    const totalWithdrawn = creditedWithdrawals.reduce((sum, req) => {
+      return sum + (req.amount || 0);
+    }, 0);
+
+    const calculatedBalance = Math.max(0, totalEarnings - totalWithdrawn);
+
+    // Update doctor's wallet balance if it's different
+    if (doctor.walletBalance !== calculatedBalance) {
+      doctor.walletBalance = calculatedBalance;
+      await doctor.save();
+    }
 
     return {
-      ...JSON.parse(JSON.stringify(doctor)),
+      ...JSON.parse(JSON.stringify(doctor.toObject())),
       totalConsultations
     };
   } catch (error) {

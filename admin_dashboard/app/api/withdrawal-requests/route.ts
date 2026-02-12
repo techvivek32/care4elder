@@ -10,35 +10,39 @@ import { getToken } from "next-auth/jwt";
 const getAuthUser = async (request: Request) => {
   try {
     // 1. Check for NextAuth token (More reliable for API routes)
+    // IMPORTANT: In Next.js App Router, we should use getToken from next-auth/jwt
     const token = await getToken({ 
       req: request as any, 
       secret: process.env.NEXTAUTH_SECRET 
     });
 
     if (token) {
+      console.log('Auth via Token:', token.id, token.role);
       return {
         id: token.id as string,
         role: (token.role as string) || 'admin'
       };
     }
 
-    // 2. Check for NextAuth session (Admin Dashboard fallback)
-    const session = await getServerSession(authOptions);
-    if (session?.user) {
-      return { 
-        id: (session.user as any).id, 
-        role: (session.user as any).role || 'admin' 
-      };
-    }
-
-    // 3. Fallback: Check for Bearer token (Mobile App)
+    // 2. Fallback: Check for Bearer token (Mobile App)
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const bearerToken = authHeader.split(' ')[1];
       const decoded = verifyToken(bearerToken);
       if (decoded && typeof decoded === 'object') {
+        console.log('Auth via Bearer:', decoded.id, decoded.role);
         return decoded as { id?: string; role?: string };
       }
+    }
+
+    // 3. Check for NextAuth session (Admin Dashboard fallback)
+    const session = await getServerSession(authOptions);
+    if (session?.user) {
+      console.log('Auth via Session:', (session.user as any).id, (session.user as any).role);
+      return { 
+        id: (session.user as any).id, 
+        role: (session.user as any).role || 'admin' 
+      };
     }
   } catch (error) {
     console.error('Auth verification error:', error);

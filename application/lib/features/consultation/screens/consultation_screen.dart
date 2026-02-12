@@ -40,7 +40,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   }
 
   void _startAutoRefresh() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (mounted) {
         _doctorService.fetchDoctors(silent: true);
       }
@@ -286,27 +286,42 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                             ),
                                           ),
                                         ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: doctor.isAvailable
-                                                ? Colors.green.withOpacity(0.1)
-                                                : Colors.red.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            doctor.isAvailable ? 'Online' : 'Offline',
-                                            style: GoogleFonts.roboto(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                              color: doctor.isAvailable
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                            ),
-                                          ),
+                                        Builder(
+                                          builder: (context) {
+                                            Color statusColor;
+                                            String statusText;
+                                            
+                                            if (doctor.status == 'busy') {
+                                              statusColor = Colors.orange;
+                                              statusText = 'Busy';
+                                            } else if (doctor.status == 'online' || (doctor.status == 'offline' && doctor.isAvailable)) {
+                                              // If status is online OR status is offline but isAvailable is true (fallback)
+                                              statusColor = Colors.green;
+                                              statusText = 'Online';
+                                            } else {
+                                              statusColor = Colors.grey;
+                                              statusText = 'Offline';
+                                            }
+
+                                            return Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: statusColor.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                statusText,
+                                                style: GoogleFonts.roboto(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: statusColor,
+                                                ),
+                                              ),
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),

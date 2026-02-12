@@ -26,6 +26,7 @@ export interface IDoctor extends Document {
   };
   isAvailable: boolean;
   isEmailVerified: boolean;
+  status: 'online' | 'busy' | 'offline';
   otp?: string;
   otpExpiry?: Date;
   bankDetails?: {
@@ -65,6 +66,11 @@ const DoctorSchema: Schema = new Schema({
   },
   isAvailable: { type: Boolean, default: false },
   isEmailVerified: { type: Boolean, default: false },
+  status: { 
+    type: String, 
+    enum: ['online', 'busy', 'offline'], 
+    default: 'offline' 
+  },
   otp: { type: String, select: false },
   otpExpiry: { type: Date, select: false },
   bankDetails: {

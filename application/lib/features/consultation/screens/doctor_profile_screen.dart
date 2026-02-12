@@ -33,7 +33,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   }
 
   void _startAutoRefresh() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (mounted) {
         _fetchDoctor(silent: true);
       }
@@ -240,17 +240,25 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: doctor.isAvailable
+                                      color: doctor.status == 'online'
                                           ? Colors.green.withOpacity(0.1)
-                                          : Colors.red.withOpacity(0.1),
+                                          : doctor.status == 'busy'
+                                              ? Colors.orange.withOpacity(0.1)
+                                              : Colors.grey.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text(
-                                      doctor.isAvailable ? 'Online' : 'Offline',
+                                      doctor.status == 'online'
+                                          ? 'Online'
+                                          : doctor.status == 'busy'
+                                              ? 'Busy'
+                                              : 'Offline',
                                       style: GoogleFonts.roboto(
-                                        color: doctor.isAvailable
+                                        color: doctor.status == 'online'
                                             ? Colors.green
-                                            : Colors.red,
+                                            : doctor.status == 'busy'
+                                                ? Colors.orange
+                                                : Colors.grey,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
                                       ),
@@ -742,10 +750,29 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
           ? widget.doctor.consultationFee 
           : widget.doctor.emergencyFee;
 
-      if (!widget.doctor.isAvailable) {
+      if (widget.doctor.status == 'offline') {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Doctor is offline')),
+          );
+        }
+        return;
+      }
+
+      if (_selectedType == 'consultation' && widget.doctor.status == 'busy') {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Doctor is Busy', style: GoogleFonts.roboto(fontWeight: FontWeight.bold)),
+              content: const Text('Doctor is currently on another call. Please try again later.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
           );
         }
         return;

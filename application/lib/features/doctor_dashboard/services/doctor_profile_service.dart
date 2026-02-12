@@ -23,6 +23,7 @@ class DoctorProfileData {
   String hospitalAffiliation;
   String? profileImage;
   bool isAvailable;
+  String status;
   double rating;
   int reviews;
   Map<String, dynamic>? consultationFees;
@@ -40,6 +41,7 @@ class DoctorProfileData {
     this.hospitalAffiliation = '',
     this.profileImage,
     this.isAvailable = true,
+    this.status = 'offline',
     this.rating = 0.0,
     this.reviews = 0,
     this.consultationFees,
@@ -63,6 +65,7 @@ class DoctorProfileData {
       hospitalAffiliation: json['hospitalAffiliation'] ?? '',
       profileImage: _resolveImageUrl(rawImage),
       isAvailable: json['isAvailable'] ?? true,
+      status: json['status'] ?? 'offline',
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviews: (json['reviews'] as num?)?.toInt() ?? 0,
       consultationFees: json['consultationFees'],
@@ -83,6 +86,7 @@ class DoctorProfileData {
       'hospitalAffiliation': hospitalAffiliation,
       'profileImage': profileImage,
       'isAvailable': isAvailable,
+      'status': status,
       'rating': rating,
       'reviews': reviews,
       'consultationFees': consultationFees,
@@ -102,6 +106,7 @@ class DoctorProfileData {
     String? hospitalAffiliation,
     String? profileImage,
     bool? isAvailable,
+    String? status,
     double? rating,
     int? reviews,
     Map<String, dynamic>? consultationFees,
@@ -119,6 +124,7 @@ class DoctorProfileData {
       hospitalAffiliation: hospitalAffiliation ?? this.hospitalAffiliation,
       profileImage: profileImage ?? this.profileImage,
       isAvailable: isAvailable ?? this.isAvailable,
+      status: status ?? this.status,
       rating: rating ?? this.rating,
       reviews: reviews ?? this.reviews,
       consultationFees: consultationFees ?? this.consultationFees,
@@ -143,6 +149,7 @@ class DoctorProfileService extends ChangeNotifier {
     experience: '',
     about: '',
     profileImage: null,
+    status: 'offline',
   );
   bool _isLoaded = false;
 
@@ -207,6 +214,49 @@ class DoctorProfileService extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Error updating availability: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateStatus(String status) async {
+    try {
+      final token = await DoctorAuthService().getDoctorToken();
+      final doctorId = await DoctorAuthService().getDoctorId();
+      
+      if (token == null || doctorId == null) return;
+
+      final response = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/doctors/$doctorId/status'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'status': status}),
+      );
+
+      if (response.statusCode == 200) {
+        // Status is part of doctor model
+        _currentProfile = _currentProfile.copyWith(status: status);
+        notifyListeners();
+      } else {
+        // Fallback to PUT if PATCH status endpoint is not available
+        final fallbackResponse = await http.put(
+          Uri.parse('${ApiConstants.baseUrl}/doctors/$doctorId'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({'status': status}),
+        );
+        if (fallbackResponse.statusCode == 200) {
+          _currentProfile = _currentProfile.copyWith(status: status);
+          notifyListeners();
+        } else {
+          throw Exception('Failed to update status');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error updating status: $e');
       rethrow;
     }
   }

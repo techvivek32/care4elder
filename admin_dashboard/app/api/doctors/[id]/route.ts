@@ -91,6 +91,9 @@ export async function PUT(
     if (body.bankDetails != null) {
       updateData.bankDetails = body.bankDetails;
     }
+    if (body.status != null) {
+      updateData.status = body.status;
+    }
 
     const doctor = await Doctor.findByIdAndUpdate(id, updateData, {
       new: true,

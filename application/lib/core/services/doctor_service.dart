@@ -21,6 +21,7 @@ class Doctor {
   final bool isAvailable;
   final double rating;
   final int reviews;
+  final String status;
 
   Doctor({
     required this.id,
@@ -39,6 +40,7 @@ class Doctor {
     this.isAvailable = true,
     this.rating = 0.0,
     this.reviews = 0,
+    this.status = 'offline',
   });
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
@@ -61,6 +63,7 @@ class Doctor {
       isAvailable: json['isAvailable'] ?? true,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviews: (json['reviews'] as num?)?.toInt() ?? 0,
+      status: json['status'] ?? 'offline',
     );
   }
 }

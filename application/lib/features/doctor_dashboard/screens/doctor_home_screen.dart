@@ -116,6 +116,12 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     if (_checkingIncoming) return;
     final profile = _profileService.currentProfile;
     if (!profile.isAvailable) return;
+    
+    // If we are on Home Screen and status is busy, it might be a leftover from a previous call
+    // However, we should only reset if we are sure no call is active.
+    // To be safe, we'll let the VideoCallScreen handle its own status.
+    // Only reset if it's been busy for a long time without an active call (not implemented here)
+
     if (_activeCallId != null) return;
 
     _checkingIncoming = true;
@@ -583,6 +589,13 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   Future<void> _updateStatus(bool value) async {
     try {
       await _profileService.updateAvailability(value);
+      try {
+        final newStatus = value ? 'online' : 'offline';
+        await _profileService.updateStatus(newStatus);
+        debugPrint('Doctor status manually updated to: $newStatus');
+      } catch (e) {
+        debugPrint('Secondary status update failed: $e');
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

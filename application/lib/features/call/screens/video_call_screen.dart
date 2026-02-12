@@ -7,10 +7,13 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/services/call_request_service.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
+import '../../doctor_dashboard/services/doctor_profile_service.dart';
 import '../widgets/rating_popup.dart';
 
 class VideoCallScreen extends StatefulWidget {
@@ -45,6 +48,10 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   Timer? _callStatusTimer;
   bool _ending = false;
   late final int _localUid;
+  final DoctorProfileService _profileService = DoctorProfileService();
+  Timer? _emergencyCallTimer;
+  bool _checkingEmergency = false;
+  String? _incomingEmergencyId;
 
   // App ID from the user
   final String _appId = 'ae6f0f0e29904fa88c92b1d52b98acc5';
@@ -57,14 +64,179 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
     _initAgora();
     _startTimer();
     _startCallStatusPolling();
+    if (widget.isDoctor) {
+      _updateDoctorStatus('busy');
+      _startEmergencyCallPolling();
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _callStatusTimer?.cancel();
+    _emergencyCallTimer?.cancel();
+    if (widget.isDoctor && !_ending) {
+      _updateDoctorStatus('online');
+    }
     _disposeAgora();
     super.dispose();
+  }
+
+  Future<void> _updateDoctorStatus(String status) async {
+    try {
+      await _profileService.updateStatus(status);
+      debugPrint('Doctor status updated to: $status');
+    } catch (e) {
+      debugPrint('Failed to update doctor status: $e');
+    }
+  }
+
+  void _startEmergencyCallPolling() {
+    _emergencyCallTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _checkEmergencyCall();
+    });
+  }
+
+  Future<void> _checkEmergencyCall() async {
+    if (_checkingEmergency || _ending) return;
+    _checkingEmergency = true;
+    try {
+      final token = await DoctorAuthService().getDoctorToken();
+      final doctorId = await DoctorAuthService().getDoctorId();
+      if (token == null || doctorId == null) return;
+
+      final incoming = await CallRequestService().fetchIncomingCallForDoctor(
+        token: token,
+        doctorId: doctorId,
+      );
+
+      // Only handle emergency calls while already in a call
+      if (incoming == null || 
+          incoming.status != 'ringing' || 
+          incoming.consultationType != 'emergency' ||
+          incoming.id == _incomingEmergencyId ||
+          incoming.id == widget.callRequestId) {
+        return;
+      }
+
+      _incomingEmergencyId = incoming.id;
+      if (!mounted) return;
+
+      final result = await _showIncomingEmergencyDialog(incoming);
+      if (!mounted) {
+        _incomingEmergencyId = null;
+        return;
+      }
+
+      if (result == 'accept') {
+        _ending = true; // Stop polling for current call
+        
+        // 1. End current call report
+        await _endCallReport();
+        
+        // 2. Accept new emergency call
+        await CallRequestService().updateCallRequestStatus(
+          token: token,
+          callRequestId: incoming.id,
+          status: 'accepted',
+        );
+
+        // Explicitly leave channel before switching to new one
+        try {
+          await _engine.leaveChannel();
+        } catch (e) {
+          debugPrint('Error leaving channel during switch: $e');
+        }
+
+        if (mounted) {
+          // 3. Navigate to new call room (replacing current)
+          context.pushReplacement('/doctor/call-room', extra: {
+            'channel': incoming.channelName,
+            'remoteName': incoming.patientName,
+            'callRequestId': incoming.id,
+            'isDoctor': true,
+          });
+        }
+      } else if (result == 'decline') {
+        await CallRequestService().updateCallRequestStatus(
+          token: token,
+          callRequestId: incoming.id,
+          status: 'declined',
+        );
+      }
+      _incomingEmergencyId = null;
+    } finally {
+      _checkingEmergency = false;
+    }
+  }
+
+  Future<String?> _showIncomingEmergencyDialog(CallRequestData call) {
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.red[50],
+          title: Row(
+            children: [
+              const Icon(Icons.emergency, color: Colors.red),
+              const SizedBox(width: 8),
+              Text(
+                'EMERGENCY CALL',
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'New emergency request from ${call.patientName}.',
+                style: GoogleFonts.roboto(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Accepting this will terminate your current call immediately.',
+                style: TextStyle(fontSize: 13, color: Colors.black87),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'decline'),
+              child: const Text('Decline', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, 'accept'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Accept & End Current'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _endCallReport() async {
+    final token = await _getToken();
+    if (widget.callRequestId != null && widget.callRequestId!.isNotEmpty) {
+      if (token != null) {
+        final status = _seconds > 0 ? 'completed' : 'cancelled';
+        await CallRequestService().updateCallReport(
+          token: token,
+          callRequestId: widget.callRequestId!,
+          status: status,
+          duration: _seconds,
+        );
+      }
+    }
   }
 
   Future<void> _disposeAgora() async {
@@ -264,8 +436,13 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
         callRequestId: widget.callRequestId!,
       );
       if (call == null) return;
-      if (call.status == 'cancelled' || call.status == 'declined' || call.status == 'timeout') {
+      if (call.status == 'cancelled' || call.status == 'declined' || call.status == 'timeout' || call.status == 'completed') {
         _ending = true;
+        
+        if (widget.isDoctor) {
+          await _updateDoctorStatus('online');
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Call ended')),
@@ -316,6 +493,11 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   Future<void> _endCallAndNotify() async {
     if (_ending) return;
     _ending = true;
+    
+    if (widget.isDoctor) {
+      await _updateDoctorStatus('online');
+    }
+
     final token = await _getToken();
     if (widget.callRequestId != null && widget.callRequestId!.isNotEmpty) {
       if (token != null) {
@@ -366,7 +548,28 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   Future<void> _handleRemoteLeft() async {
     if (_ending) return;
     _ending = true;
+
+    if (widget.isDoctor) {
+      await _updateDoctorStatus('online');
+    }
+
     final token = await _getToken();
+    if (widget.callRequestId != null && widget.callRequestId!.isNotEmpty) {
+      if (token != null) {
+        final status = _seconds > 0 ? 'completed' : 'cancelled';
+        try {
+          await CallRequestService().updateCallReport(
+            token: token,
+            callRequestId: widget.callRequestId!,
+            status: status,
+            duration: _seconds,
+          );
+        } catch (e) {
+          debugPrint('Error updating report on remote left: $e');
+        }
+      }
+    }
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User left the call')),

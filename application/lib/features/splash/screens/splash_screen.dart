@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
+import '../../../core/services/permission_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,7 +18,19 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Navigate based on auth state after 3 seconds
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Request all permissions on first time open
+    final permissionService = PermissionService();
+    bool alreadyRequested = await permissionService.hasRequestedPermissions();
+    
+    if (!alreadyRequested) {
+      await permissionService.requestAllPermissions();
+    }
+
+    // Navigate based on auth state after a delay
     Future.delayed(const Duration(seconds: 3), () async {
       if (mounted) {
         bool isPatientLoggedIn = false;

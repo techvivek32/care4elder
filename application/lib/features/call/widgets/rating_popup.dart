@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../core/theme/app_colors.dart';
+import '../../../core/theme/app_colors.dart';
 
 class RatingPopup extends StatefulWidget {
   final String doctorName;
@@ -47,20 +47,20 @@ class _RatingPopupState extends State<RatingPopup> {
         color: Colors.white,
         shape: BoxShape.rectangle,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Colors.black24,
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10.0,
-            offset: Offset(0.0, 10.0),
+            offset: const Offset(0.0, 10.0),
           ),
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             'Rate your Consultation',
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: AppColors.textDark,
@@ -70,7 +70,7 @@ class _RatingPopupState extends State<RatingPopup> {
           Text(
             'How was your experience with ${widget.doctorName}?',
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 16,
               color: AppColors.textGrey,
             ),
@@ -99,7 +99,7 @@ class _RatingPopupState extends State<RatingPopup> {
             maxLines: 3,
             decoration: InputDecoration(
               hintText: 'Share your feedback (optional)',
-              hintStyle: const TextStyle(color: AppColors.textGrey, fontSize: 14),
+              hintStyle: TextStyle(color: AppColors.textGrey, fontSize: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -125,7 +125,7 @@ class _RatingPopupState extends State<RatingPopup> {
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Later',
                     style: TextStyle(
                       color: AppColors.textGrey,

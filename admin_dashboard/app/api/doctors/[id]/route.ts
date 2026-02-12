@@ -33,7 +33,40 @@ const getAuthUser = async (request: Request) => {
       };
     }
 
-    // 3. Fallback: Check for Bearer token (Mobile App)
+    // 3. Fallback for VPS: Manual cookie parsing
+    const cookieHeader = request.headers.get('cookie') || '';
+    if (cookieHeader) {
+      const cookies = Object.fromEntries(
+        cookieHeader.split(';').map(c => c.trim().split('='))
+      );
+      
+      const sessionToken = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
+      
+      if (sessionToken && process.env.NEXTAUTH_SECRET) {
+        try {
+          const decoded = await getToken({
+            req: {
+              headers: {
+                cookie: cookieHeader
+              }
+            } as any,
+            secret: process.env.NEXTAUTH_SECRET,
+            raw: false
+          });
+          
+          if (decoded) {
+            return {
+              id: decoded.id as string,
+              role: (decoded.role as string) || 'admin'
+            };
+          }
+        } catch (e) {
+          console.error('Manual cookie decoding failed:', e);
+        }
+      }
+    }
+
+    // 4. Fallback: Check for Bearer token (Mobile App)
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const bearerToken = authHeader.split(' ')[1];

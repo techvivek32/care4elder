@@ -9,11 +9,20 @@ import { getToken } from "next-auth/jwt";
 
 const getAuthUser = async (request: Request) => {
   try {
-    // 1. Try NextAuth Token (Most reliable for App Router API routes)
-    const secret = process.env.NEXTAUTH_SECRET;
+    // 1. Try NextAuth Session (Most reliable for Admin Dashboard)
+    const session = await getServerSession(authOptions);
+    if (session?.user) {
+      console.log('Auth via Session success:', (session.user as any).id, (session.user as any).role);
+      return { 
+        id: (session.user as any).id, 
+        role: (session.user as any).role || 'admin' 
+      };
+    }
+
+    // 2. Try NextAuth Token (Good for cross-origin/API)
     const token = await getToken({ 
       req: request as any, 
-      secret: secret 
+      secret: process.env.NEXTAUTH_SECRET 
     });
 
     if (token) {
@@ -24,17 +33,41 @@ const getAuthUser = async (request: Request) => {
       };
     }
 
-    // 2. Try NextAuth Session (Fallback for some environments)
-    const session = await getServerSession(authOptions);
-    if (session?.user) {
-      console.log('Auth via Session success:', (session.user as any).id, (session.user as any).role);
-      return { 
-        id: (session.user as any).id, 
-        role: (session.user as any).role || 'admin' 
-      };
+    // 3. Fallback for VPS: Manual cookie parsing
+    const cookieHeader = request.headers.get('cookie') || '';
+    if (cookieHeader) {
+      const cookies = Object.fromEntries(
+        cookieHeader.split(';').map(c => c.trim().split('='))
+      );
+      
+      const sessionToken = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
+      
+      if (sessionToken && process.env.NEXTAUTH_SECRET) {
+        try {
+          const decoded = await getToken({
+            req: {
+              headers: {
+                cookie: cookieHeader
+              }
+            } as any,
+            secret: process.env.NEXTAUTH_SECRET,
+            raw: false
+          });
+          
+          if (decoded) {
+            console.log('Auth via Manual Cookie Decoding success:', decoded.id, decoded.role);
+            return {
+              id: decoded.id as string,
+              role: (decoded.role as string) || 'admin'
+            };
+          }
+        } catch (e) {
+          console.error('Manual cookie decoding failed:', e);
+        }
+      }
     }
 
-    // 3. Try Bearer Token (For Mobile App)
+    // 4. Try Bearer Token (For Mobile App)
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const bearerToken = authHeader.split(' ')[1];
@@ -45,7 +78,7 @@ const getAuthUser = async (request: Request) => {
       }
     }
     
-    console.log('All auth methods failed for Withdrawal Request [id].');
+    console.log('Auth failed for Withdrawal Request [id]. Host:', request.headers.get('host'), 'Cookies present:', !!cookieHeader);
   } catch (error) {
     console.error('Auth verification error:', error);
   }

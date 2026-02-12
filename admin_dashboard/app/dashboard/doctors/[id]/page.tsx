@@ -23,6 +23,11 @@ async function getDoctor(id: string) {
       status: 'completed'
     });
     
+    console.log(`Diagnostic for doctor ${id}: Found ${completedCalls.length} completed calls`);
+    completedCalls.forEach((call, index) => {
+      console.log(`Call ${index}: baseFee=${call.baseFee}, fee=${call.fee}`);
+    });
+    
     const totalConsultations = completedCalls.length;
 
     // Recalculate wallet balance to ensure it's accurate

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { 
   CheckCircle, XCircle, Clock, CreditCard, AlertCircle, 
   ChevronDown, ChevronUp, ExternalLink 
@@ -21,21 +22,44 @@ interface WithdrawalRequest {
 }
 
 export default function WithdrawalRequestsManager({ doctorId }: { doctorId: string }) {
+  const { data: session, status } = useSession();
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const fetchRequests = async () => {
+    if (status !== 'authenticated') {
+      setError('You must be logged in to view withdrawal requests');
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await fetch(`/api/withdrawal-requests?doctorId=${doctorId}`);
-      if (!response.ok) throw new Error('Failed to fetch withdrawal requests');
+      setError(null);
+      const response = await fetch(`/api/withdrawal-requests?doctorId=${doctorId}`, {
+        cache: 'no-store',
+        credentials: 'include', // Ensure cookies are sent
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Your session may have expired. Please refresh the page and log in again.');
+      }
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to fetch withdrawal requests');
+      }
+
       const data = await response.json();
       setRequests(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Fetch error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching requests');
     } finally {
       setLoading(false);
     }

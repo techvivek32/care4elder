@@ -578,15 +578,16 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final double fee = _selectedType == 'consultation' 
         ? widget.doctor.totalConsultationFee 
         : widget.doctor.totalEmergencyFee;
     
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -597,7 +598,7 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
             style: GoogleFonts.roboto(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 24),
@@ -661,6 +662,10 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
     bool isEmergency = false,
   }) {
     final isSelected = _selectedType == value;
+    final colorScheme = Theme.of(context).colorScheme;
+    final baseColor = isEmergency ? colorScheme.error : colorScheme.primary;
+    final baseContainer = isEmergency ? colorScheme.errorContainer : colorScheme.primaryContainer;
+    final idleBackground = colorScheme.surfaceVariant;
     
     return InkWell(
       onTap: () => setState(() => _selectedType = value),
@@ -668,13 +673,11 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? (isEmergency ? Colors.red[50] : AppColors.primaryBlue.withOpacity(0.1))
-              : Colors.grey[50],
+          color: isSelected ? baseContainer : idleBackground,
           border: Border.all(
             color: isSelected
-                ? (isEmergency ? Colors.red : AppColors.primaryBlue)
-                : Colors.grey[300]!,
+                ? baseColor
+                : colorScheme.outline,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -684,12 +687,12 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isEmergency ? Colors.red[100] : Colors.blue[100],
+                color: baseContainer,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: isEmergency ? Colors.red : AppColors.primaryBlue,
+                color: baseColor,
                 size: 24,
               ),
             ),
@@ -703,7 +706,7 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   if (isEmergency)
@@ -711,7 +714,7 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
                       'Immediate response',
                       style: GoogleFonts.roboto(
                         fontSize: 12,
-                        color: Colors.red,
+                        color: colorScheme.error,
                       ),
                     ),
                 ],
@@ -722,14 +725,14 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
               style: GoogleFonts.roboto(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isEmergency ? Colors.red : AppColors.primaryBlue,
+                color: baseColor,
               ),
             ),
             const SizedBox(width: 16),
             Radio<String>(
               value: value,
               groupValue: _selectedType,
-              activeColor: isEmergency ? Colors.red : AppColors.primaryBlue,
+              activeColor: baseColor,
               onChanged: (val) => setState(() => _selectedType = val!),
             ),
           ],

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/services/call_request_service.dart';
 import '../../../core/constants/api_constants.dart';
 
@@ -52,19 +51,20 @@ class _DoctorReviewsScreenState extends State<DoctorReviewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Reviews for ${widget.doctorName}',
           style: GoogleFonts.roboto(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -73,20 +73,20 @@ class _DoctorReviewsScreenState extends State<DoctorReviewsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!))
+              ? Center(child: Text(_error!, style: TextStyle(color: colorScheme.onSurface)))
               : _reviews.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.rate_review_outlined,
-                              size: 64, color: Colors.grey.shade400),
+                              size: 64, color: colorScheme.onSurfaceVariant.withOpacity(0.6)),
                           const SizedBox(height: 16),
                           Text(
                             'No reviews yet',
                             style: GoogleFonts.roboto(
                               fontSize: 16,
-                              color: Colors.grey.shade600,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -104,15 +104,16 @@ class _DoctorReviewsScreenState extends State<DoctorReviewsScreen> {
   }
 
   Widget _buildReviewCard(CallRequestData review) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: colorScheme.shadow.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -125,12 +126,12 @@ class _DoctorReviewsScreenState extends State<DoctorReviewsScreen> {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: Colors.grey.shade200,
+                backgroundColor: colorScheme.surfaceVariant,
                 backgroundImage: review.patientProfile.isNotEmpty
                     ? NetworkImage(ApiConstants.resolveImageUrl(review.patientProfile))
                     : null,
                 child: review.patientProfile.isEmpty
-                    ? const Icon(Icons.person, color: Colors.grey)
+                    ? Icon(Icons.person, color: colorScheme.onSurfaceVariant)
                     : null,
               ),
               const SizedBox(width: 12),
@@ -143,12 +144,13 @@ class _DoctorReviewsScreenState extends State<DoctorReviewsScreen> {
                       style: GoogleFonts.roboto(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     Text(
                       _formatDate(review.createdAt),
                       style: GoogleFonts.roboto(
-                        color: Colors.grey,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 12,
                       ),
                     ),
@@ -158,7 +160,7 @@ class _DoctorReviewsScreenState extends State<DoctorReviewsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
+                  color: Colors.amber.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -182,7 +184,7 @@ class _DoctorReviewsScreenState extends State<DoctorReviewsScreen> {
             Text(
               review.ratingComment!,
               style: GoogleFonts.roboto(
-                color: Colors.black87,
+                color: colorScheme.onSurface,
                 fontSize: 14,
                 height: 1.4,
               ),

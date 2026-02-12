@@ -9,6 +9,7 @@ import 'core/theme/app_theme.dart';
 import 'core/services/settings_service.dart';
 import 'core/services/profile_service.dart';
 import 'core/services/hotword_service.dart';
+import 'core/services/background_service.dart';
 import 'router.dart';
 
 Future<void> main() async {
@@ -18,6 +19,10 @@ Future<void> main() async {
   } catch (e) {
     if (kDebugMode) print("Warning: .env file not found or failed to load: $e");
   }
+  
+  // Initialize background service helper
+  await BackgroundServiceHelper.initializeService();
+  
   HotwordService().start();
   runApp(const MyApp());
 }

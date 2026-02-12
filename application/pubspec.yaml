@@ -59,6 +59,8 @@ dependencies:
   speech_to_text: ^7.0.0
   flutter_dotenv: ^5.2.1
   audioplayers: ^6.1.0
+  flutter_background_service: ^5.1.0
+  flutter_local_notifications: ^17.2.3
 
 dev_dependencies:
   flutter_test:

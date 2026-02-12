@@ -1,12 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../auth/services/auth_service.dart';
 import '../../../core/services/settings_service.dart';
+import '../../../core/services/background_service.dart';
 import '../../../core/theme/app_colors.dart';
 
-class AppSettingsScreen extends StatelessWidget {
+class AppSettingsScreen extends StatefulWidget {
   const AppSettingsScreen({super.key});
+
+  @override
+  State<AppSettingsScreen> createState() => _AppSettingsScreenState();
+}
+
+class _AppSettingsScreenState extends State<AppSettingsScreen> {
+  bool _backgroundServiceEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBackgroundServiceState();
+  }
+
+  Future<void> _loadBackgroundServiceState() async {
+    final isRunning = await BackgroundServiceHelper.isServiceRunning();
+    setState(() {
+      _backgroundServiceEnabled = isRunning;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +58,39 @@ class AppSettingsScreen extends StatelessWidget {
                 icon: Icons.dark_mode_outlined,
                 value: settings.themeMode == ThemeMode.dark,
                 onChanged: (value) => settings.toggleTheme(value),
+              ),
+              const SizedBox(height: 24),
+              _buildSectionHeader('Protection'),
+              _buildSwitchTile(
+                context: context,
+                title: 'Background Protection',
+                subtitle: 'Stay protected even if app is closed',
+                icon: Icons.security_outlined,
+                value: _backgroundServiceEnabled,
+                onChanged: (value) async {
+                  if (value) {
+                    // Request notification permission before starting service
+                    final status = await Permission.notification.request();
+                    if (status.isGranted) {
+                      await BackgroundServiceHelper.startService();
+                    } else {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Notification permission is required for background protection'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                      return;
+                    }
+                  } else {
+                    await BackgroundServiceHelper.stopService();
+                  }
+                  setState(() {
+                    _backgroundServiceEnabled = value;
+                  });
+                },
               ),
               const SizedBox(height: 24),
               _buildSectionHeader('General'),

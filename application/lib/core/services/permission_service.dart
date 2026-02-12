@@ -34,6 +34,7 @@ class PermissionService {
       Permission.photos,
       Permission.videos,
       Permission.audio,
+      Permission.notification,
     ];
 
     // Request all permissions at once

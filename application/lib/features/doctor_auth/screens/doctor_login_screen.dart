@@ -166,19 +166,11 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const SizedBox(height: 60),
-                          // Logo Placeholder
-                          Container(
+                          // Logo
+                          Image.asset(
+                            'assets/images/logo.png',
                             width: 80,
                             height: 80,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primaryBlue,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.local_hospital_rounded,
-                              color: Colors.white,
-                              size: 40,
-                            ),
                           ),
                           const SizedBox(height: 24),
                           Text(

@@ -422,16 +422,16 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                 child: _buildQuickActionCard(
                                   icon: Icons.description_outlined,
                                   label: 'Medical\nRecords',
-                                  color: Colors.green,
+                                  color: Colors.blue,
                                   onTap: () => context.push('/patient/records'),
-                              ),
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _buildQuickActionCard(
                                   icon: Icons.people_outline,
                                   label: 'Emergency\nContacts',
-                                  color: Colors.orange,
+                                  color: Colors.blue,
                                   onTap: () => context.push('/patient/contacts'),
                                 ),
                               ),

@@ -519,6 +519,34 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                     }).toList(),
                                   ),
 
+                        const SizedBox(height: 32),
+
+                        // Tagline
+                        Center(
+                          child: Column(
+                            children: [
+                              Text(
+                                'Smart Care with Human Touch',
+                                style: GoogleFonts.roboto(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: colorScheme.primary.withOpacity(0.7),
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                width: 40,
+                                height: 2,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(1),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
                         // Extra padding for bottom nav
                         const SizedBox(height: 80),
                       ],

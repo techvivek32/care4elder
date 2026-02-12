@@ -130,15 +130,42 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   }
 
   HistoryStats get _stats {
-    final totalCount = _filteredItems.length;
-    final totalEarnings = _filteredItems.fold<int>(
+    final now = DateTime.now();
+    final firstDayOfMonth = DateTime(now.year, now.month, 1);
+    
+    // Calculate This Month's completed consultations
+    final thisMonthCount = _allItems.where((item) => 
+      item.status == HistoryStatus.completed && 
+      item.date.isAfter(firstDayOfMonth)
+    ).length;
+
+    // Calculate total earnings from all completed consultations
+    final totalEarnings = _allItems.where((item) => 
+      item.status == HistoryStatus.completed
+    ).fold<int>(
       0,
       (sum, item) => sum + item.price,
     );
+
+    // Calculate average rating from all completed consultations that have a rating
+    final ratedItems = _allItems.where((item) => 
+      item.originalData?.rating != null && 
+      item.originalData!.rating! > 0
+    ).toList();
+    
+    double averageRating = 4.9; // Default if no ratings
+    if (ratedItems.isNotEmpty) {
+      final totalRating = ratedItems.fold<double>(
+        0,
+        (sum, item) => sum + item.originalData!.rating!,
+      );
+      averageRating = totalRating / ratedItems.length;
+    }
+
     return HistoryStats(
-      totalCount: totalCount,
+      totalCount: thisMonthCount,
       totalEarnings: totalEarnings,
-      rating: 4.9,
+      rating: averageRating,
     );
   }
 
@@ -483,8 +510,8 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
@@ -497,23 +524,23 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                 Text(
                   value,
                   style: GoogleFonts.roboto(
-                    fontSize: 22,
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
                     color: valueColor,
                   ),
                 ),
                 if (showStar) ...[
                   const SizedBox(width: 4),
-                  const Icon(Icons.star, color: Color(0xFFFFAB00), size: 20),
+                  const Icon(Icons.star, color: Color(0xFFFFAB00), size: 24),
                 ],
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               label,
               style: GoogleFonts.roboto(
-                fontSize: 12,
-                color: Colors.grey[600],
+                fontSize: 14,
+                color: const Color(0xFF64748B),
                 fontWeight: FontWeight.w500,
               ),
             ),

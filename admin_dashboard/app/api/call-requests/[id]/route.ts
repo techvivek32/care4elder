@@ -77,7 +77,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { status, duration, report, reportUrl, prescriptions, labReports, medicalDocuments } = await request.json();
+    const { status, duration, report, reportUrl, prescriptions, labReports, medicalDocuments, rating, ratingComment } = await request.json();
     
     // Allow updating report separately or with status
     if (status && !['accepted', 'declined', 'cancelled', 'timeout', 'ringing', 'completed'].includes(status)) {
@@ -96,6 +96,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Check if rating is being added for the first time
+    const isNewRating = rating !== undefined && callRequest.rating === undefined;
+
     if (status) callRequest.status = status;
     if (duration !== undefined) callRequest.duration = duration;
     if (report !== undefined) callRequest.report = report;
@@ -103,8 +106,26 @@ export async function PATCH(
     if (prescriptions !== undefined) callRequest.prescriptions = prescriptions;
     if (labReports !== undefined) callRequest.labReports = labReports;
     if (medicalDocuments !== undefined) callRequest.medicalDocuments = medicalDocuments;
+    if (rating !== undefined) callRequest.rating = rating;
+    if (ratingComment !== undefined) callRequest.ratingComment = ratingComment;
     
     await callRequest.save();
+
+    // If a new rating was added, update the doctor's average rating
+    if (isNewRating) {
+      const doctor = await Doctor.findById(callRequest.doctorId);
+      if (doctor) {
+        const currentReviews = doctor.reviews || 0;
+        const currentRating = doctor.rating || 0;
+        
+        const newReviews = currentReviews + 1;
+        const newRating = ((currentRating * currentReviews) + rating) / newReviews;
+        
+        doctor.reviews = newReviews;
+        doctor.rating = Number(newRating.toFixed(1));
+        await doctor.save();
+      }
+    }
 
     const populated = await CallRequest.findById(id)
       .populate('patientId', 'name')

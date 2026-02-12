@@ -25,6 +25,8 @@ class CallRequestData {
   final String patientLocation;
   final DateTime? patientDob;
   final String? doctorProfileImage;
+  final double? rating;
+  final String? ratingComment;
 
   CallRequestData({
     required this.id,
@@ -47,6 +49,8 @@ class CallRequestData {
     this.patientLocation = '',
     this.patientDob,
     this.doctorProfileImage,
+    this.rating,
+    this.ratingComment,
   });
 
   factory CallRequestData.fromJson(Map<String, dynamic> json) {
@@ -75,6 +79,8 @@ class CallRequestData {
           ? DateTime.tryParse(patient['dateOfBirth']) 
           : null,
       doctorProfileImage: doctor is Map ? (doctor['profileImage']) : null,
+      rating: (json['rating'] as num?)?.toDouble(),
+      ratingComment: json['ratingComment'],
     );
   }
 }
@@ -194,6 +200,23 @@ class CallRequestService {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => CallRequestData.fromJson(json)).toList();
+    }
+    return [];
+  }
+
+  Future<List<CallRequestData>> fetchDoctorReviews({
+    required String doctorId,
+  }) async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/doctors/$doctorId/reviews'),
+      headers: {
+        'Content-Type': 'application/json',
       },
     );
 

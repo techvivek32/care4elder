@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../consultation/screens/doctor_reviews_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/doctor_profile_service.dart';
 
@@ -207,15 +208,29 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   Row(
                     children: [
                       _buildStatCard(
-                        '4.9',
+                        profile.rating.toString(),
                         'Rating',
                         icon: Icons.star,
                         iconColor: Colors.amber,
                       ),
                       const SizedBox(width: 12),
-                      _buildStatCard('1247', 'Consultations'),
+                      _buildStatCard('0', 'Consultations'), // Need to fetch real consultations count
                       const SizedBox(width: 12),
-                      _buildStatCard('892', 'Reviews'),
+                      _buildStatCard(
+                        profile.reviews.toString(),
+                        'Reviews',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DoctorReviewsScreen(
+                                doctorId: profile.id,
+                                doctorName: profile.name,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -342,49 +357,54 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
     String label, {
     IconData? icon,
     Color? iconColor,
+    VoidCallback? onTap,
   }) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, size: 20, color: iconColor),
-                  const SizedBox(width: 4),
-                ],
-                Text(
-                  value,
-                  style: GoogleFonts.roboto(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: GoogleFonts.roboto(
-                fontSize: 12,
-                color: AppColors.textGrey,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 20, color: iconColor),
+                    const SizedBox(width: 4),
+                  ],
+                  Text(
+                    value,
+                    style: GoogleFonts.roboto(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.roboto(
+                  fontSize: 12,
+                  color: AppColors.textGrey,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

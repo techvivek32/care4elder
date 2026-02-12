@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'doctor_reviews_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/call_request_service.dart';
@@ -260,25 +261,45 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      '${doctor.rating} (${doctor.reviews} reviews)',
-                                      style: GoogleFonts.roboto(
-                                        fontSize: 14,
-                                        color: AppColors.textGrey,
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => DoctorReviewsScreen(
+                                        doctorId: doctor.id,
+                                        doctorName: doctor.name,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                                ],
+                                  );
+                                },
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      color: Colors.amber,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        '${doctor.rating} (${doctor.reviews} reviews)',
+                                        style: GoogleFonts.roboto(
+                                          fontSize: 14,
+                                          color: AppColors.primaryBlue,
+                                          fontWeight: FontWeight.w500,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.chevron_right,
+                                      color: AppColors.primaryBlue,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),

@@ -23,6 +23,8 @@ class DoctorProfileData {
   String hospitalAffiliation;
   String? profileImage;
   bool isAvailable;
+  double rating;
+  int reviews;
   Map<String, dynamic>? consultationFees;
   Map<String, dynamic>? bankDetails;
 
@@ -38,12 +40,14 @@ class DoctorProfileData {
     this.hospitalAffiliation = '',
     this.profileImage,
     this.isAvailable = true,
+    this.rating = 0.0,
+    this.reviews = 0,
     this.consultationFees,
     this.bankDetails,
   });
 
   factory DoctorProfileData.fromJson(Map<String, dynamic> json) {
-    final rawImage = json['profileImage'] as String?;
+    final rawImage = json['profileImage'] as String? ?? json['profilePictureUrl'] as String?;
     return DoctorProfileData(
       id: json['_id'] ?? json['id'] ?? '',
       name: json['name'] ?? '',
@@ -59,6 +63,8 @@ class DoctorProfileData {
       hospitalAffiliation: json['hospitalAffiliation'] ?? '',
       profileImage: _resolveImageUrl(rawImage),
       isAvailable: json['isAvailable'] ?? true,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      reviews: (json['reviews'] as num?)?.toInt() ?? 0,
       consultationFees: json['consultationFees'],
       bankDetails: json['bankDetails'],
     );
@@ -77,6 +83,8 @@ class DoctorProfileData {
       'hospitalAffiliation': hospitalAffiliation,
       'profileImage': profileImage,
       'isAvailable': isAvailable,
+      'rating': rating,
+      'reviews': reviews,
       'consultationFees': consultationFees,
       'bankDetails': bankDetails,
     };
@@ -94,6 +102,8 @@ class DoctorProfileData {
     String? hospitalAffiliation,
     String? profileImage,
     bool? isAvailable,
+    double? rating,
+    int? reviews,
     Map<String, dynamic>? consultationFees,
     Map<String, dynamic>? bankDetails,
   }) {
@@ -109,6 +119,8 @@ class DoctorProfileData {
       hospitalAffiliation: hospitalAffiliation ?? this.hospitalAffiliation,
       profileImage: profileImage ?? this.profileImage,
       isAvailable: isAvailable ?? this.isAvailable,
+      rating: rating ?? this.rating,
+      reviews: reviews ?? this.reviews,
       consultationFees: consultationFees ?? this.consultationFees,
       bankDetails: bankDetails ?? this.bankDetails,
     );

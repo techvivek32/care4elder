@@ -17,6 +17,8 @@ export interface IDoctor extends Document {
   verificationStatus: 'pending' | 'approved' | 'rejected';
   documents: string[];
   walletBalance: number;
+  rating: number;
+  reviews: number;
   consultationFee: number;
   consultationFees?: {
     standard: number;
@@ -54,6 +56,8 @@ const DoctorSchema: Schema = new Schema({
   },
   documents: [{ type: String }],
   walletBalance: { type: Number, default: 0 },
+  rating: { type: Number, default: 0 },
+  reviews: { type: Number, default: 0 },
   consultationFee: { type: Number, required: true }, // Keep for backward compatibility
   consultationFees: {
     standard: { type: Number },

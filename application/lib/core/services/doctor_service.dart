@@ -19,8 +19,8 @@ class Doctor {
   final double consultationFee;
   final double emergencyFee;
   final bool isAvailable;
-  final double rating; // Not in backend yet, default to 0 or mock
-  final int reviews;   // Not in backend yet, default to 0 or mock
+  final double rating;
+  final int reviews;
 
   Doctor({
     required this.id,
@@ -57,10 +57,10 @@ class Doctor {
       consultationFee: (json['consultationFee'] ?? 0).toDouble(),
       emergencyFee: (json['consultationFees'] != null && json['consultationFees']['emergency'] != null)
           ? (json['consultationFees']['emergency'] as num).toDouble()
-          : (json['consultationFee'] ?? 0).toDouble() * 1.5, // Default to 1.5x if not set
+          : (json['consultationFee'] ?? 0).toDouble() * 1.5,
       isAvailable: json['isAvailable'] ?? true,
-      rating: (json['rating'] ?? 0).toDouble(),
-      reviews: json['reviews'] ?? 0,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      reviews: (json['reviews'] as num?)?.toInt() ?? 0,
     );
   }
 }

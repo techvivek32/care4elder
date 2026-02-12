@@ -13,6 +13,8 @@ export interface ICallRequest extends Document {
   prescriptions?: string[];
   labReports?: string[];
   medicalDocuments?: string[];
+  rating?: number;
+  ratingComment?: string;
 }
 
 const CallRequestSchema: Schema = new Schema(
@@ -37,6 +39,8 @@ const CallRequestSchema: Schema = new Schema(
     prescriptions: { type: [String], default: [] },
     labReports: { type: [String], default: [] },
     medicalDocuments: { type: [String], default: [] },
+    rating: { type: Number, min: 0, max: 5 },
+    ratingComment: { type: String, default: '' },
   },
   { timestamps: true }
 );

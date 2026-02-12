@@ -214,6 +214,8 @@ class CallRequestService {
     List<String>? prescriptions,
     List<String>? labReports,
     List<String>? medicalDocuments,
+    double? rating,
+    String? ratingComment,
   }) async {
     final body = <String, dynamic>{};
     if (report != null) body['report'] = report;
@@ -223,6 +225,8 @@ class CallRequestService {
     if (prescriptions != null) body['prescriptions'] = prescriptions;
     if (labReports != null) body['labReports'] = labReports;
     if (medicalDocuments != null) body['medicalDocuments'] = medicalDocuments;
+    if (rating != null) body['rating'] = rating;
+    if (ratingComment != null) body['ratingComment'] = ratingComment;
 
     final response = await http.patch(
       Uri.parse('${ApiConstants.baseUrl}/call-requests/$callRequestId'),

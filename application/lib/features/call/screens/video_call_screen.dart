@@ -11,6 +11,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/services/call_request_service.dart';
 import '../../auth/services/auth_service.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
+import '../widgets/rating_popup.dart';
 
 class VideoCallScreen extends StatefulWidget {
   final String channelName;
@@ -269,7 +270,37 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Call ended')),
           );
-          context.pop();
+          
+          if (!widget.isDoctor && _seconds > 0) {
+            // Show rating popup for patient
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => RatingPopup(
+                doctorName: widget.remoteUserName,
+                onSave: (rating, comment) async {
+                  if (token != null && widget.callRequestId != null) {
+                    await CallRequestService().updateCallReport(
+                      token: token,
+                      callRequestId: widget.callRequestId!,
+                      rating: rating,
+                      ratingComment: comment,
+                    );
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop(); // Close dialog
+                    context.pop(); // Exit call screen
+                  }
+                },
+                onLater: () {
+                  Navigator.of(context).pop(); // Close dialog
+                  context.pop(); // Exit call screen
+                },
+              ),
+            );
+          } else {
+            context.pop();
+          }
         }
       }
     });
@@ -285,8 +316,8 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   Future<void> _endCallAndNotify() async {
     if (_ending) return;
     _ending = true;
+    final token = await _getToken();
     if (widget.callRequestId != null && widget.callRequestId!.isNotEmpty) {
-      final token = await _getToken();
       if (token != null) {
         final status = _seconds > 0 ? 'completed' : 'cancelled';
         await CallRequestService().updateCallReport(
@@ -297,19 +328,80 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
         );
       }
     }
+
     if (mounted) {
-      context.pop();
+      if (!widget.isDoctor && _seconds > 0) {
+        // Show rating popup for patient if call was successful
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => RatingPopup(
+            doctorName: widget.remoteUserName,
+            onSave: (rating, comment) async {
+              if (token != null && widget.callRequestId != null) {
+                await CallRequestService().updateCallReport(
+                  token: token,
+                  callRequestId: widget.callRequestId!,
+                  rating: rating,
+                  ratingComment: comment,
+                );
+              }
+              if (mounted) {
+                Navigator.of(context).pop(); // Close dialog
+                context.pop(); // Exit call screen
+              }
+            },
+            onLater: () {
+              Navigator.of(context).pop(); // Close dialog
+              context.pop(); // Exit call screen
+            },
+          ),
+        );
+      } else {
+        context.pop();
+      }
     }
   }
 
   Future<void> _handleRemoteLeft() async {
     if (_ending) return;
     _ending = true;
+    final token = await _getToken();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User left the call')),
       );
-      context.pop();
+
+      if (!widget.isDoctor && _seconds > 0) {
+        // Show rating popup for patient
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => RatingPopup(
+            doctorName: widget.remoteUserName,
+            onSave: (rating, comment) async {
+              if (token != null && widget.callRequestId != null) {
+                await CallRequestService().updateCallReport(
+                  token: token,
+                  callRequestId: widget.callRequestId!,
+                  rating: rating,
+                  ratingComment: comment,
+                );
+              }
+              if (mounted) {
+                Navigator.of(context).pop(); // Close dialog
+                context.pop(); // Exit call screen
+              }
+            },
+            onLater: () {
+              Navigator.of(context).pop(); // Close dialog
+              context.pop(); // Exit call screen
+            },
+          ),
+        );
+      } else {
+        context.pop();
+      }
     }
   }
 

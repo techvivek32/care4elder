@@ -63,14 +63,15 @@ class _CancellationDialogState extends State<CancellationDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Text(
                 'Cancel Emergency Alert',
                 style: GoogleFonts.roboto(
@@ -141,23 +142,29 @@ class _CancellationDialogState extends State<CancellationDialog> {
                       style: GoogleFonts.roboto(color: AppColors.textGrey),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _selectedReason == null ? null : _handleSubmit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.error,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: _selectedReason == null ? null : _handleSubmit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                      child: Text(
+                        'Submit Cancellation',
+                        style: GoogleFonts.roboto(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    child: Text(
-                      'Submit Cancellation',
-                      style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -166,6 +173,7 @@ class _CancellationDialogState extends State<CancellationDialog> {
           ),
         ),
       ),
+    ),
     );
   }
 }

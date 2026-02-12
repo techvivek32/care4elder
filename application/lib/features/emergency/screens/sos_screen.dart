@@ -84,12 +84,14 @@ class _SosScreenState extends State<SosScreen> {
                     color: AppColors.error,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Emergency Voice Detected!',
-                    style: GoogleFonts.roboto(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.error,
-                      fontSize: 18,
+                  Expanded(
+                    child: Text(
+                      'Emergency Voice Detected!',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.error,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
                 ],
@@ -299,11 +301,13 @@ class _SosScreenState extends State<SosScreen> {
                     color: AppColors.error,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Fall Detected!',
-                    style: GoogleFonts.roboto(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.error,
+                  Expanded(
+                    child: Text(
+                      'Fall Detected!',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.error,
+                      ),
                     ),
                   ),
                 ],
@@ -663,6 +667,7 @@ class _SosScreenState extends State<SosScreen> {
                   isVoiceTrigger 
                       ? 'Emergency Voice Detected!' 
                       : (isFallTrigger ? 'Fall Detected!' : 'Help is On The Way'),
+                  textAlign: TextAlign.center,
                   style: GoogleFonts.roboto(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -1029,14 +1034,19 @@ class _SosConfirmationDialogState extends State<SosConfirmationDialog> {
             style: TextStyle(color: Theme.of(context).colorScheme.primary),
           ),
         ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF3B30),
-            foregroundColor: Colors.white,
-          ),
-          onPressed: canConfirm ? () => Navigator.pop(context, true) : null,
-          child: Text(
-            canConfirm ? 'Confirm' : 'Confirm (${_secondsRemaining}s)',
+        Flexible(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF3B30),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            onPressed: canConfirm ? () => Navigator.pop(context, true) : null,
+            child: Text(
+              canConfirm ? 'Confirm' : 'Confirm (${_secondsRemaining}s)',
+              style: const TextStyle(fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
       ],

@@ -153,8 +153,9 @@ class HotwordService {
     if (kDebugMode) print('Speech Status: $status');
     
     final s = status.toLowerCase();
+    // 'done' usually follows 'notListening' or an error
     if (s == 'notlistening' || s == 'done') {
-      _scheduleRestart(delaySeconds: 2);
+      _scheduleRestart(delaySeconds: 1);
     }
   }
 
@@ -167,11 +168,17 @@ class HotwordService {
     if (errorStr.contains('error_busy') || errorStr.contains('error_client')) {
       // Force cancel if busy or client error (engine crash)
       _speech.cancel();
-      delay = 5; // Longer wait for recovery
+      delay = 3; // Wait a bit for recovery
     } else if (errorStr.contains('error_no_match')) {
-      delay = 1; // Quick restart for no match
+      // No match is normal, restart quickly but not instantly to avoid loops
+      delay = 1;
+    } else if (errorStr.contains('error_speech_timeout')) {
+      delay = 1;
+    } else if (errorStr.contains('error_network')) {
+      delay = 5; // Network issues need more time
     }
 
+    if (kDebugMode) print('Scheduling speech restart in ${delay}s due to error');
     _scheduleRestart(delaySeconds: delay);
   }
 
@@ -180,7 +187,14 @@ class HotwordService {
     
     _restartTimer?.cancel();
     _restartTimer = Timer(Duration(seconds: delaySeconds), () {
-      if (_isListening && !_speech.isListening && !_isAttemptingListen) {
+      if (!_isListening) return;
+      
+      // If still listening according to status, but we got an error, 
+      // we might need to stop first to be safe
+      if (_speech.isListening) {
+        if (kDebugMode) print('Restart: Already listening, stopping first...');
+        _speech.stop().then((_) => _listen());
+      } else {
         _listen();
       }
     });

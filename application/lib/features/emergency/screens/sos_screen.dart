@@ -13,7 +13,8 @@ import 'alert_history_screen.dart';
 
 class SosScreen extends StatefulWidget {
   final bool autoStart;
-  const SosScreen({super.key, this.autoStart = false});
+  final String? trigger;
+  const SosScreen({super.key, this.autoStart = false, this.trigger});
 
   @override
   State<SosScreen> createState() => _SosScreenState();
@@ -36,9 +37,101 @@ class _SosScreenState extends State<SosScreen> {
     _checkActiveState();
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _handleFallDetection();
+        if (widget.trigger == 'voice') {
+          _handleVoiceDetection();
+        } else {
+          _handleFallDetection();
+        }
       });
     }
+  }
+
+  Future<void> _handleVoiceDetection() async {
+    final confirmed = await _showVoiceDetectionDialog();
+    if (confirmed && mounted) {
+      await _activateSos();
+    }
+  }
+
+  Future<bool> _showVoiceDetectionDialog() async {
+    int secondsRemaining = 10;
+    Timer? timer;
+    bool timerStarted = false;
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            if (!timerStarted) {
+              timerStarted = true;
+              timer = Timer.periodic(const Duration(seconds: 1), (t) {
+                if (secondsRemaining > 0) {
+                  setState(() => secondsRemaining--);
+                } else {
+                  t.cancel();
+                  Navigator.of(context).pop(true);
+                }
+              });
+            }
+            return AlertDialog(
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              title: Row(
+                children: [
+                  const Icon(
+                    Icons.record_voice_over_rounded,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Emergency Voice Detected!',
+                    style: GoogleFonts.roboto(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.error,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                'SOS will be activated automatically in $secondsRemaining seconds.',
+                style: GoogleFonts.roboto(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    timer?.cancel();
+                    Navigator.of(context).pop(false);
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    timer?.cancel();
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('Activate Now'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    timer?.cancel();
+    return result ?? false;
   }
 
   Future<void> _checkActiveState() async {
@@ -532,6 +625,9 @@ class _SosScreenState extends State<SosScreen> {
 
   Widget _buildActiveState() {
     final colorScheme = Theme.of(context).colorScheme;
+    final isVoiceTrigger = widget.trigger == 'voice';
+    final isFallTrigger = widget.trigger == 'fall';
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -554,15 +650,19 @@ class _SosScreenState extends State<SosScreen> {
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.warning_amber_rounded,
+                  child: Icon(
+                    isVoiceTrigger 
+                        ? Icons.record_voice_over_rounded 
+                        : (isFallTrigger ? Icons.warning_amber_rounded : Icons.warning_amber_rounded),
                     color: Colors.white,
                     size: 40,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Help is On The Way',
+                  isVoiceTrigger 
+                      ? 'Emergency Voice Detected!' 
+                      : (isFallTrigger ? 'Fall Detected!' : 'Help is On The Way'),
                   style: GoogleFonts.roboto(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -571,7 +671,9 @@ class _SosScreenState extends State<SosScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Emergency services have been alerted',
+                  (isVoiceTrigger || isFallTrigger) 
+                      ? 'SOS has been activated automatically.'
+                      : 'Emergency services have been alerted',
                   style: GoogleFonts.roboto(
                     fontSize: 14,
                     color: colorScheme.onSurfaceVariant,

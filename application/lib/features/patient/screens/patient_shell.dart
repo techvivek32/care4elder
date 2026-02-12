@@ -37,9 +37,9 @@ class _PatientShellState extends State<PatientShell> {
   }
 
   void _onFallDetected() {
-    // Navigate to SOS screen with auto-start enabled
+    // Navigate to SOS screen with auto-start and trigger source enabled
     if (mounted) {
-      context.go('/patient/sos?autoStart=true');
+      context.go('/patient/sos?autoStart=true&trigger=fall');
     }
   }
 

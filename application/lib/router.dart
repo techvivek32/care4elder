@@ -300,7 +300,8 @@ final router = GoRouter(
           path: '/patient/sos',
           builder: (context, state) {
             final autoStart = state.uri.queryParameters['autoStart'] == 'true';
-            return SosScreen(autoStart: autoStart);
+            final trigger = state.uri.queryParameters['trigger'];
+            return SosScreen(autoStart: autoStart, trigger: trigger);
           },
         ),
         GoRoute(

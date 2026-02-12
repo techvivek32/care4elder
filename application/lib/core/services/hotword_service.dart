@@ -135,9 +135,9 @@ class HotwordService {
         if (kDebugMode) print('Sound play failed: $e');
       }
       
-      // If app is in foreground, navigate to SOS screen with autoStart enabled
+      // If app is in foreground, navigate to SOS screen with autoStart and trigger source enabled
       try {
-        router.go('/patient/sos?autoStart=true');
+        router.go('/patient/sos?autoStart=true&trigger=voice');
       } catch (e) {
         if (kDebugMode) print('Navigation failed (likely in background): $e');
       }

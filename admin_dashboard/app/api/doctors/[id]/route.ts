@@ -6,17 +6,46 @@ import WithdrawalRequest from '@/models/WithdrawalRequest';
 import { verifyToken } from '@/lib/auth-utils';
 import mongoose from 'mongoose';
 
-const getAuthUser = (request: Request) => {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { getToken } from "next-auth/jwt";
+
+const getAuthUser = async (request: Request) => {
+  try {
+    // 1. Check for NextAuth session (Admin Dashboard)
+    const session = await getServerSession(authOptions);
+    if (session?.user) {
+      return { 
+        id: (session.user as any).id, 
+        role: (session.user as any).role || 'admin' 
+      };
+    }
+
+    // 2. Check for NextAuth token
+    const token = await getToken({ 
+      req: request as any, 
+      secret: process.env.NEXTAUTH_SECRET 
+    });
+    if (token) {
+      return {
+        id: token.id as string,
+        role: (token.role as string) || 'admin'
+      };
+    }
+
+    // 3. Fallback: Check for Bearer token (Mobile App)
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const bearerToken = authHeader.split(' ')[1];
+      const decoded = verifyToken(bearerToken);
+      if (decoded && typeof decoded === 'object') {
+        return decoded as { id?: string; role?: string };
+      }
+    }
+  } catch (error) {
+    console.error('Auth verification error:', error);
   }
-  const token = authHeader.split(' ')[1];
-  const decoded = verifyToken(token);
-  if (!decoded || typeof decoded !== 'object') {
-    return null;
-  }
-  return decoded as { id?: string; role?: string };
+  return null;
 };
 
 export async function GET(
@@ -26,7 +55,7 @@ export async function GET(
   try {
     await dbConnect();
     const { id } = await props.params;
-    const authUser = getAuthUser(request);
+    const authUser = await getAuthUser(request);
 
     if (!authUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -97,7 +126,7 @@ export async function PUT(
   try {
     await dbConnect();
     const { id } = await props.params;
-    const authUser = getAuthUser(request);
+    const authUser = await getAuthUser(request);
 
     if (!authUser?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

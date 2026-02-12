@@ -9,41 +9,47 @@ import { getToken } from "next-auth/jwt";
 
 const getAuthUser = async (request: Request) => {
   try {
-    // 1. Check for NextAuth token (More reliable for API routes)
-    // IMPORTANT: In Next.js App Router, we should use getToken from next-auth/jwt
+    // 1. Try NextAuth Token (Most reliable for App Router API routes)
+    // We pass the secret explicitly to ensure it matches
+    const secret = process.env.NEXTAUTH_SECRET;
     const token = await getToken({ 
       req: request as any, 
-      secret: process.env.NEXTAUTH_SECRET 
+      secret: secret 
     });
 
     if (token) {
-      console.log('Auth via Token:', token.id, token.role);
+      console.log('Auth via Token success:', token.id, token.role);
       return {
         id: token.id as string,
         role: (token.role as string) || 'admin'
       };
     }
 
-    // 2. Fallback: Check for Bearer token (Mobile App)
-    const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const bearerToken = authHeader.split(' ')[1];
-      const decoded = verifyToken(bearerToken);
-      if (decoded && typeof decoded === 'object') {
-        console.log('Auth via Bearer:', decoded.id, decoded.role);
-        return decoded as { id?: string; role?: string };
-      }
-    }
-
-    // 3. Check for NextAuth session (Admin Dashboard fallback)
+    // 2. Try NextAuth Session (Fallback for some environments)
     const session = await getServerSession(authOptions);
     if (session?.user) {
-      console.log('Auth via Session:', (session.user as any).id, (session.user as any).role);
+      console.log('Auth via Session success:', (session.user as any).id, (session.user as any).role);
       return { 
         id: (session.user as any).id, 
         role: (session.user as any).role || 'admin' 
       };
     }
+
+    // 3. Try Bearer Token (For Mobile App)
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const bearerToken = authHeader.split(' ')[1];
+      const decoded = verifyToken(bearerToken);
+      if (decoded && typeof decoded === 'object') {
+        console.log('Auth via Bearer success:', (decoded as any).id, (decoded as any).role);
+        return decoded as { id?: string; role?: string };
+      }
+    }
+
+    // 4. Final attempt: Check if we are on VPS and session might be in headers
+    // (Sometimes required if proxying)
+    console.log('All auth methods failed. Headers:', Object.fromEntries(request.headers.entries()));
+    
   } catch (error) {
     console.error('Auth verification error:', error);
   }

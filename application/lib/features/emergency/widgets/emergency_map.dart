@@ -184,8 +184,9 @@ class _EmergencyMapState extends State<EmergencyMap> {
                     children: [
                       TileLayer(
                         urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.example.app',
+                            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        subdomains: const ['a', 'b', 'c'],
+                        userAgentPackageName: 'care4elder.app.sos.v1',
                       ),
                       MarkerLayer(
                         markers: [

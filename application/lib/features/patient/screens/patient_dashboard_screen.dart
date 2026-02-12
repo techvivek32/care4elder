@@ -31,6 +31,18 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     ProfileService().fetchProfile();
   }
 
+  String _getGreeting() {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 5, minutes: 30));
+    final hour = now.hour;
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
+  }
+
   Future<void> _loadData() async {
     await Future.wait([
       _loadHeroSections(),
@@ -187,7 +199,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Good morning,',
+                                        '${_getGreeting()},',
                                         style: GoogleFonts.roboto(
                                           color: Colors.white.withValues(
                                             alpha: 0.9,

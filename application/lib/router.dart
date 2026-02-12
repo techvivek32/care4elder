@@ -97,8 +97,23 @@ final router = GoRouter(
     GoRoute(
       path: '/patient/contacts/otp',
       builder: (context, state) {
-        final phone = state.extra as String;
-        return PatientRelativeOtpScreen(phoneNumber: phone);
+        final extra = state.extra;
+        String phone = '';
+        List<Map<String, String>>? contactsData;
+
+        if (extra is String) {
+          phone = extra;
+        } else if (extra is Map<String, dynamic>) {
+          phone = extra['phone'] ?? '';
+          contactsData = (extra['contactsData'] as List?)
+              ?.map((e) => Map<String, String>.from(e as Map))
+              .toList();
+        }
+
+        return PatientRelativeOtpScreen(
+          phoneNumber: phone,
+          contactsToSave: contactsData,
+        );
       },
     ),
     // Doctor Auth Routes

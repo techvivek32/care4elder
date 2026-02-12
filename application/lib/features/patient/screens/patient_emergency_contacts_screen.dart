@@ -24,8 +24,9 @@ class _ContactEntry {
   final TextEditingController customRelationController =
       TextEditingController();
   String? selectedRelation;
+  bool isNew;
 
-  _ContactEntry();
+  _ContactEntry({this.isNew = true});
 
   void dispose() {
     nameController.dispose();
@@ -37,7 +38,6 @@ class _ContactEntry {
 class _PatientEmergencyContactsScreenState
     extends State<PatientEmergencyContactsScreen> {
   final List<_ContactEntry> _contacts = [];
-  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
@@ -57,7 +57,69 @@ class _PatientEmergencyContactsScreenState
   @override
   void initState() {
     super.initState();
-    _addContact(); // Add initial contact
+    _loadSavedContacts();
+  }
+
+  Future<void> _loadSavedContacts() async {
+    setState(() => _isLoading = true);
+    try {
+      final profileService = ProfileService();
+      // Ensure we have the latest profile data
+      await profileService.fetchProfile();
+
+      final currentUser = profileService.currentUser;
+      if (currentUser != null && currentUser.emergencyContacts.isNotEmpty) {
+        setState(() {
+          _contacts.clear();
+          for (var contact in currentUser.emergencyContacts) {
+            final entry = _ContactEntry(isNew: false);
+            entry.nameController.text = contact.name;
+            entry.phoneController.text = contact.phone;
+
+            if (_relations.contains(contact.relation)) {
+              entry.selectedRelation = contact.relation;
+            } else if (contact.relation.isNotEmpty) {
+              entry.selectedRelation = 'Custom';
+              entry.customRelationController.text = contact.relation;
+            }
+            _contacts.add(entry);
+          }
+        });
+      } else {
+        // Fallback to SharedPreferences if backend has no data
+        final prefs = await SharedPreferences.getInstance();
+        final String? savedData = prefs.getString('emergency_relatives');
+        if (savedData != null) {
+          final List<dynamic> decoded = jsonDecode(savedData);
+          setState(() {
+            _contacts.clear();
+            for (var item in decoded) {
+              final entry = _ContactEntry(isNew: false);
+              entry.nameController.text = item['name'] ?? '';
+              entry.phoneController.text = item['phone'] ?? '';
+              String relation = item['relation'] ?? '';
+
+              if (_relations.contains(relation)) {
+                entry.selectedRelation = relation;
+              } else if (relation.isNotEmpty) {
+                entry.selectedRelation = 'Custom';
+                entry.customRelationController.text = relation;
+              }
+              _contacts.add(entry);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error loading saved contacts: $e');
+    } finally {
+      if (_contacts.isEmpty) {
+        _addContact();
+      }
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -69,25 +131,16 @@ class _PatientEmergencyContactsScreenState
   }
 
   void _addContact() {
-    final index = _contacts.length;
-    _contacts.add(_ContactEntry());
-    _listKey.currentState?.insertItem(index);
-    setState(() {}); // Ensure UI updates if needed
+    setState(() {
+      _contacts.add(_ContactEntry());
+    });
   }
 
   void _removeContact(int index) {
     if (_contacts.length <= 1) return; // Prevent removing the last contact
 
-    final removedItem = _contacts.removeAt(index);
-    _listKey.currentState?.removeItem(
-      index,
-      (context, animation) => _buildContactItem(removedItem, index, animation),
-    );
-
-    // Force rebuild to update "Contact X" numbering for remaining items
-    setState(() {});
-
-    Future.delayed(const Duration(milliseconds: 500), () {
+    setState(() {
+      final removedItem = _contacts.removeAt(index);
       removedItem.dispose();
     });
   }
@@ -207,8 +260,6 @@ class _PatientEmergencyContactsScreenState
     });
 
     try {
-      // Save to SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
       final List<Map<String, String>> contactsData = _contacts.map((c) {
         String relation = c.selectedRelation ?? '';
         if (relation == 'Custom') {
@@ -221,28 +272,34 @@ class _PatientEmergencyContactsScreenState
         };
       }).toList();
 
-      await prefs.setString('emergency_relatives', jsonEncode(contactsData));
+      // Initiate OTP for the contact that needs verification
+      // If there are new contacts, verify the last added one. 
+      // Otherwise, verify the first contact.
+      final contactToVerify = _contacts.lastWhere(
+        (c) => c.isNew,
+        orElse: () => _contacts.first,
+      );
+      final phoneToVerify = contactToVerify.phoneController.text.trim();
 
-      // Save to Backend
-      await AuthService().updateRelatives(contactsData);
+      // We send OTP (Mock/Static) to simulate the process
+      await AuthService().sendOtp(phoneToVerify);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Relatives saved. Sending OTP...'),
-            backgroundColor: Colors.green,
+            content: Text('Sending OTP for verification...'),
+            backgroundColor: AppColors.primaryBlue,
           ),
         );
 
-        // Initiate OTP for the first contact (as primary verification)
-        final firstContactPhone = contactsData[0]['phone']!;
-        // We send OTP (Mock/Static) to simulate the process
-        await AuthService().sendOtp(firstContactPhone);
-
-        // Navigate to OTP verification
-        if (mounted) {
-          context.push('/patient/contacts/otp', extra: firstContactPhone);
-        }
+        // Navigate to OTP verification and pass contactsData to be saved AFTER verification
+        context.push(
+          '/patient/contacts/otp',
+          extra: {
+            'phone': phoneToVerify,
+            'contactsData': contactsData,
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -466,19 +523,14 @@ class _PatientEmergencyContactsScreenState
               ),
 
               Expanded(
-                child: AnimatedList(
-                  key: _listKey,
-                  initialItemCount: _contacts.length,
+                child: ListView.builder(
                   padding: const EdgeInsets.all(24),
-                  itemBuilder: (context, index, animation) {
-                    // Ensure index is valid for _contacts
-                    if (index >= _contacts.length) {
-                      return const SizedBox.shrink();
-                    }
+                  itemCount: _contacts.length,
+                  itemBuilder: (context, index) {
                     return _buildContactItem(
                       _contacts[index],
                       index,
-                      animation,
+                      const AlwaysStoppedAnimation(1.0),
                     );
                   },
                 ),

@@ -7,10 +7,19 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import '../../../core/services/profile_service.dart';
+
 class PatientRelativeOtpScreen extends StatefulWidget {
   final String phoneNumber;
+  final List<Map<String, String>>? contactsToSave;
 
-  const PatientRelativeOtpScreen({super.key, required this.phoneNumber});
+  const PatientRelativeOtpScreen({
+    super.key,
+    required this.phoneNumber,
+    this.contactsToSave,
+  });
 
   @override
   State<PatientRelativeOtpScreen> createState() =>
@@ -101,6 +110,22 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
     try {
       // Verify OTP (Relative Verification)
       await AuthService().verifyRelativeOtp(otp);
+
+      // Save contacts ONLY after successful verification
+      if (widget.contactsToSave != null) {
+        // Save to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          'emergency_relatives',
+          jsonEncode(widget.contactsToSave),
+        );
+
+        // Save to Backend
+        await AuthService().updateRelatives(widget.contactsToSave!);
+        
+        // Refresh local profile
+        await ProfileService().fetchProfile();
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

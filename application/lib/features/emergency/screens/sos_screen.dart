@@ -27,14 +27,15 @@ class _SosScreenState extends State<SosScreen> {
   String? _activationError;
   Timer? _etaTimer;
   Timer? _statusPollingTimer;
-  Duration _etaRemaining = const Duration(minutes: 8);
+  Duration _etaRemaining = Duration.zero;
   int? _lastKnownMinEtaMinutes;
+  bool _etaActive = false;
 
   @override
   void initState() {
     super.initState();
-    _loadContacts();
     _checkActiveState();
+    _loadContacts();
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (widget.trigger == 'voice') {
@@ -142,9 +143,9 @@ class _SosScreenState extends State<SosScreen> {
       setState(() {
         _isActive = true;
         _isActivating = false;
-        _etaRemaining = const Duration(minutes: 8); // Should calculate based on start time
+        _etaRemaining = Duration.zero; // Start at zero until admin sets ETA
+        _etaActive = false;
       });
-      _startEtaTimer();
       _startStatusPolling();
     }
   }
@@ -188,7 +189,11 @@ class _SosScreenState extends State<SosScreen> {
 
                     if (minMinutes != null && minMinutes != _lastKnownMinEtaMinutes) {
                         _lastKnownMinEtaMinutes = minMinutes;
-                        _etaRemaining = Duration(minutes: minMinutes);
+                        setState(() {
+                            _etaRemaining = Duration(minutes: minMinutes!);
+                            _etaActive = true;
+                        });
+                        _startEtaTimer();
                     }
 
                     setState(() {
@@ -200,6 +205,22 @@ class _SosScreenState extends State<SosScreen> {
                                 'eta': s['eta'] ?? 'Calculating...',
                                 'icon': _getServiceIcon(name),
                                 'color': _getServiceColor(name),
+                            };
+                        }).toList();
+                    });
+                }
+            }
+
+            // Update Emergency Contacts Status based on Admin Call Status
+            if (statusData['callStatus'] != null && statusData['callStatus']['emergencyContact'] != null) {
+                final contactCallStatus = statusData['callStatus']['emergencyContact']['status'];
+                if (contactCallStatus != null && contactCallStatus != 'pending') {
+                    setState(() {
+                        _contacts = _contacts.map((contact) {
+                            return {
+                                ...contact,
+                                'status': contactCallStatus == 'picked_up' ? 'Notified' : 'Unnotified',
+                                'color': contactCallStatus == 'picked_up' ? Colors.green : Colors.red,
                             };
                         }).toList();
                     });
@@ -254,9 +275,9 @@ class _SosScreenState extends State<SosScreen> {
             'name': c.name,
             'relation': c.relation,
             'phone': c.phone,
-            'status': 'Notified',
+            'status': 'Pending',
             'initial': c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
-            'color': Colors.blue,
+            'color': Colors.grey,
           };
         }).toList();
       });
@@ -407,20 +428,19 @@ class _SosScreenState extends State<SosScreen> {
 
   void _startEtaTimer() {
     _etaTimer?.cancel();
+    _etaActive = true;
     _etaTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      if (_etaRemaining.inSeconds <= 0) {
-        timer.cancel();
+      if (mounted && _etaActive) {
         setState(() {
-          _etaRemaining = Duration.zero;
+          if (_etaRemaining.inSeconds > 0) {
+            _etaRemaining -= const Duration(seconds: 1);
+          } else {
+            _etaActive = false;
+            timer.cancel();
+          }
         });
-      } else {
-        setState(() {
-          _etaRemaining -= const Duration(seconds: 1);
-        });
+      } else if (!mounted) {
+        timer.cancel();
       }
     });
   }
@@ -695,11 +715,13 @@ class _SosScreenState extends State<SosScreen> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      _formatEta(_etaRemaining),
+                      _etaRemaining.inSeconds > 0 
+                          ? _formatEta(_etaRemaining)
+                          : 'Waiting for Admin...',
                       style: GoogleFonts.roboto(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: colorScheme.onSurface,
+                        color: _etaRemaining.inSeconds > 0 ? const Color(0xFFCE2C2C) : colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -813,13 +835,13 @@ class _SosScreenState extends State<SosScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: contact['color'].withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Notified',
+                  child: Text(
+                    contact['status'],
                     style: TextStyle(
-                      color: Colors.green,
+                      color: contact['color'],
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),

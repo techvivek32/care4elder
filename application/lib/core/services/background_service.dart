@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'hotword_service.dart';
+import '../../features/emergency/services/fall_detection_service.dart';
+import '../../features/emergency/services/sos_service.dart';
 
 class BackgroundServiceHelper {
   static const String backgroundServiceEnabledKey = 'background_service_enabled';
@@ -79,7 +83,16 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
+  WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
+
+  // Initialize dotenv for background isolate
+  try {
+    await dotenv.load(fileName: ".env");
+    print("Background: .env loaded successfully");
+  } catch (e) {
+    print("Background: .env load failed: $e");
+  }
 
   if (service is AndroidServiceInstance) {
     service.on('setAsForeground').listen((event) {
@@ -97,9 +110,24 @@ void onStart(ServiceInstance service) async {
 
   // Start Voice Listening in Background
   final hotwordService = HotwordService();
+  hotwordService.setBackgroundService(service);
   // Ensure we stop any existing listener before starting
   hotwordService.stop();
   await hotwordService.start();
+
+  // Start Fall Detection in Background
+  final fallDetectionService = FallDetectionService();
+  fallDetectionService.startMonitoring(() async {
+    // print is fine here for debugging background service
+    print('Background: Fall Detected!');
+    try {
+      await SOSService().startSOS();
+      // Try to notify the app to open SOS screen if it's alive
+      service.invoke('openSos', {'trigger': 'fall'});
+    } catch (e) {
+      print('Background SOS failed: $e');
+    }
+  });
 
   // Periodic update to notification or state
   Timer.periodic(const Duration(seconds: 10), (timer) async {

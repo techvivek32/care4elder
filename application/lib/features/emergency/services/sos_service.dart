@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
@@ -58,11 +59,27 @@ class SOSService {
       
       // 3. Get User ID
       if (_profileService.currentUser == null) {
-        await _profileService.fetchProfile();
+        if (kDebugMode) print('Background: Profile not found, attempting fetch...');
+        try {
+          await _profileService.fetchProfile();
+        } catch (e) {
+          if (kDebugMode) print('Background fetchProfile failed: $e');
+        }
       }
+      
       final patientId = _profileService.currentUser?.id;
+      if (kDebugMode) print('Background SOS Trigger - Patient ID: $patientId');
 
-      if (patientId == null) throw Exception('User not logged in');
+      if (patientId == null) {
+        // Last ditch effort: try to get it directly from storage
+        if (kDebugMode) print('Background: Patient ID null, trying direct storage read...');
+        final directId = await _authService.getPatientId();
+        if (directId == null) throw Exception('User not logged in (Patient ID missing)');
+        // If we found it directly, we can continue even if profile object is null
+      }
+      
+      final finalPatientId = patientId ?? (await _authService.getPatientId());
+      if (finalPatientId == null) throw Exception('User not logged in');
 
       // 3. Call API
       final token = await _authService.getToken();
@@ -73,7 +90,7 @@ class SOSService {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          'patientId': patientId,
+          'patientId': finalPatientId,
           'location': {
             'lat': position.latitude,
             'lng': position.longitude,

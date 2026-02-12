@@ -154,10 +154,7 @@ class WalletTransaction {
 class ProfileService extends ChangeNotifier {
   static final ProfileService _instance = ProfileService._internal();
   factory ProfileService() => _instance;
-  ProfileService._internal() {
-    fetchProfile(); // Initial fetch
-    fetchConfig();
-  }
+  ProfileService._internal();
 
   UserProfile? _currentUser;
   List<WalletTransaction> _walletHistory = [];
@@ -193,7 +190,11 @@ class ProfileService extends ChangeNotifier {
   Future<void> fetchProfile() async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    try {
+      notifyListeners();
+    } catch (_) {
+      // Ignore if no listeners or in background isolate
+    }
 
     try {
       final authService = AuthService();
@@ -204,7 +205,9 @@ class ProfileService extends ChangeNotifier {
         // If no user is logged in, we can't fetch profile
         _error = 'User not authenticated';
         _isLoading = false;
-        notifyListeners();
+        try {
+          notifyListeners();
+        } catch (_) {}
         return;
       }
 
@@ -219,20 +222,27 @@ class ProfileService extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _currentUser = UserProfile.fromJson(data);
+        _isLoading = false;
+        try {
+          notifyListeners();
+        } catch (_) {}
       } else {
         _error = 'Failed to fetch profile: ${response.statusCode}';
-        if (kDebugMode) {
-          print('Fetch Profile Error: ${response.body}');
-        }
+        _isLoading = false;
+        try {
+          notifyListeners();
+        } catch (_) {}
       }
     } catch (e) {
-      _error = 'Failed to fetch profile: $e';
       if (kDebugMode) {
         print('Fetch Profile Exception: $e');
       }
-    } finally {
+      _error = e.toString();
       _isLoading = false;
-      notifyListeners();
+      try {
+        notifyListeners();
+      } catch (_) {}
+      rethrow;
     }
   }
 

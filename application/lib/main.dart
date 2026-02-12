@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_background_service/flutter_background_service.dart' as bg;
 import 'core/theme/app_theme.dart';
 import 'core/services/settings_service.dart';
 import 'core/services/profile_service.dart';
@@ -23,7 +24,21 @@ Future<void> main() async {
   // Initialize background service helper
   await BackgroundServiceHelper.initializeService();
   
+  // Listen for background service events
+  final service = bg.FlutterBackgroundService();
+  service.on('openSos').listen((event) {
+    if (event != null && event['trigger'] != null) {
+      router.go('/patient/sos?autoStart=true&trigger=${event['trigger']}');
+    }
+  });
+  
   HotwordService().start();
+  
+  // Initialize profiles and config
+  final profileService = ProfileService();
+  profileService.fetchProfile();
+  profileService.fetchConfig();
+
   runApp(const MyApp());
 }
 

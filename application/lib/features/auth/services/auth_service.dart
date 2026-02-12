@@ -12,14 +12,22 @@ class AuthService {
   factory AuthService() => _instance;
   AuthService._internal();
 
-  final _storage = const FlutterSecureStorage();
+  final _storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+  );
   
   static String get _baseUrl => ApiConstants.baseUrl; 
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: '374189587484-63hansfrfo6jpa5aoc3ea7fft7tv73rh.apps.googleusercontent.com',
-    scopes: ['email', 'https://www.googleapis.com/auth/contacts.readonly'],
-  );
+  GoogleSignIn? _googleSignInInstance;
+  GoogleSignIn get _googleSignIn {
+    _googleSignInInstance ??= GoogleSignIn(
+      clientId: '374189587484-63hansfrfo6jpa5aoc3ea7fft7tv73rh.apps.googleusercontent.com',
+      scopes: ['email', 'https://www.googleapis.com/auth/contacts.readonly'],
+    );
+    return _googleSignInInstance!;
+  }
 
   static const String _userKey = 'user_session';
   static const String _patientIdKey = 'patient_id';

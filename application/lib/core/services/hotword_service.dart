@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import '../../features/emergency/services/sos_service.dart';
 import '../services/profile_service.dart';
 import '../../router.dart';
@@ -14,9 +15,14 @@ class HotwordService {
 
   final stt.SpeechToText _speech = stt.SpeechToText();
   final AudioPlayer _audioPlayer = AudioPlayer();
+  ServiceInstance? _bgService;
   bool _isListening = false;
   bool get isListening => _isListening;
   bool _isAttemptingListen = false;
+
+  void setBackgroundService(ServiceInstance service) {
+    _bgService = service;
+  }
   DateTime? _lastTrigger;
   final Duration _cooldown = const Duration(seconds: 20);
   final List<String> _keywords = [
@@ -45,16 +51,26 @@ class HotwordService {
       return;
     }
 
-    await ProfileService().fetchProfile();
-    final available = await _speech.initialize(
-      onStatus: _onStatus,
-      onError: _onError,
-      finalTimeout: const Duration(seconds: 0),
-      options: [
-        stt.SpeechConfigOption('android', 'android.speech.extra.DICTATION_MODE', true),
-      ],
-    );
-    if (!available) return;
+    try {
+      await ProfileService().fetchProfile();
+    } catch (e) {
+      if (kDebugMode) print('Hotword Profile Fetch Error: $e');
+      // Continue anyway, we might still be able to trigger SOS with patientId from storage
+    }
+    try {
+      final available = await _speech.initialize(
+        onStatus: _onStatus,
+        onError: _onError,
+        finalTimeout: const Duration(seconds: 0),
+        options: [
+          stt.SpeechConfigOption('android', 'android.speech.extra.DICTATION_MODE', true),
+        ],
+      );
+      if (!available) return;
+    } catch (e) {
+      if (kDebugMode) print('Speech Initialize Exception: $e');
+      return;
+    }
     _isListening = true;
     _listen();
   }
@@ -78,8 +94,17 @@ class HotwordService {
       
       // Force cancel any existing session before starting a new one
       // This is the most reliable way to avoid error_busy
+      if (_speech.isListening) {
+        await _speech.stop();
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
       await _speech.cancel();
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!_speech.isAvailable) {
+        if (kDebugMode) print('Speech not available, re-initializing...');
+        await _speech.initialize(onStatus: _onStatus, onError: _onError);
+      }
 
       await _speech.listen(
         listenMode: stt.ListenMode.confirmation, // Better for short trigger words
@@ -141,6 +166,21 @@ class HotwordService {
       } catch (e) {
         if (kDebugMode) print('Navigation failed (likely in background): $e');
       }
+
+      // Also try to notify via background service in case we are in background isolate
+      try {
+        if (_bgService != null) {
+          _bgService?.invoke('openSos', {'trigger': 'voice'});
+        } else {
+          // In main isolate, we check if service is running before invoking
+          final service = FlutterBackgroundService();
+          if (await service.isRunning()) {
+            service.invoke('openSos', {'trigger': 'voice'});
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) print('Background service invoke failed: $e');
+      }
       
       // Start the actual SOS alert (API call + Location)
       await SOSService().startSOS();
@@ -165,13 +205,15 @@ class HotwordService {
     final errorStr = error.toString().toLowerCase();
     int delay = 2;
 
-    if (errorStr.contains('error_busy') || errorStr.contains('error_client')) {
-      // Force cancel if busy or client error (engine crash)
+    if (errorStr.contains('error_no_match')) {
+      // No match is normal, restart quickly
+      delay = 1;
+    } else if (errorStr.contains('error_busy') || 
+               errorStr.contains('error_client') || 
+               errorStr.contains('permanent: true')) {
+      // Force cancel if busy, client error (engine crash), or other permanent error
       _speech.cancel();
       delay = 3; // Wait a bit for recovery
-    } else if (errorStr.contains('error_no_match')) {
-      // No match is normal, restart quickly but not instantly to avoid loops
-      delay = 1;
     } else if (errorStr.contains('error_speech_timeout')) {
       delay = 1;
     } else if (errorStr.contains('error_network')) {

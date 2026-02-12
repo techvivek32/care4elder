@@ -117,8 +117,12 @@ export async function PATCH(
     if (isBecomingCompleted) {
       const doctor = await Doctor.findById(callRequest.doctorId);
       if (doctor) {
-        doctor.walletBalance = (doctor.walletBalance || 0) + (callRequest.baseFee || 0);
+        // Use baseFee if available, otherwise fallback to fee (total)
+        // This ensures the doctor gets paid even if baseFee calculation was missed
+        const amountToAdd = callRequest.baseFee || callRequest.fee || 0;
+        doctor.walletBalance = (doctor.walletBalance || 0) + amountToAdd;
         await doctor.save();
+        console.log(`Updated doctor ${doctor._id} wallet: +${amountToAdd}. New balance: ${doctor.walletBalance}`);
       }
     }
 

@@ -167,8 +167,8 @@ class DoctorProfileService extends ChangeNotifier {
 
   DoctorProfileData get currentProfile => _currentProfile;
 
-  Future<DoctorProfileData> getProfile() async {
-    if (_isLoaded && _currentProfile.id.isNotEmpty) {
+  Future<DoctorProfileData> getProfile({bool force = false}) async {
+    if (!force && _isLoaded && _currentProfile.id.isNotEmpty) {
       return _currentProfile;
     }
     return _fetchProfile();

@@ -48,6 +48,8 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
     super.initState();
     _earningsFuture = _loadEarnings();
     _withdrawalsFuture = WithdrawalService().getWithdrawalRequests();
+    // Refresh profile to get latest wallet balance
+    DoctorProfileService().getProfile(force: true);
   }
 
   Future<void> _refreshData() async {
@@ -55,7 +57,7 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
       _earningsFuture = _loadEarnings();
       _withdrawalsFuture = WithdrawalService().getWithdrawalRequests();
     });
-    await DoctorProfileService().getProfile();
+    await DoctorProfileService().getProfile(force: true);
   }
 
   Future<List<EarningsEntry>> _loadEarnings() async {

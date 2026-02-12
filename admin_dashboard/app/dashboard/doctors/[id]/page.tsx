@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation';
 import dbConnect from '@/lib/db';
 import Doctor from '@/models/Doctor';
+import CallRequest from '@/models/CallRequest';
 import { 
   User, Phone, Mail, FileText, Calendar, Briefcase, 
-  Award, CreditCard, Activity, CheckCircle, XCircle, Clock 
+  Award, CreditCard, Activity, CheckCircle, XCircle, Clock,
+  BarChart
 } from 'lucide-react';
 import Link from 'next/link';
 import WithdrawalRequestsManager from '@/components/WithdrawalRequestsManager';
@@ -13,7 +15,17 @@ async function getDoctor(id: string) {
   try {
     const doctor = await Doctor.findById(id).lean();
     if (!doctor) return null;
-    return JSON.parse(JSON.stringify(doctor));
+    
+    // Get total completed consultations count
+    const totalConsultations = await CallRequest.countDocuments({
+      doctorId: id,
+      status: 'completed'
+    });
+
+    return {
+      ...JSON.parse(JSON.stringify(doctor)),
+      totalConsultations
+    };
   } catch (error) {
     console.error('Error fetching doctor:', error);
     return null;
@@ -52,8 +64,15 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
   const resolveImageUrl = (url: string | null) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    // Ensure leading slash for the relative path
+    
+    // Ensure leading slash
     const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    
+    // If it doesn't already have /uploads/, add it
+    if (!cleanUrl.startsWith('/uploads/')) {
+      return `/uploads${cleanUrl}`;
+    }
+    
     return cleanUrl;
   };
 
@@ -237,6 +256,12 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
               System Info
             </h3>
             <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Total Consultations</span>
+                <span className="font-semibold text-blue-600">
+                  {doctor.totalConsultations || 0}
+                </span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Joined Date</span>
                 <span className="text-gray-900">

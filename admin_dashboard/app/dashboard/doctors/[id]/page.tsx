@@ -32,7 +32,7 @@ async function getDoctor(id: string) {
 
     const creditedWithdrawals = await WithdrawalRequest.find({
       doctorId: id,
-      status: 'credited'
+      status: { $in: ['credited', 'approved', 'pending'] }
     });
 
     const totalWithdrawn = creditedWithdrawals.reduce((sum, req) => {

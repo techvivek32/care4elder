@@ -74,6 +74,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Bank details not found. Please add bank details in profile.' }, { status: 400 });
     }
 
+    // 1. Create the withdrawal request
     const withdrawalRequest = await WithdrawalRequest.create({
       doctorId: authUser.id,
       amount,
@@ -84,6 +85,11 @@ export async function POST(request: Request) {
       },
       status: 'pending',
     });
+
+    // 2. Immediately subtract from wallet balance when request is made
+    doctor.walletBalance -= amount;
+    await doctor.save();
+    console.log(`Subtracted ${amount} from doctor ${doctor._id} wallet for pending withdrawal. New balance: ${doctor.walletBalance}`);
 
     return NextResponse.json(withdrawalRequest);
   } catch (error) {

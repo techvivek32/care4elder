@@ -75,18 +75,26 @@ export async function PATCH(
       return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
     }
 
+    const oldStatus = withdrawalRequest.status;
+
     // Handle transitions
-    if (status === 'credited' && withdrawalRequest.status !== 'approved') {
-        return NextResponse.json({ error: 'Request must be approved before it can be marked as credited' }, { status: 400 });
+    if (status === 'credited' && oldStatus !== 'approved' && oldStatus !== 'pending') {
+        return NextResponse.json({ error: 'Request must be approved or pending before it can be marked as credited' }, { status: 400 });
     }
 
-    if (status === 'credited') {
-        // When credited, deduct from wallet balance
-        if (doctor.walletBalance < withdrawalRequest.amount) {
-            return NextResponse.json({ error: 'Insufficient wallet balance' }, { status: 400 });
-        }
-        doctor.walletBalance -= withdrawalRequest.amount;
+    // Logic for status change
+    if (status === 'declined' && oldStatus !== 'declined') {
+        // If declined, REFUND the money back to the wallet
+        doctor.walletBalance += withdrawalRequest.amount;
         await doctor.save();
+        console.log(`Refunded ${withdrawalRequest.amount} to doctor ${doctor._id} because withdrawal was declined.`);
+    } else if (status === 'credited' && oldStatus === 'pending') {
+        // If moved directly from pending to credited (admin skipping approved step)
+        // Balance was already subtracted during POST, so we don't subtract again.
+        console.log(`Withdrawal ${id} marked as credited directly from pending.`);
+    } else if (status === 'approved' && oldStatus === 'pending') {
+        // Keep money subtracted (it was already subtracted during POST)
+        console.log(`Withdrawal ${id} approved. Balance remains subtracted.`);
     }
 
     withdrawalRequest.status = status;

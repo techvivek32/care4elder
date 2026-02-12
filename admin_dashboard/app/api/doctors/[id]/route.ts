@@ -63,7 +63,7 @@ export async function GET(
 
     const creditedWithdrawals = await WithdrawalRequest.find({
       doctorId: id,
-      status: 'credited'
+      status: { $in: ['credited', 'approved', 'pending'] }
     });
 
     const totalWithdrawn = creditedWithdrawals.reduce((sum, req) => {

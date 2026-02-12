@@ -285,22 +285,46 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               Center(
                 child: Column(
                   children: [
-                    Text(
-                      'Smart Care with Human Touch',
-                      style: GoogleFonts.roboto(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primaryBlue.withOpacity(0.7),
-                        fontStyle: FontStyle.italic,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.health_and_safety_outlined,
+                          size: 20,
+                          color: Color(0xFF007BFF),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Smart Care with Human Touch',
+                          style: GoogleFonts.roboto(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF007BFF),
+                            fontStyle: FontStyle.italic,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Icon(
+                          Icons.medical_services_outlined,
+                          size: 20,
+                          color: Color(0xFF007BFF),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Container(
-                      width: 40,
-                      height: 2,
+                      width: 60,
+                      height: 3,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryBlue.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(1),
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF007BFF).withOpacity(0.1),
+                            const Color(0xFF007BFF),
+                            const Color(0xFF007BFF).withOpacity(0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ],

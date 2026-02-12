@@ -49,6 +49,14 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
     );
   };
 
+  const resolveImageUrl = (url: string | null) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    // Ensure leading slash for the relative path
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return cleanUrl;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -70,7 +78,7 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
                 {doctor.profileImage ? (
                   <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-blue-100">
                     <img 
-                      src={doctor.profileImage} 
+                      src={resolveImageUrl(doctor.profileImage)} 
                       alt={doctor.name} 
                       className="w-full h-full object-cover"
                     />
@@ -151,7 +159,7 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
                      <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-gray-700">Document {index + 1}</p>
                         <a 
-                          href={doc} 
+                          href={resolveImageUrl(doc)} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
@@ -161,7 +169,7 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
                      </div>
                      <div className="border rounded-lg overflow-hidden bg-gray-50 p-2">
                         <img 
-                          src={doc} 
+                          src={resolveImageUrl(doc)} 
                           alt={`Document ${index + 1}`}
                           className="w-full h-auto object-contain max-h-[500px]"
                         />
@@ -174,6 +182,7 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
             )}
           </div>
         </div>
+
 
         {/* Sidebar Info */}
         <div className="space-y-6">

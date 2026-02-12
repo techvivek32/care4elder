@@ -269,13 +269,19 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildQuickActionCard(
-                      title: 'Earnings',
-                      subtitle: '₹24,500',
-                      icon: Icons.trending_up,
-                      color: const Color(0xFFDCFCE7), // Light Green
-                      iconColor: Colors.green,
-                      onTap: () => context.push('/doctor/earnings'),
+                    child: ListenableBuilder(
+                      listenable: _profileService,
+                      builder: (context, _) {
+                        final profile = _profileService.currentProfile;
+                        return _buildQuickActionCard(
+                          title: 'Earnings',
+                          subtitle: '₹${profile.walletBalance.toStringAsFixed(0)}',
+                          icon: Icons.trending_up,
+                          color: const Color(0xFFDCFCE7), // Light Green
+                          iconColor: Colors.green,
+                          onTap: () => context.push('/doctor/earnings'),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -657,35 +663,41 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.people_outline,
-            value: '8',
-            label: 'Today',
-            iconColor: AppColors.primaryBlue,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.trending_up,
-            value: '42',
-            label: 'This Week',
-            iconColor: Colors.green,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.schedule,
-            value: '3',
-            label: 'Pending',
-            iconColor: Colors.orange,
-          ),
-        ),
-      ],
+    return ListenableBuilder(
+      listenable: _profileService,
+      builder: (context, _) {
+        final profile = _profileService.currentProfile;
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.people_outline,
+                value: profile.totalConsultations.toString(),
+                label: 'Total Consults',
+                iconColor: AppColors.primaryBlue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.star_border,
+                value: profile.rating.toStringAsFixed(1),
+                label: 'Rating',
+                iconColor: Colors.green,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.reviews_outlined,
+                value: profile.reviews.toString(),
+                label: 'Reviews',
+                iconColor: Colors.orange,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

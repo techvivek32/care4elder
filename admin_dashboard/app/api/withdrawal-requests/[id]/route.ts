@@ -3,8 +3,20 @@ import dbConnect from '@/lib/db';
 import WithdrawalRequest from '@/models/WithdrawalRequest';
 import Doctor from '@/models/Doctor';
 import { verifyToken } from '@/lib/auth-utils';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
-const getAuthUser = (request: Request) => {
+const getAuthUser = async (request: Request) => {
+  // Check for NextAuth session (Admin Dashboard)
+  const session = await getServerSession(authOptions);
+  if (session?.user) {
+    return { 
+      id: (session.user as any).id, 
+      role: (session.user as any).role || 'admin' 
+    };
+  }
+
+  // Check for Bearer token (Mobile App)
   const authHeader = request.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
@@ -23,7 +35,7 @@ export async function PATCH(
 ) {
   try {
     await dbConnect();
-    const authUser = getAuthUser(request);
+    const authUser = await getAuthUser(request);
     if (!authUser?.id || authUser.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

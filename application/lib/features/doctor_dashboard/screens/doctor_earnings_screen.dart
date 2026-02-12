@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/call_request_service.dart';
+import '../../doctor_auth/services/doctor_auth_service.dart';
 import '../services/doctor_profile_service.dart';
 import '../services/withdrawal_service.dart';
 
@@ -57,22 +59,24 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
   }
 
   Future<List<EarningsEntry>> _loadEarnings() async {
-    // This should ideally fetch from an API, but for now we'll keep the mock data 
-    // or adapt it to show real history if an API exists. 
-    // For now, let's keep the mock earnings list but show real wallet balance.
-    await Future.delayed(const Duration(milliseconds: 500));
-    final now = DateTime.now();
-    return [
-      EarningsEntry(
-        id: '1',
-        patientName: 'Sarah Johnson',
-        type: 'Video',
-        date: now.subtract(const Duration(days: 1)),
-        amount: 500,
-        status: EarningsStatus.completed,
-      ),
-      // ... keeping some mock data for the list
-    ];
+    try {
+      final token = await DoctorAuthService().getDoctorToken();
+      if (token == null) return [];
+      
+      final history = await CallRequestService().getDoctorHistory(token: token);
+      
+      return history.map((call) => EarningsEntry(
+        id: call.id,
+        patientName: call.patientName,
+        type: call.consultationType,
+        date: call.createdAt,
+        amount: call.fee.toInt(),
+        status: call.status == 'completed' ? EarningsStatus.completed : EarningsStatus.pending,
+      )).toList();
+    } catch (e) {
+      debugPrint('Error loading earnings history: $e');
+      return [];
+    }
   }
 
   void _showWithdrawDialog() {

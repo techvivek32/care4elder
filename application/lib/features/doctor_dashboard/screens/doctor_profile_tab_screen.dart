@@ -212,6 +212,17 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                         'Rating',
                         icon: Icons.star,
                         iconColor: Colors.amber,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DoctorReviewsScreen(
+                                doctorId: profile.id,
+                                doctorName: profile.name,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(width: 12),
                       _buildStatCard('0', 'Consultations'), // Need to fetch real consultations count

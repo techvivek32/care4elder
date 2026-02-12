@@ -52,8 +52,9 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,12 +71,12 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: colorScheme.surfaceContainerHighest,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_back,
-                    color: AppColors.textDark,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 onPressed: () => context.pop(),
@@ -96,7 +97,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                       style: GoogleFonts.roboto(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -104,7 +105,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                       'Allow access to enable emergency features',
                       style: GoogleFonts.roboto(
                         fontSize: 16,
-                        color: AppColors.textGrey,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
 
@@ -114,6 +115,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                     Column(
                       children: [
                         _buildPermissionCard(
+                          context: context,
                           icon: Icons.location_on_outlined,
                           title: 'Location Access',
                           description:
@@ -121,6 +123,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                         ),
                         const SizedBox(height: 16),
                         _buildPermissionCard(
+                          context: context,
                           icon: Icons.mic_none_outlined,
                           title: 'Microphone Access',
                           description:
@@ -128,6 +131,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                         ),
                         const SizedBox(height: 16),
                         _buildPermissionCard(
+                          context: context,
                           icon: Icons.monitor_heart_outlined,
                           title: 'Motion Sensors',
                           description: 'To detect falls and unusual movements',
@@ -141,7 +145,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
+                        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -158,8 +162,8 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                                 });
                               },
                               shape: const CircleBorder(),
-                              activeColor: AppColors.primaryBlue,
-                              side: BorderSide(color: Colors.grey.shade400),
+                              activeColor: colorScheme.primary,
+                              side: BorderSide(color: colorScheme.outline),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -171,7 +175,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                                   text: TextSpan(
                                     text: 'I agree to the ',
                                     style: GoogleFonts.roboto(
-                                      color: AppColors.textDark,
+                                      color: colorScheme.onSurface,
                                       fontSize: 14,
                                       height: 1.5,
                                     ),
@@ -179,7 +183,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                                       TextSpan(
                                         text: 'Terms & Conditions',
                                         style: GoogleFonts.roboto(
-                                          color: AppColors.primaryBlue,
+                                          color: colorScheme.primary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -187,7 +191,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                                       TextSpan(
                                         text: 'Privacy Policy',
                                         style: GoogleFonts.roboto(
-                                          color: AppColors.primaryBlue,
+                                          color: colorScheme.primary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -198,7 +202,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                                 Text(
                                   'Your data will be kept secure and confidential',
                                   style: GoogleFonts.roboto(
-                                    color: AppColors.textGrey,
+                                    color: colorScheme.onSurfaceVariant,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -223,13 +227,13 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                   key: const Key('continue_button'),
                   onPressed: _agreedToTerms ? _handleContinue : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    disabledBackgroundColor: AppColors.primaryBlue.withValues(
-                      alpha: 0.5,
+                    backgroundColor: colorScheme.primary,
+                    disabledBackgroundColor: colorScheme.primary.withOpacity(
+                      0.5,
                     ),
-                    foregroundColor: Colors.white,
-                    disabledForegroundColor: Colors.white.withValues(
-                      alpha: 0.8,
+                    foregroundColor: colorScheme.onPrimary,
+                    disabledForegroundColor: colorScheme.onPrimary.withOpacity(
+                      0.8,
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -255,10 +259,12 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
   }
 
   Widget _buildPermissionCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String description,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isSelected = _selectedPermissions.contains(title);
 
     return GestureDetector(
@@ -267,16 +273,16 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEBF5FF) : Colors.white,
+          color: isSelected ? colorScheme.primaryContainer : colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.primaryBlue : Colors.grey.shade300,
+            color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
             width: isSelected ? 1.5 : 1,
           ),
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? AppColors.primaryBlue.withValues(alpha: 0.1)
+                  ? colorScheme.primary.withOpacity(0.1)
                   : Colors.transparent,
               blurRadius: 10,
               offset: const Offset(0, 4),
@@ -287,11 +293,11 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: AppColors.primaryBlue,
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.white, size: 24),
+              child: Icon(icon, color: colorScheme.onPrimary, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -303,7 +309,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -311,7 +317,7 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
                     description,
                     style: GoogleFonts.roboto(
                       fontSize: 13,
-                      color: AppColors.textGrey,
+                      color: colorScheme.onSurfaceVariant,
                       height: 1.4,
                     ),
                   ),
@@ -324,17 +330,17 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
               height: 24,
               width: 24,
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryBlue : Colors.transparent,
+                color: isSelected ? colorScheme.primary : Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.primaryBlue
-                      : Colors.grey.shade400,
+                      ? colorScheme.primary
+                      : colorScheme.outline,
                   width: 1.5,
                 ),
               ),
               child: isSelected
-                  ? const Icon(Icons.check, color: Colors.white, size: 16)
+                  ? Icon(Icons.check, color: colorScheme.onPrimary, size: 16)
                   : null,
             ),
           ],

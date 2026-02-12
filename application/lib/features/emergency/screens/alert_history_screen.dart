@@ -40,8 +40,10 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
   }
 
   void _showFilterSheet() {
+    final colorScheme = Theme.of(context).colorScheme;
     showModalBottomSheet(
       context: context,
+      backgroundColor: colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -59,26 +61,41 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
                     style: GoogleFonts.roboto(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 24),
                   DropdownButtonFormField<CancellationReason>(
-                    initialValue: _selectedReason,
+                    dropdownColor: colorScheme.surface,
+                    style: GoogleFonts.roboto(color: colorScheme.onSurface),
+                    value: _selectedReason,
                     decoration: InputDecoration(
                       labelText: 'Cancellation Reason',
+                      labelStyle: GoogleFonts.roboto(color: colorScheme.onSurfaceVariant),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: colorScheme.outline),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: colorScheme.outlineVariant),
                       ),
                     ),
                     items: [
-                      const DropdownMenuItem<CancellationReason>(
+                      DropdownMenuItem<CancellationReason>(
                         value: null,
-                        child: Text('All Reasons'),
+                        child: Text(
+                          'All Reasons',
+                          style: GoogleFonts.roboto(color: colorScheme.onSurface),
+                        ),
                       ),
                       ...CancellationReason.values.map((reason) {
                         return DropdownMenuItem(
                           value: reason,
-                          child: Text(reason.label),
+                          child: Text(
+                            reason.label,
+                            style: GoogleFonts.roboto(color: colorScheme.onSurface),
+                          ),
                         );
                       }),
                     ],
@@ -95,8 +112,11 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: AppColors.primaryBlue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: const Text('Done'),
                     ),
@@ -112,19 +132,20 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Alert History',
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: colorScheme.onSurface,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textDark),
+        iconTheme: IconThemeData(color: colorScheme.onSurface),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -132,21 +153,23 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: colorScheme.surface,
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
+              style: GoogleFonts.roboto(color: colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: 'Search logs...',
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: GoogleFonts.roboto(color: colorScheme.onSurfaceVariant),
+                prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
               ),
               onChanged: (value) {
                 setState(() => _searchQuery = value);
@@ -160,7 +183,7 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
                     child: Text(
                       'No logs found',
                       style: GoogleFonts.roboto(
-                        color: AppColors.textGrey,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 16,
                       ),
                     ),
@@ -172,15 +195,22 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
                       final log = _filteredLogs[index];
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
+                        elevation: 0,
+                        color: colorScheme.surface,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: colorScheme.outlineVariant),
                         ),
                         child: ExpansionTile(
+                          shape: const RoundedRectangleBorder(side: BorderSide.none),
+                          collapsedShape: const RoundedRectangleBorder(side: BorderSide.none),
+                          iconColor: colorScheme.primary,
+                          collapsedIconColor: colorScheme.onSurfaceVariant,
                           title: Text(
                             log.reason.label,
                             style: GoogleFonts.roboto(
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textDark,
+                              color: colorScheme.onSurface,
                             ),
                           ),
                           subtitle: Text(
@@ -188,17 +218,15 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
                               'MMM d, yyyy h:mm a',
                             ).format(log.timestamp),
                             style: GoogleFonts.roboto(
-                              color: AppColors.textGrey,
+                              color: colorScheme.onSurfaceVariant,
                               fontSize: 12,
                             ),
                           ),
                           leading: CircleAvatar(
-                            backgroundColor: AppColors.error.withValues(
-                              alpha: 0.1,
-                            ),
-                            child: const Icon(
+                            backgroundColor: colorScheme.error.withOpacity(0.1),
+                            child: Icon(
                               Icons.history,
-                              color: AppColors.error,
+                              color: colorScheme.error,
                               size: 20,
                             ),
                           ),
@@ -217,20 +245,23 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
                                     _buildDetailRow('Comments', log.comments!),
                                   ],
                                   const SizedBox(height: 8),
-                                  const Divider(),
+                                  Divider(color: colorScheme.outlineVariant),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Original Alert Details',
                                     style: GoogleFonts.roboto(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
-                                      color: AppColors.textGrey,
+                                      color: colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     log.originalAlertDetails.toString(),
-                                    style: GoogleFonts.roboto(fontSize: 12),
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 12,
+                                      color: colorScheme.onSurface,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -247,6 +278,7 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
   }
 
   Widget _buildDetailRow(String label, String value) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -255,16 +287,19 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
           child: Text(
             label,
             style: GoogleFonts.roboto(
-              fontWeight: FontWeight.w500,
-              color: AppColors.textGrey,
               fontSize: 12,
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.roboto(color: AppColors.textDark, fontSize: 13),
+            style: GoogleFonts.roboto(
+              fontSize: 12,
+              color: colorScheme.onSurface,
+            ),
           ),
         ),
       ],

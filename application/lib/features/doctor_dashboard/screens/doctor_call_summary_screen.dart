@@ -27,7 +27,7 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
+                        color: Colors.green.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Center(
@@ -85,7 +85,7 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: Colors.black.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -108,7 +108,7 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                     _buildSummaryItem(
                       icon: Icons.person_outline,
                       iconColor: Colors.blue,
-                      iconBg: Colors.blue.withValues(alpha: 0.1),
+                      iconBg: Colors.blue.withOpacity(0.1),
                       label: 'Patient',
                       value: 'Sarah Johnson',
                     ),
@@ -118,7 +118,7 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                     _buildSummaryItem(
                       icon: Icons.access_time,
                       iconColor: Colors.blue,
-                      iconBg: Colors.blue.withValues(alpha: 0.1),
+                      iconBg: Colors.blue.withOpacity(0.1),
                       label: 'Duration',
                       value: '15 minutes',
                     ),
@@ -128,7 +128,7 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                     _buildSummaryItem(
                       icon: Icons.description_outlined,
                       iconColor: Colors.blue,
-                      iconBg: Colors.blue.withValues(alpha: 0.1),
+                      iconBg: Colors.blue.withOpacity(0.1),
                       label: 'Consultation Fee',
                       value: '₹500 Earned',
                       valueColor: Colors.green,
@@ -153,7 +153,7 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
+                        color: Colors.blue.withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Center(

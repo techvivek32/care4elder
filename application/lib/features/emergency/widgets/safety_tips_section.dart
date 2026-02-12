@@ -26,6 +26,8 @@ class SafetyTipsSection extends StatelessWidget {
       },
     ];
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -34,18 +36,19 @@ class SafetyTipsSection extends StatelessWidget {
           style: GoogleFonts.roboto(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: colorScheme.onSurface.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -62,8 +65,8 @@ class SafetyTipsSection extends StatelessWidget {
                       margin: const EdgeInsets.only(top: 6),
                       width: 6,
                       height: 6,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primaryBlue,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -73,7 +76,7 @@ class SafetyTipsSection extends StatelessWidget {
                         tip['title']!,
                         style: GoogleFonts.roboto(
                           fontSize: 15,
-                          color: AppColors.primaryBlue,
+                          color: colorScheme.primary,
                         ),
                       ),
                     ),

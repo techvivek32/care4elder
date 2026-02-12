@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -143,7 +142,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceAll("Exception: ", "")),
-            backgroundColor: AppColors.error,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -171,7 +170,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceAll("Exception: ", "")),
-            backgroundColor: AppColors.error,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -182,13 +181,14 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
       ),
@@ -208,10 +208,10 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                       height: 50,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
+                        return Icon(
                           Icons.health_and_safety,
                           size: 50,
-                          color: AppColors.primaryBlue,
+                          color: colorScheme.primary,
                         );
                       },
                     ),
@@ -221,7 +221,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                       style: GoogleFonts.roboto(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -235,7 +235,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                   style: GoogleFonts.roboto(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
+                    color: colorScheme.onSurface,
                     height: 1.2,
                   ),
                 ),
@@ -244,7 +244,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                   'Enter the verification code sent to the relative\'s number ${_getFormattedPhone()}',
                   style: GoogleFonts.roboto(
                     fontSize: 16,
-                    color: AppColors.textGrey,
+                    color: colorScheme.onSurfaceVariant,
                     height: 1.5,
                   ),
                 ),
@@ -268,7 +268,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                         style: GoogleFonts.roboto(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: colorScheme.onSurface,
                         ),
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(1),
@@ -276,18 +276,20 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                         ],
                         decoration: InputDecoration(
                           contentPadding: EdgeInsets.zero,
+                          filled: true,
+                          fillColor: colorScheme.surface,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: colorScheme.outlineVariant),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: colorScheme.outlineVariant),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: AppColors.primaryBlue,
+                            borderSide: BorderSide(
+                              color: colorScheme.primary,
                               width: 2,
                             ),
                           ),
@@ -305,7 +307,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                     text: TextSpan(
                       text: "Didn't receive code? ",
                       style: GoogleFonts.roboto(
-                        color: AppColors.textGrey,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 14,
                       ),
                       children: [
@@ -313,7 +315,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                             ? TextSpan(
                                 text: 'Resend',
                                 style: GoogleFonts.roboto(
-                                  color: AppColors.primaryBlue,
+                                  color: colorScheme.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 recognizer: TapGestureRecognizer()
@@ -322,7 +324,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                             : TextSpan(
                                 text: 'Resend in ${_start}s',
                                 style: GoogleFonts.roboto(
-                                  color: AppColors.textDark,
+                                  color: colorScheme.onSurface,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -339,8 +341,8 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleVerify,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
@@ -348,11 +350,11 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                       elevation: 0,
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             height: 24,
                             width: 24,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: colorScheme.onPrimary,
                               strokeWidth: 2,
                             ),
                           )

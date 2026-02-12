@@ -94,43 +94,43 @@ class _SplashScreenState extends State<SplashScreen> {
               style: GoogleFonts.roboto(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: Colors.white.withOpacity(0.9),
+            ),
+          ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2, end: 0),
+
+          const Spacer(flex: 3),
+
+          // Pagination Dots (Loading Indicator style)
+          Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildDot(context, true),
+                  _buildDot(context, false),
+                  _buildDot(context, false),
+                ],
+              )
+              .animate(onPlay: (controller) => controller.repeat())
+              .shimmer(
+                duration: 1500.ms,
+                color: Colors.white.withOpacity(0.8),
               ),
-            ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2, end: 0),
 
-            const Spacer(flex: 3),
-
-            // Pagination Dots (Loading Indicator style)
-            Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildDot(context, true),
-                    _buildDot(context, false),
-                    _buildDot(context, false),
-                  ],
-                )
-                .animate(onPlay: (controller) => controller.repeat())
-                .shimmer(
-                  duration: 1500.ms,
-                  color: Colors.white.withValues(alpha: 0.8),
-                ),
-
-            const Spacer(flex: 1),
-          ],
-        ),
+          const Spacer(flex: 1),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildDot(BuildContext context, bool isActive) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.4),
-        shape: BoxShape.circle,
-      ),
-    );
-  }
+Widget _buildDot(BuildContext context, bool isActive) {
+  return Container(
+    margin: const EdgeInsets.symmetric(horizontal: 4),
+    width: 8,
+    height: 8,
+    decoration: BoxDecoration(
+      color: isActive ? Colors.white : Colors.white.withOpacity(0.4),
+      shape: BoxShape.circle,
+    ),
+  );
+}
 }

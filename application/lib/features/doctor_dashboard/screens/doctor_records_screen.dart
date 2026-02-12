@@ -119,10 +119,10 @@ class _DoctorRecordsScreenState extends State<DoctorRecordsScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.1)),
+          border: Border.all(color: AppColors.primaryBlue.withOpacity(0.1)),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryBlue.withValues(alpha: 0.05),
+              color: AppColors.primaryBlue.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -133,7 +133,7 @@ class _DoctorRecordsScreenState extends State<DoctorRecordsScreen> {
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.1),
+              backgroundColor: AppColors.primaryBlue.withOpacity(0.1),
               backgroundImage: record.patientProfile.isNotEmpty
                   ? NetworkImage(record.patientProfile)
                   : const AssetImage('assets/images/logo.png') as ImageProvider,

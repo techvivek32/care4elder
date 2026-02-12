@@ -50,20 +50,21 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Consultation Details',
           style: GoogleFonts.roboto(
-            color: Colors.black87,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -76,11 +77,12 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -90,7 +92,7 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: Colors.blue.withValues(alpha: 0.1),
+                    backgroundColor: Colors.blue.withOpacity(0.1),
                     backgroundImage: widget.callRequest.doctorProfileImage != null
                         ? NetworkImage(widget.callRequest.doctorProfileImage!)
                         : null,
@@ -115,7 +117,7 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
                           style: GoogleFonts.roboto(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -123,7 +125,7 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
                           'Date: ${DateFormat('MMM d, yyyy').format(widget.callRequest.createdAt)}',
                           style: GoogleFonts.roboto(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -140,7 +142,7 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
               style: GoogleFonts.roboto(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -148,9 +150,14 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withOpacity(0.08),
+                ),
               ),
               child: Text(
                 widget.callRequest.report.isEmpty 
@@ -158,7 +165,7 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
                     : widget.callRequest.report,
                 style: GoogleFonts.roboto(
                   fontSize: 16,
-                  color: Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                   height: 1.5,
                 ),
               ),
@@ -171,7 +178,7 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
               style: GoogleFonts.roboto(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -211,22 +218,23 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
     Color color,
     VoidCallback onTap,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -241,20 +249,20 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   Text(
                     count,
                     style: GoogleFonts.roboto(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey[400]),
+            Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
           ],
         ),
       ),
@@ -316,20 +324,22 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: Text(
           widget.title,
           style: GoogleFonts.roboto(
-            color: Colors.black87,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -341,11 +351,12 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: colorScheme.outlineVariant),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: colorScheme.onSurface.withOpacity(0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -371,7 +382,7 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
                           style: GoogleFonts.roboto(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -379,7 +390,7 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
                           '${widget.files.length} files',
                           style: GoogleFonts.roboto(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -397,7 +408,7 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
                       child: Text(
                         'No files in this category',
                         style: GoogleFonts.roboto(
-                          color: Colors.grey[500],
+                          color: colorScheme.onSurfaceVariant,
                           fontSize: 16,
                         ),
                       ),
@@ -411,9 +422,9 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade200),
+                            border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
                           ),
                           child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(
@@ -423,19 +434,19 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
                             leading: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.grey[100],
+                                color: colorScheme.surfaceVariant.withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.insert_drive_file_outlined,
-                                color: Colors.grey,
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                             title: Text(
                               fileName,
                               style: GoogleFonts.roboto(
                                 fontWeight: FontWeight.w500,
-                                color: Colors.black87,
+                                color: colorScheme.onSurface,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

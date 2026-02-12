@@ -216,13 +216,14 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
       ),
@@ -241,10 +242,10 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
                       height: 50,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
+                        return Icon(
                           Icons.health_and_safety,
                           size: 50,
-                          color: AppColors.primaryBlue,
+                          color: colorScheme.primary,
                         );
                       },
                     ),
@@ -254,7 +255,7 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
                       style: GoogleFonts.roboto(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -265,7 +266,7 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
                   style: GoogleFonts.roboto(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -273,7 +274,7 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
                   'We sent a verification code to your phone\n${_getFormattedPhone()}',
                   style: GoogleFonts.roboto(
                     fontSize: 16,
-                    color: AppColors.textGrey,
+                    color: colorScheme.onSurfaceVariant,
                     height: 1.5,
                   ),
                 ),
@@ -297,24 +298,24 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
                         style: GoogleFonts.roboto(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: colorScheme.onSurface,
                         ),
                         decoration: InputDecoration(
                           contentPadding: EdgeInsets.zero,
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: colorScheme.surface,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: colorScheme.outlineVariant),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: colorScheme.outlineVariant),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: AppColors.primaryBlue,
+                            borderSide: BorderSide(
+                              color: colorScheme.primary,
                               width: 2,
                             ),
                           ),
@@ -331,7 +332,7 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
                           child: Text(
                             'Resend Code',
                             style: GoogleFonts.roboto(
-                              color: AppColors.primaryBlue,
+                              color: colorScheme.primary,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
@@ -341,14 +342,14 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
                           text: TextSpan(
                             text: 'Resend code in ',
                             style: GoogleFonts.roboto(
-                              color: AppColors.textGrey,
+                              color: colorScheme.onSurfaceVariant,
                               fontSize: 14,
                             ),
                             children: [
                               TextSpan(
                                 text: '${_start}s',
                                 style: GoogleFonts.roboto(
-                                  color: AppColors.primaryBlue,
+                                  color: colorScheme.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -360,15 +361,15 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleVerify,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                     minimumSize: const Size(double.infinity, 56),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? CircularProgressIndicator(color: colorScheme.onPrimary)
                       : const Text(
                           'Verify',
                           style: TextStyle(

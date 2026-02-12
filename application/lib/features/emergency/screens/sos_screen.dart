@@ -198,6 +198,7 @@ class _SosScreenState extends State<SosScreen> {
               });
             }
             return AlertDialog(
+              backgroundColor: Theme.of(context).colorScheme.surface,
               title: Row(
                 children: [
                   const Icon(
@@ -216,7 +217,10 @@ class _SosScreenState extends State<SosScreen> {
               ),
               content: Text(
                 'SOS will be activated automatically in $secondsRemaining seconds.',
-                style: GoogleFonts.roboto(fontSize: 16),
+                style: GoogleFonts.roboto(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
               actions: [
                 TextButton(
@@ -224,7 +228,10 @@ class _SosScreenState extends State<SosScreen> {
                     timer?.cancel();
                     Navigator.of(context).pop(false);
                   },
-                  child: const Text('Cancel'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -394,22 +401,23 @@ class _SosScreenState extends State<SosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         centerTitle: true,
         title: Text(
           'SOS',
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: colorScheme.onSurface,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history, color: AppColors.textDark),
+            icon: Icon(Icons.history, color: colorScheme.onSurface),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AlertHistoryScreen()),
@@ -427,6 +435,7 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   Widget _buildIdleState() {
+    final colorScheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -436,7 +445,7 @@ class _SosScreenState extends State<SosScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFFFF3B30).withValues(alpha: 0.12),
+              color: const Color(0xFFFF3B30).withOpacity(0.12),
               shape: BoxShape.circle,
             ),
             child: Container(
@@ -458,14 +467,17 @@ class _SosScreenState extends State<SosScreen> {
             style: GoogleFonts.roboto(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             'Tap the button below to alert emergency services and your contacts.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.roboto(fontSize: 14, color: AppColors.textGrey),
+            style: GoogleFonts.roboto(
+              fontSize: 14,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 32),
           SizedBox(
@@ -494,17 +506,17 @@ class _SosScreenState extends State<SosScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.1),
+                color: colorScheme.error.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: AppColors.error),
+                  Icon(Icons.error_outline, color: colorScheme.error),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       _activationError!,
-                      style: GoogleFonts.roboto(color: AppColors.error),
+                      style: GoogleFonts.roboto(color: colorScheme.error),
                     ),
                   ),
                 ],
@@ -519,6 +531,7 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   Widget _buildActiveState() {
+    final colorScheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -535,7 +548,7 @@ class _SosScreenState extends State<SosScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF3B30).withValues(alpha: 0.3),
+                        color: const Color(0xFFFF3B30).withOpacity(0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 4),
                       ),
@@ -561,17 +574,17 @@ class _SosScreenState extends State<SosScreen> {
                   'Emergency services have been alerted',
                   style: GoogleFonts.roboto(
                     fontSize: 14,
-                    color: AppColors.textGrey,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.access_time,
                       size: 18,
-                      color: AppColors.textGrey,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -579,7 +592,7 @@ class _SosScreenState extends State<SosScreen> {
                       style: GoogleFonts.roboto(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textDark,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -625,19 +638,20 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   Widget _buildContactsCard() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.people_outline, size: 20),
+            Icon(Icons.people_outline, size: 20, color: colorScheme.onSurface),
             const SizedBox(width: 8),
             Text(
               'Emergency Contacts',
               style: GoogleFonts.roboto(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+                color: colorScheme.onSurface,
               ),
             ),
           ],
@@ -648,49 +662,39 @@ class _SosScreenState extends State<SosScreen> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
             ),
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: (contact['color'] as Color).withValues(
-                    alpha: 0.1,
-                  ),
-                  radius: 24,
+                  backgroundColor: contact['color'].withOpacity(0.1),
                   child: Text(
-                    contact['initial'] as String,
-                    style: GoogleFonts.roboto(
-                      color: contact['color'] as Color,
+                    contact['initial'],
+                    style: TextStyle(
+                      color: contact['color'],
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        contact['name'] as String,
+                        contact['name'],
                         style: GoogleFonts.roboto(
-                          fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       Text(
-                        contact['relation'] as String,
+                        contact['relation'],
                         style: GoogleFonts.roboto(
-                          fontSize: 13,
-                          color: AppColors.textGrey,
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -698,47 +702,19 @@ class _SosScreenState extends State<SosScreen> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                    horizontal: 10,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: contact['status'] == 'Called'
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    contact['status'] as String,
-                    style: GoogleFonts.roboto(
+                  child: const Text(
+                    'Notified',
+                    style: TextStyle(
+                      color: Colors.green,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: contact['status'] == 'Called'
-                          ? Colors.green
-                          : Colors.orange,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                InkWell(
-                  onTap: () async {
-                    final Uri launchUri = Uri(
-                      scheme: 'tel',
-                      path: contact['phone'] as String,
-                    );
-                    if (await canLaunchUrl(launchUri)) {
-                      await launchUrl(launchUri);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.phone,
-                      color: Colors.white,
-                      size: 20,
                     ),
                   ),
                 ),
@@ -750,120 +726,139 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   Widget _buildServicesCard() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Emergency Services',
-          style: GoogleFonts.roboto(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
-          ),
+        Row(
+          children: [
+            Icon(Icons.security_outlined, size: 20, color: colorScheme.onSurface),
+            const SizedBox(width: 8),
+            Text(
+              'Responding Services',
+              style: GoogleFonts.roboto(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
-        for (final service in _services)
+        if (_services.isEmpty)
           Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            width: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
             ),
-            child: Row(
+            child: Column(
               children: [
-                Image.asset(
-                  'assets/images/logo.png', // Fallback or placeholder, using icon instead below
-                  width: 40,
-                  height: 40,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      service['icon'] as IconData,
-                      color: service['color'] as Color,
-                      size: 32,
-                    );
-                  },
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        service['name'] as String,
-                        style: GoogleFonts.roboto(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
-                        ),
-                      ),
-                      Text(
-                        service['status'] as String,
-                        style: GoogleFonts.roboto(
-                          fontSize: 13,
-                          color: AppColors.textGrey,
-                        ),
-                      ),
-                    ],
+                SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'ETA: ${service['eta']}',
-                      style: GoogleFonts.roboto(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
-                      ),
+                const SizedBox(height: 12),
+                Text(
+                  'Contacting nearest services...',
+                  style: GoogleFonts.roboto(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          for (final service in _services)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: service['color'].withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
+                    child: Icon(
+                      service['icon'],
+                      color: service['color'],
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          Icons.check_circle_outline,
-                          size: 14,
-                          color: Colors.green,
-                        ),
-                        const SizedBox(width: 4),
                         Text(
-                          'Active',
+                          service['name'],
+                          style: GoogleFonts.roboto(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          service['status'],
                           style: GoogleFonts.roboto(
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  Text(
+                    service['eta'],
+                    style: GoogleFonts.roboto(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
       ],
     );
   }
 
   Widget _buildLoadingOverlay() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      color: Colors.black.withValues(alpha: 0.35),
+      color: Colors.black.withOpacity(0.35),
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const CircularProgressIndicator(color: Color(0xFFFF3B30)),
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+              ),
               const SizedBox(height: 16),
               Text(
-                'Activating SOS...',
-                style: GoogleFonts.roboto(fontWeight: FontWeight.w600),
+                _isActive ? 'Stopping SOS...' : 'Activating SOS...',
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
               ),
             ],
           ),
@@ -912,17 +907,25 @@ class _SosConfirmationDialogState extends State<SosConfirmationDialog> {
   Widget build(BuildContext context) {
     final canConfirm = _secondsRemaining == 0;
     return AlertDialog(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       title: Text(
         'Activate SOS?',
-        style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
+        style: GoogleFonts.roboto(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
-      content: const Text(
+      content: Text(
         'This will alert emergency services and your contacts.',
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(
+            'Cancel',
+            style: TextStyle(color: Theme.of(context).colorScheme.primary),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(

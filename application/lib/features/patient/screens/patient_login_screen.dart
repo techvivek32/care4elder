@@ -126,8 +126,9 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: GestureDetector(
@@ -149,10 +150,10 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                         height: 50,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
+                          return Icon(
                             Icons.health_and_safety,
                             size: 50,
-                            color: AppColors.primaryBlue,
+                            color: colorScheme.primary,
                           );
                         },
                       ),
@@ -162,7 +163,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                         style: GoogleFonts.roboto(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -176,7 +177,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                     style: GoogleFonts.roboto(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -184,7 +185,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                     'Sign in to continue',
                     style: GoogleFonts.roboto(
                       fontSize: 16,
-                      color: AppColors.textGrey,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
 
@@ -194,7 +195,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: TabBar(
@@ -202,12 +203,12 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                       indicatorSize: TabBarIndicatorSize.tab,
                       indicator: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color: Colors.white,
+                        color: colorScheme.surface,
                       ),
                       indicatorPadding: const EdgeInsets.all(2),
                       dividerColor: Colors.transparent,
-                      labelColor: AppColors.textDark,
-                      unselectedLabelColor: AppColors.textGrey,
+                      labelColor: colorScheme.onSurface,
+                      unselectedLabelColor: colorScheme.onSurfaceVariant,
                       labelStyle: GoogleFonts.roboto(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
@@ -250,7 +251,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                           style: GoogleFonts.roboto(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -264,9 +265,9 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                                 vertical: 16,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: colorScheme.surface,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
+                                border: Border.all(color: colorScheme.outlineVariant),
                               ),
                               child: Row(
                                 children: [
@@ -275,11 +276,11 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                                     style: GoogleFonts.roboto(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.textDark,
+                                      color: colorScheme.onSurface,
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Icon(Icons.keyboard_arrow_down, size: 20),
+                                  Icon(Icons.keyboard_arrow_down, size: 20, color: colorScheme.onSurface),
                                 ],
                               ),
                             ),
@@ -307,38 +308,38 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                                 },
                                 style: GoogleFonts.roboto(
                                   fontSize: 16,
-                                  color: AppColors.textDark,
+                                  color: colorScheme.onSurface,
                                 ),
                                 decoration: InputDecoration(
                                   hintText: 'Enter phone number',
                                   hintStyle: GoogleFonts.roboto(
-                                    color: Colors.grey.shade400,
+                                    color: colorScheme.onSurfaceVariant.withOpacity(0.5),
                                   ),
                                   prefixIcon: Icon(
                                     Icons.phone_outlined,
-                                    color: Colors.grey.shade400,
+                                    color: colorScheme.onSurfaceVariant.withOpacity(0.5),
                                   ),
                                   filled: true,
-                                  fillColor: Colors.white,
+                                  fillColor: colorScheme.surface,
                                   contentPadding: const EdgeInsets.symmetric(
                                     vertical: 16,
                                   ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
-                                      color: Colors.grey.shade300,
+                                      color: colorScheme.outlineVariant,
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
-                                      color: Colors.grey.shade300,
+                                      color: colorScheme.outlineVariant,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.primaryBlue,
+                                    borderSide: BorderSide(
+                                      color: colorScheme.primary,
                                       width: 2,
                                     ),
                                   ),
@@ -359,7 +360,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                           style: GoogleFonts.roboto(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -377,18 +378,24 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                             }
                             return null;
                           },
+                          style: TextStyle(color: colorScheme.onSurface),
                           decoration: InputDecoration(
                             hintText: 'Enter your email',
-                            prefixIcon: const Icon(Icons.email_outlined),
+                            hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
+                            prefixIcon: Icon(Icons.email_outlined, color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: colorScheme.surface,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(color: colorScheme.outlineVariant),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(color: colorScheme.outlineVariant),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: colorScheme.primary, width: 2),
                             ),
                           ),
                         ),
@@ -398,7 +405,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                           style: GoogleFonts.roboto(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -413,14 +420,17 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                             }
                             return null;
                           },
+                          style: TextStyle(color: colorScheme.onSurface),
                           decoration: InputDecoration(
                             hintText: 'Enter your password',
-                            prefixIcon: const Icon(Icons.lock_outline),
+                            hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
+                            prefixIcon: Icon(Icons.lock_outline, color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _isPasswordVisible
                                     ? Icons.visibility
                                     : Icons.visibility_off,
+                                color: colorScheme.onSurfaceVariant.withOpacity(0.5),
                               ),
                               onPressed: () {
                                 setState(() {
@@ -429,14 +439,18 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                               },
                             ),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: colorScheme.surface,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(color: colorScheme.outlineVariant),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(color: colorScheme.outlineVariant),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: colorScheme.primary, width: 2),
                             ),
                           ),
                         ),
@@ -451,8 +465,8 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryBlue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -460,12 +474,12 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                         elevation: 0,
                       ),
                       child: _isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: colorScheme.onPrimary,
                               ),
                             )
                           : Text(
@@ -483,18 +497,18 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                   // Divider
                   Row(
                     children: [
-                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                      Expanded(child: Divider(color: colorScheme.outlineVariant)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'Or continue with',
                           style: GoogleFonts.roboto(
                             fontSize: 14,
-                            color: AppColors.textGrey,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
-                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                      Expanded(child: Divider(color: colorScheme.outlineVariant)),
                     ],
                   ),
 

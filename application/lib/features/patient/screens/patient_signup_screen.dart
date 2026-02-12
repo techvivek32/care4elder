@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
 
 class PatientSignupScreen extends StatefulWidget {
@@ -37,6 +36,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    final colorScheme = Theme.of(context).colorScheme;
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
@@ -45,10 +45,10 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primaryBlue,
-              onPrimary: Colors.white,
-              onSurface: AppColors.textDark,
+            colorScheme: colorScheme.copyWith(
+              primary: colorScheme.primary,
+              onPrimary: colorScheme.onPrimary,
+              onSurface: colorScheme.onSurface,
             ),
           ),
           child: child!,
@@ -138,7 +138,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
             content: Text(
               'Registration failed: ${e.toString().replaceAll("Exception: ", "")}',
             ),
-            backgroundColor: AppColors.error,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -148,6 +148,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
   }
 
   Widget _buildTextField({
+    required BuildContext context,
     required TextEditingController controller,
     required String label,
     required String hint,
@@ -161,6 +162,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
     VoidCallback? onToggleVisibility,
     List<TextInputFormatter>? inputFormatters,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -169,7 +171,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
           style: GoogleFonts.roboto(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textDark,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -181,43 +183,45 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
           onTap: onTap,
           validator: validator,
           inputFormatters: inputFormatters,
-          style: GoogleFonts.roboto(fontSize: 16, color: AppColors.textDark),
+          style: GoogleFonts.roboto(fontSize: 16, color: colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.roboto(color: Colors.grey.shade400),
-            prefixIcon: Icon(icon, color: Colors.grey.shade400),
+            hintStyle: GoogleFonts.roboto(
+                color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
+            prefixIcon: Icon(icon,
+                color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
             suffixIcon: isPassword
                 ? IconButton(
                     icon: Icon(
                       (obscureText ?? false)
                           ? Icons.visibility_off
                           : Icons.visibility,
-                      color: Colors.grey.shade400,
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.5),
                     ),
                     onPressed: onToggleVisibility,
                   )
                 : null,
             filled: true,
-            fillColor: Colors.white,
+            fillColor: colorScheme.surface,
             contentPadding: const EdgeInsets.symmetric(vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: colorScheme.outlineVariant),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: colorScheme.outlineVariant),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.primaryBlue,
+              borderSide: BorderSide(
+                color: colorScheme.primary,
                 width: 2,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error),
+              borderSide: BorderSide(color: colorScheme.error),
             ),
           ),
         ),
@@ -228,19 +232,20 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
         title: Text(
           'Create Account',
           style: GoogleFonts.roboto(
-            color: AppColors.textDark,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -254,6 +259,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildTextField(
+                  context: context,
                   controller: _nameController,
                   label: 'Full Name',
                   hint: 'Enter your full name',
@@ -262,6 +268,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
                       v!.isEmpty ? 'Please enter your name' : null,
                 ),
                 _buildTextField(
+                  context: context,
                   controller: _emailController,
                   label: 'Email Address',
                   hint: 'Enter your email',
@@ -270,6 +277,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
                   validator: _validateEmail,
                 ),
                 _buildTextField(
+                  context: context,
                   controller: _phoneController,
                   label: 'Phone Number',
                   hint: 'Enter your phone number',
@@ -288,6 +296,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
                   },
                 ),
                 _buildTextField(
+                  context: context,
                   controller: _dobController,
                   label: 'Date of Birth',
                   hint: 'YYYY-MM-DD',
@@ -298,6 +307,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
                       v!.isEmpty ? 'Please select date of birth' : null,
                 ),
                 _buildTextField(
+                  context: context,
                   controller: _passwordController,
                   label: 'Password',
                   hint: 'Create a password',
@@ -309,6 +319,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
                   validator: _validatePassword,
                 ),
                 _buildTextField(
+                  context: context,
                   controller: _confirmPasswordController,
                   label: 'Confirm Password',
                   hint: 'Confirm your password',
@@ -331,8 +342,8 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleSignup,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
@@ -340,11 +351,11 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
                       elevation: 0,
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: colorScheme.onPrimary,
                               strokeWidth: 2,
                             ),
                           )
@@ -363,14 +374,15 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
                   children: [
                     Text(
                       'Already have an account? ',
-                      style: GoogleFonts.roboto(color: AppColors.textGrey),
+                      style: GoogleFonts.roboto(
+                          color: colorScheme.onSurfaceVariant),
                     ),
                     GestureDetector(
                       onTap: () => context.pop(),
                       child: Text(
                         'Sign In',
                         style: GoogleFonts.roboto(
-                          color: AppColors.primaryBlue,
+                          color: colorScheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

@@ -109,7 +109,7 @@ class _EmergencyMapState extends State<EmergencyMap> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -134,7 +134,7 @@ class _EmergencyMapState extends State<EmergencyMap> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
+                    color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -191,7 +191,7 @@ class _EmergencyMapState extends State<EmergencyMap> {
                             height: 80,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: AppColors.error.withValues(alpha: 0.2),
+                                color: AppColors.error.withOpacity(0.2),
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
@@ -207,7 +207,7 @@ class _EmergencyMapState extends State<EmergencyMap> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.2),
+                                        color: Colors.black.withOpacity(0.2),
                                         blurRadius: 4,
                                       ),
                                     ],
@@ -233,7 +233,7 @@ class _EmergencyMapState extends State<EmergencyMap> {
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
+                            color: Colors.black.withOpacity(0.1),
                             blurRadius: 4,
                           ),
                         ],

@@ -60,8 +60,11 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -75,7 +78,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                     style: GoogleFonts.roboto(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -83,7 +86,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                     'Book appointments with specialists',
                     style: GoogleFonts.roboto(
                       fontSize: 14,
-                      color: AppColors.textGrey,
+                      color: colorScheme.onSurface.withOpacity(0.6),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -93,22 +96,23 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                         child: Container(
                           height: 48,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(color: colorScheme.outlineVariant),
                           ),
                           child: TextField(
                             controller: _searchController,
                             onChanged: (value) => setState(() {}),
+                            style: GoogleFonts.roboto(color: colorScheme.onSurface),
                             decoration: InputDecoration(
                               hintText: 'Search doctors, specialization',
                               hintStyle: GoogleFonts.roboto(
-                                color: AppColors.textGrey,
+                                color: colorScheme.onSurface.withOpacity(0.4),
                                 fontSize: 14,
                               ),
                               prefixIcon: Icon(
                                 Icons.search,
-                                color: AppColors.textGrey,
+                                color: colorScheme.onSurface.withOpacity(0.4),
                               ),
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(
@@ -139,16 +143,16 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? AppColors.primaryBlue
-                                    : Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: Text(
-                                category,
-                                style: GoogleFonts.roboto(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : AppColors.textGrey,
+                                    ? colorScheme.primary
+                                    : colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Text(
+                                  category,
+                                  style: GoogleFonts.roboto(
+                                    color: isSelected
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.onSurface.withOpacity(0.6),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -170,13 +174,12 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                   }
 
                   if (_doctorService.error != null) {
-                    return Center(child: Text(_doctorService.error!));
+                    return Center(child: Text(_doctorService.error!, style: TextStyle(color: colorScheme.error)));
                   }
 
                   final filteredDoctors = _doctorService.doctors.where((doc) {
                     final matchesCategory =
                         _selectedCategory == 'All' ||
-                        // Check if specialization contains category or mapped category
                         doc.specialization.contains(_selectedCategory) ||
                         (_selectedCategory == 'General' &&
                             doc.specialization.contains('General')) ||
@@ -197,7 +200,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                     return Center(
                       child: Text(
                         'No doctors found',
-                        style: GoogleFonts.roboto(color: AppColors.textGrey),
+                        style: GoogleFonts.roboto(color: colorScheme.onSurface.withOpacity(0.6)),
                       ),
                     );
                   }
@@ -218,12 +221,12 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.grey.shade100),
+                            border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
+                                color: colorScheme.shadow.withOpacity(0.05),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -244,20 +247,20 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                             fit: BoxFit.cover,
                                             errorBuilder: (context, error, stackTrace) {
                                               return Container(
-                                                color: Colors.grey.shade200,
-                                                child: const Icon(
+                                                color: colorScheme.surfaceContainerHighest,
+                                                child: Icon(
                                                   Icons.person,
-                                                  color: Colors.grey,
+                                                  color: colorScheme.onSurface.withOpacity(0.4),
                                                   size: 40,
                                                 ),
                                               );
                                             },
                                           )
                                         : Container(
-                                            color: Colors.grey.shade200,
-                                            child: const Icon(
+                                            color: colorScheme.surfaceContainerHighest,
+                                            child: Icon(
                                               Icons.person,
-                                              color: Colors.grey,
+                                              color: colorScheme.onSurface.withOpacity(0.4),
                                               size: 40,
                                             ),
                                           ),
@@ -279,7 +282,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                             style: GoogleFonts.roboto(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
-                                              color: AppColors.textDark,
+                                              color: colorScheme.onSurface,
                                             ),
                                           ),
                                         ),
@@ -290,12 +293,8 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                           ),
                                           decoration: BoxDecoration(
                                             color: doctor.isAvailable
-                                                ? Colors.green.withValues(
-                                                    alpha: 0.1,
-                                                  )
-                                                : Colors.red.withValues(
-                                                    alpha: 0.1,
-                                                  ),
+                                                ? Colors.green.withOpacity(0.1)
+                                                : Colors.red.withOpacity(0.1),
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           child: Text(
@@ -316,13 +315,13 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                       doctor.specialization,
                                       style: GoogleFonts.roboto(
                                         fontSize: 13,
-                                        color: AppColors.textGrey,
+                                        color: colorScheme.onSurface.withOpacity(0.6),
                                       ),
                                     ),
                                     const SizedBox(height: 8),
                                     Row(
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           Icons.star,
                                           color: Colors.amber,
                                           size: 16,
@@ -333,7 +332,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                           style: GoogleFonts.roboto(
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.textDark,
+                                            color: colorScheme.onSurface,
                                           ),
                                         ),
                                         const SizedBox(width: 8),
@@ -342,7 +341,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                             '•  ${doctor.experienceYears} years',
                                             style: GoogleFonts.roboto(
                                               fontSize: 12,
-                                              color: AppColors.textGrey,
+                                              color: colorScheme.onSurface.withOpacity(0.6),
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -352,7 +351,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                           style: GoogleFonts.roboto(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.primaryBlue,
+                                            color: colorScheme.primary,
                                           ),
                                         ),
                                       ],

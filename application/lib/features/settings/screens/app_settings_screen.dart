@@ -30,6 +30,7 @@ class AppSettingsScreen extends StatelessWidget {
             children: [
               _buildSectionHeader('Appearance'),
               _buildSwitchTile(
+                context: context,
                 title: 'Dark Mode',
                 subtitle: 'Enable dark theme for the application',
                 icon: Icons.dark_mode_outlined,
@@ -39,6 +40,7 @@ class AppSettingsScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _buildSectionHeader('General'),
               _buildSwitchTile(
+                context: context,
                 title: 'Notifications',
                 subtitle: 'Enable push notifications',
                 icon: Icons.notifications_outlined,
@@ -47,6 +49,7 @@ class AppSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _buildListTile(
+                context: context,
                 title: 'Language',
                 subtitle: settings.language,
                 icon: Icons.language,
@@ -55,6 +58,7 @@ class AppSettingsScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _buildSectionHeader('Data & Privacy'),
               _buildListTile(
+                context: context,
                 title: 'Data Backup',
                 subtitle: 'Last backup: Never',
                 icon: Icons.backup_outlined,
@@ -66,6 +70,7 @@ class AppSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _buildListTile(
+                context: context,
                 title: 'Privacy Policy',
                 subtitle: 'View privacy policy',
                 icon: Icons.privacy_tip_outlined,
@@ -74,6 +79,7 @@ class AppSettingsScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _buildSectionHeader('Account'),
               _buildListTile(
+                context: context,
                 title: 'Logout',
                 subtitle: 'Sign out of your account',
                 icon: Icons.logout,
@@ -103,6 +109,7 @@ class AppSettingsScreen extends StatelessWidget {
   }
 
   Widget _buildSwitchTile({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required IconData icon,
@@ -111,11 +118,11 @@ class AppSettingsScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -130,17 +137,20 @@ class AppSettingsScreen extends StatelessWidget {
         ),
         subtitle: Text(
           subtitle,
-          style: GoogleFonts.roboto(color: Colors.grey, fontSize: 12),
+          style: GoogleFonts.roboto(
+            color: Theme.of(context).textTheme.bodySmall?.color,
+            fontSize: 12,
+          ),
         ),
         secondary: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primaryBlue.withValues(alpha: 0.1),
+            color: AppColors.primaryBlue.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: AppColors.primaryBlue),
         ),
-        activeTrackColor: AppColors.primaryBlue,
+        activeTrackColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -218,6 +228,7 @@ class AppSettingsScreen extends StatelessWidget {
   }
 
   Widget _buildListTile({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required IconData icon,
@@ -226,11 +237,11 @@ class AppSettingsScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -243,19 +254,24 @@ class AppSettingsScreen extends StatelessWidget {
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.w600,
             fontSize: 16,
-            color: isDestructive ? AppColors.error : AppColors.textDark,
+            color: isDestructive
+                ? AppColors.error
+                : Theme.of(context).colorScheme.onSurface,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: GoogleFonts.roboto(color: Colors.grey, fontSize: 12),
+          style: GoogleFonts.roboto(
+            color: Theme.of(context).textTheme.bodySmall?.color,
+            fontSize: 12,
+          ),
         ),
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: isDestructive
-                ? AppColors.error.withValues(alpha: 0.1)
-                : AppColors.primaryBlue.withValues(alpha: 0.1),
+                ? AppColors.error.withOpacity(0.1)
+                : AppColors.primaryBlue.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -263,7 +279,13 @@ class AppSettingsScreen extends StatelessWidget {
             color: isDestructive ? AppColors.error : AppColors.primaryBlue,
           ),
         ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: Theme.of(context)
+              .colorScheme
+              .onSurface
+              .withOpacity(0.5),
+        ),
       ),
     );
   }

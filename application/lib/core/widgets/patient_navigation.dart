@@ -17,10 +17,10 @@ class PatientBottomNavBar extends StatelessWidget {
     return BottomAppBar(
       shape: const CircularNotchedRectangle(),
       notchMargin: 8.0,
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       elevation: 10,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
-      surfaceTintColor: Colors.white,
+      shadowColor: Colors.black.withOpacity(0.1),
+      surfaceTintColor: Theme.of(context).colorScheme.surface,
       height: 80,
       padding: EdgeInsets.zero,
       child: Row(
@@ -28,6 +28,7 @@ class PatientBottomNavBar extends StatelessWidget {
         children: [
           Expanded(
             child: _buildNavItem(
+              context,
               0,
               Icons.home_rounded,
               Icons.home_outlined,
@@ -36,6 +37,7 @@ class PatientBottomNavBar extends StatelessWidget {
           ),
           Expanded(
             child: _buildNavItem(
+              context,
               1,
               Icons.monitor_heart,
               Icons.monitor_heart_outlined,
@@ -44,6 +46,7 @@ class PatientBottomNavBar extends StatelessWidget {
           ),
           Expanded(
             child: _buildNavItem(
+              context,
               2,
               Icons.sos_rounded,
               Icons.sos_outlined,
@@ -54,6 +57,7 @@ class PatientBottomNavBar extends StatelessWidget {
           ),
           Expanded(
             child: _buildNavItem(
+              context,
               3,
               Icons.description,
               Icons.description_outlined,
@@ -62,6 +66,7 @@ class PatientBottomNavBar extends StatelessWidget {
           ),
           Expanded(
             child: _buildNavItem(
+              context,
               4,
               Icons.person,
               Icons.person_outline,
@@ -74,6 +79,7 @@ class PatientBottomNavBar extends StatelessWidget {
   }
 
   Widget _buildNavItem(
+    BuildContext context,
     int index,
     IconData activeIcon,
     IconData inactiveIcon,
@@ -104,7 +110,7 @@ class PatientBottomNavBar extends StatelessWidget {
                     : EdgeInsets.zero,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? themeColor.withValues(alpha: 0.2)
+                      ? themeColor.withOpacity(0.2)
                       : Colors.transparent,
                   shape: BoxShape.circle,
                 ),
@@ -113,8 +119,11 @@ class PatientBottomNavBar extends StatelessWidget {
                   color: isSelected
                       ? themeColor
                       : (isEmergency
-                            ? themeColor.withValues(alpha: 0.7)
-                            : AppColors.textGrey),
+                            ? themeColor.withOpacity(0.7)
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.6)),
                   size: 24,
                 ),
               ),
@@ -127,8 +136,11 @@ class PatientBottomNavBar extends StatelessWidget {
                   color: isSelected
                       ? themeColor
                       : (isEmergency
-                            ? themeColor.withValues(alpha: 0.7)
-                            : AppColors.textGrey),
+                            ? themeColor.withOpacity(0.7)
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.6)),
                 ),
               ),
             ],
@@ -155,7 +167,7 @@ class PatientSOSButton extends StatelessWidget {
         color: const Color(0xFFFF0000), // Red #FF0000
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF0000).withValues(alpha: 0.3),
+            color: const Color(0xFFFF0000).withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
             spreadRadius: 1,

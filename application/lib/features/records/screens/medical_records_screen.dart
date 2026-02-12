@@ -92,9 +92,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +104,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               style: GoogleFonts.roboto(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 4),
@@ -112,7 +112,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               'Manage your health documents',
               style: GoogleFonts.roboto(
                 fontSize: 14,
-                color: AppColors.textGrey,
+                color: Theme.of(context).textTheme.bodySmall?.color,
                 fontWeight: FontWeight.normal,
               ),
             ),
@@ -306,16 +306,21 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
-          border: Border.all(color: Colors.grey.shade100),
+          border: Border.all(
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withOpacity(0.08),
+          ),
         ),
         child: Row(
           children: [
@@ -337,20 +342,26 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   Text(
                     count,
                     style: GoogleFonts.roboto(
                       fontSize: 14,
-                      color: AppColors.textGrey,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+            Icon(
+              Icons.chevron_right,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withOpacity(0.5),
+            ),
           ],
         ),
       ),
@@ -361,12 +372,12 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: 0.05),
+        color: Colors.blue.withOpacity(0.08),
         borderRadius: BorderRadius.circular(20),
       ),
       child: CustomPaint(
         painter: DashedBorderPainter(
-          color: Colors.blue.withValues(alpha: 0.4),
+          color: Colors.blue.withOpacity(0.4),
           strokeWidth: 2,
           radius: 20,
           gap: 6,
@@ -379,7 +390,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
+                  color: Colors.blue.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -394,7 +405,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 style: GoogleFonts.roboto(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 6),
@@ -402,7 +413,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 'PDF, JPG, PNG up to 10MB',
                 style: GoogleFonts.roboto(
                   fontSize: 13,
-                  color: AppColors.textGrey,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
               ),
             ],
@@ -420,26 +431,41 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(
+          color: Theme.of(context)
+              .colorScheme
+              .onSurface
+              .withOpacity(0.08),
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: Theme.of(context)
+                  .colorScheme
+                  .surface
+                  .withOpacity(0.5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Colors.grey.shade600, size: 24),
+            child: Icon(
+              icon,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withOpacity(0.7),
+              size: 24,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -451,14 +477,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   style: GoogleFonts.roboto(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   subtitle,
                   style: GoogleFonts.roboto(
                     fontSize: 13,
-                    color: AppColors.textGrey,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
                 ),
               ],
@@ -467,7 +493,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
+              color: Colors.blue.withOpacity(0.1),
               shape: BoxShape.circle,
               // shape: BoxShape.circle, // Duplicate
             ),

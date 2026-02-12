@@ -68,10 +68,10 @@ class _DoctorCallScreenState extends State<DoctorCallScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.4),
+                  Colors.black.withOpacity(0.4),
                   Colors.transparent,
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.6),
+                  Colors.black.withOpacity(0.6),
                 ],
                 stops: const [0.0, 0.2, 0.8, 1.0],
               ),
@@ -119,7 +119,7 @@ class _DoctorCallScreenState extends State<DoctorCallScreen> {
                         Text(
                           'Sarah Johnson', // Patient Name
                           style: GoogleFonts.roboto(
-                            color: Colors.white.withValues(alpha: 0.8),
+                            color: Colors.white.withOpacity(0.8),
                             fontSize: 14,
                           ),
                         ),
@@ -149,10 +149,10 @@ class _DoctorCallScreenState extends State<DoctorCallScreen> {
               decoration: BoxDecoration(
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
+                    color: Colors.black.withOpacity(0.2),
                     blurRadius: 10,
                   ),
                 ],
@@ -211,10 +211,10 @@ class _DoctorCallScreenState extends State<DoctorCallScreen> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
+                      color: Colors.black.withOpacity(0.4),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: Colors.white.withOpacity(0.1),
                       ),
                     ),
                     child: Column(
@@ -232,7 +232,7 @@ class _DoctorCallScreenState extends State<DoctorCallScreen> {
                         Text(
                           'Patient',
                           style: GoogleFonts.roboto(
-                            color: Colors.white.withValues(alpha: 0.8),
+                            color: Colors.white.withOpacity(0.8),
                             fontSize: 12,
                           ),
                         ),
@@ -308,11 +308,11 @@ class _DoctorCallScreenState extends State<DoctorCallScreen> {
         height: size,
         decoration: BoxDecoration(
           color: color == Colors.white
-              ? Colors.white.withValues(alpha: 0.2)
+              ? Colors.white.withOpacity(0.2)
               : color,
           shape: BoxShape.circle,
           border: color == Colors.white
-              ? Border.all(color: Colors.white.withValues(alpha: 0.3))
+              ? Border.all(color: Colors.white.withOpacity(0.3))
               : null,
         ),
         child: Icon(icon, color: Colors.white, size: iconSize),

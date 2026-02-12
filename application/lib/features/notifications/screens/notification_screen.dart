@@ -43,19 +43,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Light background like image
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Notifications',
           style: GoogleFonts.roboto(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -73,7 +74,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             child: Text(
               'Mark all as read',
               style: GoogleFonts.roboto(
-                color: Colors.blue,
+                color: colorScheme.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -106,7 +107,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     style: GoogleFonts.roboto(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   // Filter Chips
@@ -137,7 +138,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         padding: const EdgeInsets.all(32.0),
                         child: Text(
                           'No notifications found',
-                          style: GoogleFonts.roboto(color: Colors.grey),
+                          style: GoogleFonts.roboto(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     );
@@ -163,9 +166,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 valueListenable: NotificationService().isLoadingMoreNotifier,
                 builder: (context, isLoading, child) {
                   if (!isLoading) return const SizedBox.shrink();
-                  return const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Center(child: CircularProgressIndicator()),
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: colorScheme.primary,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -189,15 +196,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildPreferencesCard() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: colorScheme.shadow.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -213,7 +222,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               style: GoogleFonts.roboto(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: colorScheme.onSurface,
               ),
             ),
           ),
@@ -249,6 +258,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     String key, {
     IconData? iconData,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SwitchListTile(
       value: _preferences[key] ?? true,
       onChanged: (val) {
@@ -256,24 +266,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
           _preferences[key] = val;
         });
       },
-      activeTrackColor: Colors.blue,
+      activeTrackColor: colorScheme.primary,
       thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.selected)) {
-          return Colors.white;
-        }
         return Colors.white;
       }),
       title: Text(
         title,
         style: GoogleFonts.roboto(
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: colorScheme.onSurface,
           fontSize: 16,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: GoogleFonts.roboto(color: Colors.grey, fontSize: 12),
+        style: GoogleFonts.roboto(
+          color: colorScheme.onSurfaceVariant,
+          fontSize: 12,
+        ),
       ),
       secondary: Container(
         padding: const EdgeInsets.all(8),
@@ -281,13 +291,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
           color: Colors.transparent,
           shape: BoxShape.circle,
         ),
-        child: Icon(iconData ?? icon, color: Colors.grey.shade600, size: 24),
+        child: Icon(
+          iconData ?? icon,
+          color: colorScheme.onSurfaceVariant,
+          size: 24,
+        ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
     );
   }
 
   Widget _buildFilterChip(String label) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isSelected = _currentFilter == label;
     return GestureDetector(
       onTap: () {
@@ -299,11 +314,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.blue.withValues(alpha: 0.1)
+              ? colorScheme.primary.withOpacity(0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey.shade300,
+            color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
           ),
         ),
         child: Text(
@@ -311,7 +326,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           style: GoogleFonts.roboto(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Colors.blue : Colors.grey.shade600,
+            color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
           ),
         ),
       ),
@@ -319,13 +334,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildNotificationItem(AppNotification notification) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Dismissible(
       key: Key(notification.id),
       background: Container(
-        color: Colors.red,
+        color: colorScheme.error,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: Icon(Icons.delete, color: colorScheme.onError),
       ),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
@@ -333,11 +349,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: colorScheme.onSurface.withOpacity(0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -359,7 +376,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     decoration: BoxDecoration(
                       color: _getTypeColor(
                         notification.type,
-                      ).withValues(alpha: 0.1),
+                      ).withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -384,7 +401,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                       ? FontWeight.w500
                                       : FontWeight.bold,
                                   fontSize: 16,
-                                  color: Colors.black87,
+                                  color: colorScheme.onSurface,
                                 ),
                               ),
                             ),
@@ -392,8 +409,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               Container(
                                 width: 8,
                                 height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Colors.blue,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary,
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -403,7 +420,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         Text(
                           notification.body,
                           style: GoogleFonts.roboto(
-                            color: Colors.grey.shade600,
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 14,
                           ),
                         ),
@@ -411,7 +428,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         Text(
                           _formatTimestamp(notification.timestamp),
                           style: GoogleFonts.roboto(
-                            color: Colors.grey.shade400,
+                            color: colorScheme.onSurfaceVariant.withOpacity(0.6),
                             fontSize: 12,
                           ),
                         ),

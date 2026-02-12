@@ -68,54 +68,58 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
     super.dispose();
   }
 
-  Widget _buildStatCard(IconData icon, String value, String label) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: AppColors.primaryBlue, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: GoogleFonts.roboto(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: GoogleFonts.roboto(
-                fontSize: 12,
-                color: AppColors.textGrey,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    Widget buildStatCard(IconData icon, String value, String label) {
+      return Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: AppColors.primaryBlue, size: 28),
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: GoogleFonts.roboto(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.roboto(
+                  fontSize: 12,
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        body: const Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -123,16 +127,19 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 
     if (_error != null || _doctor == null) {
       return Scaffold(
+        backgroundColor: colorScheme.surface,
         appBar: AppBar(
+          backgroundColor: colorScheme.surface,
+          elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
             onPressed: () => context.pop(),
           ),
         ),
         body: Center(
           child: Text(
             _error ?? 'Doctor not found',
-            style: GoogleFonts.roboto(fontSize: 16),
+            style: GoogleFonts.roboto(fontSize: 16, color: colorScheme.onSurface),
           ),
         ),
       );
@@ -141,7 +148,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
     final doctor = _doctor!;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: colorScheme.surface,
       body: Stack(
         children: [
           // Scrollable Content
@@ -159,7 +166,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                       height: 300,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: colorScheme.surfaceContainerHighest,
                         image: doctor.profileImage.isNotEmpty
                             ? DecorationImage(
                                 image: NetworkImage(doctor.profileImage),
@@ -169,10 +176,10 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                             : null,
                       ),
                       child: doctor.profileImage.isEmpty
-                          ? const Icon(
+                          ? Icon(
                               Icons.person,
                               size: 100,
-                              color: Colors.grey,
+                              color: colorScheme.onSurface.withOpacity(0.2),
                             )
                           : null,
                     ),
@@ -183,9 +190,9 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                     top: 40,
                     left: 16,
                     child: CircleAvatar(
-                      backgroundColor: Colors.white,
+                      backgroundColor: colorScheme.surface,
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.black),
+                        icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
                         onPressed: () => context.pop(),
                       ),
                     ),
@@ -201,11 +208,11 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 24),
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
+                                color: colorScheme.shadow.withOpacity(0.05),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -223,7 +230,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                       style: GoogleFonts.roboto(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.textDark,
+                                        color: colorScheme.onSurface,
                                       ),
                                     ),
                                   ),
@@ -234,8 +241,8 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: doctor.isAvailable
-                                          ? Colors.green.withValues(alpha: 0.1)
-                                          : Colors.red.withValues(alpha: 0.1),
+                                          ? Colors.green.withOpacity(0.1)
+                                          : Colors.red.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text(
@@ -312,13 +319,13 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Row(
                             children: [
-                              _buildStatCard(
+                              buildStatCard(
                                 Icons.access_time,
                                 '${doctor.experienceYears} years',
                                 'Experience',
                               ),
                               const SizedBox(width: 12),
-                              _buildStatCard(
+                              buildStatCard(
                                 Icons.school,
                                 doctor.qualifications.isNotEmpty 
                                     ? doctor.qualifications 
@@ -326,7 +333,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                 'Degree',
                               ),
                               const SizedBox(width: 12),
-                              _buildStatCard(
+                              buildStatCard(
                                 Icons.chat_bubble_outline,
                                 '${doctor.reviews}',
                                 'Reviews',
@@ -344,8 +351,15 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 24),
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: colorScheme.surface,
                               borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colorScheme.shadow.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,7 +369,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                   style: GoogleFonts.roboto(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textDark,
+                                    color: colorScheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 12),
@@ -363,7 +377,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                   doctor.about,
                                   style: GoogleFonts.roboto(
                                     fontSize: 14,
-                                    color: AppColors.textGrey,
+                                    color: colorScheme.onSurface.withOpacity(0.6),
                                     height: 1.5,
                                   ),
                                 ),
@@ -378,17 +392,22 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 24),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: colorScheme.surface,
                             borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: colorScheme.shadow.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: Row(
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: AppColors.lightBlue.withValues(
-                                    alpha: 0.1,
-                                  ),
+                                  color: AppColors.lightBlue.withOpacity(0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -406,7 +425,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                       style: GoogleFonts.roboto(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.textDark,
+                                        color: colorScheme.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -416,7 +435,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                                           : 'Main City Hospital', // Fallback
                                       style: GoogleFonts.roboto(
                                         fontSize: 14,
-                                        color: AppColors.textGrey,
+                                        color: colorScheme.onSurface.withOpacity(0.6),
                                       ),
                                     ),
                                   ],
@@ -444,13 +463,13 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(32),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: colorScheme.shadow.withOpacity(0.05),
                     blurRadius: 20,
                     offset: const Offset(0, -5),
                   ),
@@ -466,7 +485,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                         'Consultation Fee',
                         style: GoogleFonts.roboto(
                           fontSize: 14,
-                          color: AppColors.textGrey,
+                          color: colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -494,7 +513,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 4,
-                        shadowColor: const Color(0xFFFF5252).withValues(alpha: 0.4),
+                        shadowColor: const Color(0xFFFF5252).withOpacity(0.4),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,

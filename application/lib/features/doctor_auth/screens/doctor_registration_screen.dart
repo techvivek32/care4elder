@@ -496,7 +496,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
               boxShadow: [
                 if (file == null)
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
+                    color: Colors.black.withOpacity(0.02),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -516,7 +516,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                          color: AppColors.primaryBlue.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
@@ -626,7 +626,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
       fillColor: Colors.white,
       labelStyle: GoogleFonts.roboto(color: AppColors.textGrey),
       hintStyle: GoogleFonts.roboto(
-        color: AppColors.textGrey.withValues(alpha: 0.5),
+        color: AppColors.textGrey.withOpacity(0.5),
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

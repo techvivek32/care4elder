@@ -65,7 +65,7 @@ class DoctorRequestDetailsScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
+                                color: Colors.black.withOpacity(0.05),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -119,16 +119,12 @@ class DoctorRequestDetailsScreen extends StatelessWidget {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.orange.withValues(
-                                              alpha: 0.1,
-                                            ),
+                                            color: Colors.orange.withOpacity(0.1),
                                             borderRadius: BorderRadius.circular(
                                               20,
                                             ),
                                             border: Border.all(
-                                              color: Colors.orange.withValues(
-                                                alpha: 0.3,
-                                              ),
+                                              color: Colors.orange.withOpacity(0.3),
                                             ),
                                           ),
                                           child: Row(
@@ -249,7 +245,7 @@ class DoctorRequestDetailsScreen extends StatelessWidget {
                             color: const Color(0xFFFEF2F2), // Light red bg
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
-                              color: Colors.red.withValues(alpha: 0.1),
+                              color: Colors.red.withOpacity(0.1),
                             ),
                           ),
                           child: Column(
@@ -316,7 +312,7 @@ class DoctorRequestDetailsScreen extends StatelessWidget {
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Colors.black.withOpacity(0.05),
                         blurRadius: 10,
                         offset: const Offset(0, -5),
                       ),
@@ -436,7 +432,7 @@ class DoctorRequestDetailsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -509,7 +505,7 @@ class DoctorRequestDetailsScreen extends StatelessWidget {
           fontSize: 13,
         ),
       ),
-      backgroundColor: Colors.red.withValues(alpha: 0.1),
+      backgroundColor: Colors.red.withOpacity(0.1),
       side: BorderSide.none,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );

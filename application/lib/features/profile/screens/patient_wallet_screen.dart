@@ -140,10 +140,12 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -151,11 +153,11 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
           style: GoogleFonts.roboto(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: colorScheme.onSurface,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -183,7 +185,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF2E3192).withValues(alpha: 0.3),
+                              color: const Color(0xFF2E3192).withOpacity(0.3),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -196,7 +198,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                               'Total Balance',
                               style: GoogleFonts.roboto(
                                 fontSize: 16,
-                                color: Colors.white.withValues(alpha: 0.9),
+                                color: Colors.white.withOpacity(0.9),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -236,7 +238,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                         style: GoogleFonts.roboto(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.textDark,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -244,9 +246,9 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                         width: 200,
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: colorScheme.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
+                          border: Border.all(color: colorScheme.outlineVariant),
                         ),
                         child: TextField(
                           controller: _amountController,
@@ -255,14 +257,17 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                           style: GoogleFonts.roboto(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            color: colorScheme.onSurface,
                           ),
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: '0',
                             prefixText: '₹ ',
+                            prefixStyle: GoogleFonts.roboto(
+                              color: colorScheme.onSurface,
+                            ),
                             hintStyle: GoogleFonts.roboto(
-                              color: Colors.grey[400],
+                              color: colorScheme.onSurfaceVariant.withOpacity(0.4),
                             ),
                           ),
                           inputFormatters: [
@@ -281,7 +286,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                           style: GoogleFonts.roboto(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -295,7 +300,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                             child: Text(
                               'No transactions yet',
                               style: GoogleFonts.roboto(
-                                color: Colors.grey[500],
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -312,9 +317,9 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: colorScheme.surface,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey[200]!),
+                                border: Border.all(color: colorScheme.outlineVariant),
                               ),
                               child: Row(
                                 children: [
@@ -322,8 +327,8 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
                                       color: isCredit 
-                                          ? Colors.green[50] 
-                                          : Colors.red[50],
+                                          ? Colors.green.withOpacity(0.1) 
+                                          : Colors.red.withOpacity(0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
@@ -346,14 +351,14 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                                           style: GoogleFonts.roboto(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500,
-                                            color: AppColors.textDark,
+                                            color: colorScheme.onSurface,
                                           ),
                                         ),
                                         Text(
                                           _formatDate(transaction.timestamp),
                                           style: GoogleFonts.roboto(
                                             fontSize: 12,
-                                            color: Colors.grey[500],
+                                            color: colorScheme.onSurfaceVariant,
                                           ),
                                         ),
                                       ],
@@ -386,20 +391,20 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                   child: ElevatedButton(
                     onPressed: _openCheckout,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 2,
                     ),
                     child: profileService.isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? CircularProgressIndicator(color: colorScheme.onPrimary)
                       : Text(
                         'Recharge',
                         style: GoogleFonts.roboto(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
                         ),
                       ),
                   ),

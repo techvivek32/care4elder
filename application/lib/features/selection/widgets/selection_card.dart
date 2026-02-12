@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/theme/app_colors.dart';
 
 class SelectionCard extends StatefulWidget {
   final String title;
@@ -29,6 +28,7 @@ class _SelectionCardState extends State<SelectionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
       label: 'Select ${widget.title}',
@@ -43,19 +43,19 @@ class _SelectionCardState extends State<SelectionCard> {
                 ),
                 decoration: BoxDecoration(
                   color: widget.isSelected
-                      ? AppColors.primaryBlue.withValues(alpha: 0.05)
-                      : Colors.white,
+                      ? colorScheme.primary.withOpacity(0.05)
+                      : colorScheme.surface,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: widget.isSelected || _isHovered
-                        ? AppColors.primaryBlue
-                        : Colors.grey.shade200,
+                        ? colorScheme.primary
+                        : colorScheme.outlineVariant,
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryBlue.withValues(
-                        alpha: _isHovered ? 0.15 : 0.05,
+                      color: colorScheme.primary.withOpacity(
+                        _isHovered ? 0.15 : 0.05,
                       ),
                       blurRadius: _isHovered ? 30 : 20,
                       offset: Offset(0, _isHovered ? 15 : 10),
@@ -82,14 +82,14 @@ class _SelectionCardState extends State<SelectionCard> {
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               color: widget.isSelected || _isHovered
-                                  ? AppColors.primaryBlue
-                                  : Colors.grey.shade50,
+                                  ? colorScheme.primary
+                                  : colorScheme.surfaceVariant,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 if (_isHovered)
                                   BoxShadow(
-                                    color: AppColors.primaryBlue.withValues(
-                                      alpha: 0.3,
+                                    color: colorScheme.primary.withOpacity(
+                                      0.3,
                                     ),
                                     blurRadius: 12,
                                     offset: const Offset(0, 6),
@@ -100,8 +100,8 @@ class _SelectionCardState extends State<SelectionCard> {
                               widget.icon,
                               size: 40,
                               color: widget.isSelected || _isHovered
-                                  ? Colors.white
-                                  : AppColors.primaryBlue,
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.primary,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -111,8 +111,8 @@ class _SelectionCardState extends State<SelectionCard> {
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: widget.isSelected || _isHovered
-                                      ? AppColors.primaryBlue
-                                      : AppColors.textDark,
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurface,
                                 ),
                           ),
                           if (widget.description != null) ...[
@@ -121,7 +121,7 @@ class _SelectionCardState extends State<SelectionCard> {
                               widget.description!,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppColors.textGrey),
+                                  ?.copyWith(color: colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ],

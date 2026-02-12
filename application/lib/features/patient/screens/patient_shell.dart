@@ -79,20 +79,34 @@ class _PatientShellState extends State<PatientShell> {
   }
 
   Future<bool?> _showExitDialog() {
+    final colorScheme = Theme.of(context).colorScheme;
     return showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Exit App'),
-          content: const Text('Do you want to exit the app?'),
+          backgroundColor: colorScheme.surface,
+          title: Text(
+            'Exit App',
+            style: TextStyle(color: colorScheme.onSurface),
+          ),
+          content: Text(
+            'Do you want to exit the app?',
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: colorScheme.primary),
+              ),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Exit'),
+              child: Text(
+                'Exit',
+                style: TextStyle(color: colorScheme.error),
+              ),
             ),
           ],
         );

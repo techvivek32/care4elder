@@ -455,7 +455,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
       label: Text(label),
       selected: selected,
       onSelected: (_) => onTap(),
-      selectedColor: AppColors.primaryBlue.withValues(alpha: 0.12),
+      selectedColor: AppColors.primaryBlue.withOpacity(0.12),
       backgroundColor: Colors.white,
       labelStyle: GoogleFonts.roboto(
         fontWeight: FontWeight.w600,
@@ -483,7 +483,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -541,7 +541,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
             : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -650,7 +650,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

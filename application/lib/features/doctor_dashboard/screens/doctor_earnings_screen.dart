@@ -309,7 +309,7 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
           _selectedRange = range;
         });
       },
-      selectedColor: AppColors.primaryBlue.withValues(alpha: 0.15),
+      selectedColor: AppColors.primaryBlue.withOpacity(0.15),
       labelStyle: GoogleFonts.roboto(
         fontWeight: FontWeight.w600,
         color: selected ? AppColors.primaryBlue : AppColors.textGrey,
@@ -333,7 +333,7 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
           _selectedStatus = status;
         });
       },
-      selectedColor: Colors.green.withValues(alpha: 0.15),
+      selectedColor: Colors.green.withOpacity(0.15),
       labelStyle: GoogleFonts.roboto(
         fontWeight: FontWeight.w600,
         color: selected ? Colors.green : AppColors.textGrey,
@@ -402,7 +402,7 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -447,7 +447,7 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -495,7 +495,7 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
+                    color: statusColor.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

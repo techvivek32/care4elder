@@ -171,13 +171,16 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -185,7 +188,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           style: GoogleFonts.roboto(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: colorScheme.onSurface,
           ),
         ),
         actions: [
@@ -193,13 +196,16 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
             listenable: _profileService,
             builder: (context, child) {
               if (_profileService.isLoading) {
-                return const Center(
+                return Center(
                   child: Padding(
-                    padding: EdgeInsets.only(right: 16.0),
+                    padding: const EdgeInsets.only(right: 16.0),
                     child: SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colorScheme.primary,
+                      ),
                     ),
                   ),
                 );
@@ -233,7 +239,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                       children: [
                         CircleAvatar(
                           radius: 50,
-                          backgroundColor: Colors.grey.shade200,
+                          backgroundColor: colorScheme.surfaceContainerHighest,
                           backgroundImage: _profileService
                                       .currentUser?.profilePictureUrl
                                       .isNotEmpty ==
@@ -245,10 +251,10 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                           child: _profileService.currentUser?.profilePictureUrl
                                       .isEmpty ==
                                   true
-                              ? const Icon(
+                              ? Icon(
                                   Icons.person,
                                   size: 50,
-                                  color: Colors.grey,
+                                  color: colorScheme.onSurface.withOpacity(0.4),
                                 )
                               : null,
                         ),
@@ -292,6 +298,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               ),
               const SizedBox(height: 32),
               _buildTextField(
+                context,
                 controller: _nameController,
                 label: 'Full Name',
                 icon: Icons.person_outline,
@@ -300,6 +307,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               ),
               const SizedBox(height: 16),
               _buildTextField(
+                context,
                 controller: _emailController,
                 label: 'Email',
                 icon: Icons.email_outlined,
@@ -309,6 +317,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               ),
               const SizedBox(height: 16),
               _buildTextField(
+                context,
                 controller: _phoneController,
                 label: 'Phone Number',
                 icon: Icons.phone_outlined,
@@ -329,6 +338,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               ),
               const SizedBox(height: 16),
               _buildTextField(
+                context,
                 controller: _dobController,
                 label: 'Date of Birth',
                 icon: Icons.calendar_today_outlined,
@@ -340,6 +350,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               ),
               const SizedBox(height: 16),
               _buildTextField(
+                context,
                 controller: _locationController,
                 label: 'Location',
                 icon: Icons.location_on_outlined,
@@ -354,7 +365,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildTextField(
+    BuildContext context, {
     required TextEditingController controller,
     required String label,
     required IconData icon,
@@ -364,6 +376,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     String? Function(String?)? validator,
     List<TextInputFormatter>? inputFormatters,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -371,23 +385,25 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       onTap: onTap,
       validator: validator,
       inputFormatters: inputFormatters,
+      style: GoogleFonts.roboto(color: colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.textGrey),
+        labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+        prefixIcon: Icon(icon, color: colorScheme.onSurface.withOpacity(0.4)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
         ),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: colorScheme.surfaceContainerLow,
       ),
     );
   }

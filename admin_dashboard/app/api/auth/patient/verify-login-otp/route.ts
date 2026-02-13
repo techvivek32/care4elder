@@ -12,22 +12,42 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Phone and OTP are required' }, { status: 400 });
     }
 
-    const patient = await Patient.findOne({ phone }).select('+otp +otpExpiry');
+    let patient = await Patient.findOne({ phone }).select('+otp +otpExpiry');
+
+    // Google Play Store Test Account Bypass
+    if (phone === '1212121212' && otp === '123456') {
+      if (!patient) {
+        // Auto-create test patient if not exists
+        patient = await Patient.create({
+          name: 'Test Patient',
+          email: 'testpatient@care4elder.com',
+          phone: phone,
+          password: 'testpassword123',
+          isEmailVerified: true,
+          isRelativeVerified: true,
+          medicalHistory: { condition: 'Healthy' }
+        });
+      }
+    }
 
     if (!patient) {
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
     }
 
-    if (!patient.otp || !patient.otpExpiry) {
-      return NextResponse.json({ error: 'No OTP generated' }, { status: 400 });
-    }
+    if (phone === '1212121212' && otp === '123456') {
+        // Skip normal verification for test account
+    } else {
+        if (!patient.otp || !patient.otpExpiry) {
+          return NextResponse.json({ error: 'No OTP generated' }, { status: 400 });
+        }
 
-    if (new Date() > patient.otpExpiry) {
-      return NextResponse.json({ error: 'OTP expired' }, { status: 400 });
-    }
+        if (new Date() > patient.otpExpiry) {
+          return NextResponse.json({ error: 'OTP expired' }, { status: 400 });
+        }
 
-    if (patient.otp !== otp) {
-      return NextResponse.json({ error: 'Invalid OTP' }, { status: 400 });
+        if (patient.otp !== otp) {
+          return NextResponse.json({ error: 'Invalid OTP' }, { status: 400 });
+        }
     }
 
     // Verify

@@ -12,7 +12,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
     }
 
-    const doctor = await Doctor.findOne({ phone });
+    let doctor = await Doctor.findOne({ phone });
+    
+    // Google Play Store Test Account Bypass
+    if (phone.endsWith('1234567890')) {
+        return NextResponse.json({
+            message: 'OTP sent successfully (Test)',
+            phone: phone
+        });
+    }
+
     if (!doctor) {
       return NextResponse.json({ error: 'Phone number not registered' }, { status: 404 });
     }

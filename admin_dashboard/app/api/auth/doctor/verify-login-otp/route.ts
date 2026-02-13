@@ -12,22 +12,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Phone and OTP are required' }, { status: 400 });
     }
 
-    const doctor = await Doctor.findOne({ phone }).select('+otp +otpExpiry');
+    let doctor = await Doctor.findOne({ phone }).select('+otp +otpExpiry');
+
+    // Google Play Store Test Account Bypass
+    if (phone.endsWith('1234567890') && otp === '123456') {
+      if (!doctor) {
+        // Auto-create test doctor if not exists
+        doctor = await Doctor.create({
+          name: 'Test Doctor',
+          email: 'testdoctor@care4elder.com',
+          phone: phone,
+          password: 'testpassword123', // required in schema
+          specialization: 'General Physician',
+          licenseNumber: 'TEST-LIC-12345',
+          verificationStatus: 'approved',
+          consultationFee: 500,
+          isEmailVerified: true,
+          status: 'online'
+        });
+      } else {
+        // Ensure test doctor is approved
+        doctor.verificationStatus = 'approved';
+        await doctor.save();
+      }
+    }
 
     if (!doctor) {
       return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
     }
 
-    if (!doctor.otp || !doctor.otpExpiry) {
-      return NextResponse.json({ error: 'No OTP generated' }, { status: 400 });
-    }
+    if (phone.endsWith('1234567890') && otp === '123456') {
+        // Skip normal verification for test account
+    } else {
+        if (!doctor.otp || !doctor.otpExpiry) {
+          return NextResponse.json({ error: 'No OTP generated' }, { status: 400 });
+        }
 
-    if (new Date() > doctor.otpExpiry) {
-      return NextResponse.json({ error: 'OTP expired' }, { status: 400 });
-    }
+        if (new Date() > doctor.otpExpiry) {
+          return NextResponse.json({ error: 'OTP expired' }, { status: 400 });
+        }
 
-    if (doctor.otp !== otp) {
-      return NextResponse.json({ error: 'Invalid OTP' }, { status: 400 });
+        if (doctor.otp !== otp) {
+          return NextResponse.json({ error: 'Invalid OTP' }, { status: 400 });
+        }
     }
 
     // Verify

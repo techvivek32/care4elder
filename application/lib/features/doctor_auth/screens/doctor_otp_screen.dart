@@ -318,17 +318,31 @@ class _DoctorOtpScreenState extends State<DoctorOtpScreen> {
                 ),
               ],
               const SizedBox(height: 32),
-              SizedBox(
+              Container(
                 width: double.infinity,
                 height: 56,
+                decoration: BoxDecoration(
+                  gradient: Theme.of(context).brightness == Brightness.light
+                      ? AppColors.premiumGradient
+                      : AppColors.darkPremiumGradient,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryBlue.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleVerify,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(30),
                     ),
-                    elevation: 2,
+                    elevation: 0,
                   ),
                   child: _isLoading
                       ? const SizedBox(

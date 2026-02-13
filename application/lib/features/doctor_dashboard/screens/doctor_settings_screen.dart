@@ -17,6 +17,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListenableBuilder(
       listenable: DoctorProfileService(),
       builder: (context, child) {
@@ -26,20 +27,20 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
             fees['standard'] ?? profile.consultationFees?['standard'] ?? 500;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
           appBar: AppBar(
-            backgroundColor: const Color(0xFFF8FAFC),
+            backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
             elevation: 0,
             leading: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back,
-                      color: Colors.black, size: 20),
+                  icon: Icon(Icons.arrow_back,
+                      color: isDark ? Colors.white : Colors.black, size: 20),
                   onPressed: () => context.pop(),
                 ),
               ),
@@ -47,7 +48,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
             title: Text(
               'Settings',
               style: GoogleFonts.roboto(
-                color: Colors.black,
+                color: isDark ? Colors.white : Colors.black,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -62,35 +63,17 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                 _buildSectionHeader('PREFERENCES'),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? AppColors.darkCardBackground : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Column(
-                    /*
-                    children: [
-                      _buildSettingItem(
-                        icon: Icons.notifications_none,
-                        title: 'Notifications',
-                        subtitle: 'Manage push notifications',
-                        trailing: Switch(
-                          value: _notificationsEnabled,
-                          onChanged: (value) {
-                            setState(() {
-                              _notificationsEnabled = value;
-                            });
-                          },
-                          activeThumbColor: AppColors.primaryBlue,
-                        ),
-                      ),
-                    ],
-                    */
                     children: [],
                   ),
                 ),
@@ -98,11 +81,11 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                 _buildSectionHeader('PRACTICE'),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? AppColors.darkCardBackground : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -114,22 +97,27 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                         icon: Icons.access_time,
                         title: 'Availability',
                         subtitle: 'Manage working hours',
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: Colors.grey,
+                          color: isDark ? Colors.white38 : Colors.grey,
                         ),
                         onTap: () {
                           context.push('/doctor/settings/availability');
                         },
                       ),
-                      const Divider(height: 1, indent: 60, endIndent: 20),
+                      Divider(
+                        height: 1,
+                        indent: 60,
+                        endIndent: 20,
+                        color: isDark ? Colors.white10 : null,
+                      ),
                       _buildSettingItem(
                         icon: Icons.credit_card,
                         title: 'Consultation Fee',
                         subtitle: '₹$standardFee per session',
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: Colors.grey,
+                          color: isDark ? Colors.white38 : Colors.grey,
                         ),
                         onTap: () {
                           context.push('/doctor/settings/consultation-fee');
@@ -142,11 +130,11 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                 _buildSectionHeader('SECURITY'),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? AppColors.darkCardBackground : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -157,9 +145,9 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                       _buildSettingItem(
                         icon: Icons.lock_outline,
                         title: 'Change Password',
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: Colors.grey,
+                          color: isDark ? Colors.white38 : Colors.grey,
                         ),
                         onTap: () {
                           context.push('/doctor/settings/change-password');
@@ -172,11 +160,11 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                 _buildSectionHeader('SUPPORT'),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? AppColors.darkCardBackground : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -187,19 +175,24 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                       _buildSettingItem(
                         icon: Icons.description_outlined,
                         title: 'Terms of Service',
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: Colors.grey,
+                          color: isDark ? Colors.white38 : Colors.grey,
                         ),
                         onTap: () {},
                       ),
-                      const Divider(height: 1, indent: 60, endIndent: 20),
+                      Divider(
+                        height: 1,
+                        indent: 60,
+                        endIndent: 20,
+                        color: isDark ? Colors.white10 : null,
+                      ),
                       _buildSettingItem(
                         icon: Icons.help_outline,
                         title: 'Help & Support',
-                        trailing: const Icon(
+                        trailing: Icon(
                           Icons.chevron_right,
-                          color: Colors.grey,
+                          color: isDark ? Colors.white38 : Colors.grey,
                         ),
                         onTap: () {},
                       ),
@@ -210,11 +203,11 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                 _buildSectionHeader('ACCOUNT'),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? AppColors.darkCardBackground : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -245,20 +238,42 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
   }
 
   Future<void> _handleLogout() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        backgroundColor: isDark ? AppColors.darkCardBackground : Colors.white,
+        title: Text(
+          'Logout',
+          style: GoogleFonts.roboto(
+            color: isDark ? Colors.white : AppColors.textDark,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to logout?',
+          style: GoogleFonts.roboto(
+            color: isDark ? Colors.white70 : AppColors.textGrey,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.roboto(
+                color: isDark ? Colors.white38 : AppColors.textGrey,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Logout'),
+            child: Text(
+              'Logout',
+              style: GoogleFonts.roboto(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -273,6 +288,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 12),
       child: Text(
@@ -280,7 +296,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
         style: GoogleFonts.roboto(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: Colors.grey[500],
+          color: isDark ? Colors.white38 : Colors.grey[500],
           letterSpacing: 1.2,
         ),
       ),
@@ -294,6 +310,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
     required Widget trailing,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -303,10 +320,12 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                gradient: isDark
+                    ? AppColors.darkPremiumGradient
+                    : AppColors.premiumGradient,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: AppColors.textDark, size: 20),
+              child: Icon(icon, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -318,7 +337,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+                      color: isDark ? Colors.white : AppColors.textDark,
                     ),
                   ),
                   if (subtitle != null) ...[
@@ -327,7 +346,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                       subtitle,
                       style: GoogleFonts.roboto(
                         fontSize: 13,
-                        color: Colors.grey[500],
+                        color: isDark ? Colors.white38 : Colors.grey[500],
                       ),
                     ),
                   ],

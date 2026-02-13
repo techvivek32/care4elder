@@ -142,8 +142,27 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
                 }
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryBlue, foregroundColor: Colors.white),
-            child: const Text('Submit'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: Theme.of(context).brightness == Brightness.light
+                    ? AppColors.premiumGradient
+                    : AppColors.darkPremiumGradient,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Submit',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
         ],
       ),
@@ -185,11 +204,9 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.primaryBlue, Color(0xFF1E88E5)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      gradient: Theme.of(context).brightness == Brightness.light
+                          ? AppColors.premiumGradient
+                          : AppColors.darkPremiumGradient,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(

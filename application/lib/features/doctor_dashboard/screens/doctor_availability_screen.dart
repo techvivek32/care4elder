@@ -60,19 +60,32 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.light
+          ? const Color(0xFFF8FAFC)
+          : AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: Theme.of(context).brightness == Brightness.light
+            ? const Color(0xFFF8FAFC)
+            : AppColors.darkBackground,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              gradient: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.premiumGradient
+                  : AppColors.darkPremiumGradient,
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryBlue.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
               onPressed: () => context.pop(),
             ),
           ),
@@ -80,7 +93,9 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
         title: Text(
           'Availability',
           style: GoogleFonts.roboto(
-            color: Colors.black,
+            color: Theme.of(context).brightness == Brightness.light
+                ? Colors.black
+                : Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -99,7 +114,9 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.white
+                          : AppColors.darkCardBackground,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -114,12 +131,16 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFF3E0),
+                            gradient: Theme.of(context).brightness ==
+                                    Brightness.light
+                                ? AppColors.premiumGradient
+                                : AppColors.darkPremiumGradient,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.calendar_today,
-                            color: Colors.orange,
+                            color: Colors.white,
+                            size: 20,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -132,7 +153,10 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                                 style: GoogleFonts.roboto(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textDark,
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.light
+                                      ? AppColors.textDark
+                                      : Colors.white,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -153,7 +177,8 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                               _vacationMode = value;
                             });
                           },
-                          activeThumbColor: AppColors.primaryBlue,
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: AppColors.primaryBlue,
                         ),
                       ],
                     ),
@@ -168,7 +193,9 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.white
+                          : AppColors.darkCardBackground,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -198,7 +225,10 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                                 _selectedTimezone,
                                 style: GoogleFonts.roboto(
                                   fontSize: 16,
-                                  color: AppColors.textDark,
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.light
+                                      ? AppColors.textDark
+                                      : Colors.white,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -254,7 +284,9 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.white
+                  : AppColors.darkCardBackground,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -263,8 +295,22 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                 ),
               ],
             ),
-            child: SizedBox(
+            child: Container(
               width: double.infinity,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: Theme.of(context).brightness == Brightness.light
+                    ? AppColors.premiumGradient
+                    : AppColors.darkPremiumGradient,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.2),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: ElevatedButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -272,9 +318,10 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
+                  backgroundColor: Colors.transparent,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -302,7 +349,9 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.light
+            ? Colors.white
+            : AppColors.darkCardBackground,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -320,12 +369,14 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD),
+                  gradient: Theme.of(context).brightness == Brightness.light
+                      ? AppColors.premiumGradient
+                      : AppColors.darkPremiumGradient,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.access_time,
-                  color: AppColors.primaryBlue,
+                  color: Colors.white,
                   size: 20,
                 ),
               ),
@@ -335,7 +386,9 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                 style: GoogleFonts.roboto(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? AppColors.textDark
+                      : Colors.white,
                 ),
               ),
               const Spacer(),
@@ -346,7 +399,8 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                     schedule.isOpen = value;
                   });
                 },
-                activeThumbColor: AppColors.primaryBlue,
+                activeThumbColor: Colors.white,
+                activeTrackColor: AppColors.primaryBlue,
               ),
             ],
           ),
@@ -361,9 +415,9 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
                   children: [
-                    _buildTimeChip(slot.start, slot, true),
+                    Expanded(child: _buildTimeChip(slot.start, slot, true)),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text(
                         'to',
                         style: GoogleFonts.roboto(
@@ -372,8 +426,8 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                         ),
                       ),
                     ),
-                    _buildTimeChip(slot.end, slot, false),
-                    const Spacer(),
+                    Expanded(child: _buildTimeChip(slot.end, slot, false)),
+                    const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(
                         Icons.delete_outline,
@@ -385,6 +439,8 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
                           schedule.slots.removeAt(index);
                         });
                       },
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.zero,
                     ),
                   ],
                 ),
@@ -408,7 +464,9 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
               ),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primaryBlue,
-                backgroundColor: const Color(0xFFF1F5F9),
+                backgroundColor: Theme.of(context).brightness == Brightness.light
+                    ? const Color(0xFFF1F5F9)
+                    : Colors.white10,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,
@@ -449,21 +507,34 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: Theme.of(context).brightness == Brightness.light
+              ? const Color(0xFFF8FAFC)
+              : AppColors.darkBackground,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.light
+                ? Colors.grey.shade300
+                : Colors.white24,
+          ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              time,
-              style: GoogleFonts.roboto(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
+            Flexible(
+              child: Text(
+                time,
+                style: GoogleFonts.roboto(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? AppColors.textDark
+                      : Colors.white,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 4),
             const Icon(Icons.arrow_drop_down, size: 16, color: Colors.grey),
           ],
         ),

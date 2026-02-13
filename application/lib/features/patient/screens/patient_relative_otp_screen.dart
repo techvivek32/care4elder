@@ -184,12 +184,19 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Theme.of(context).brightness == Brightness.light
+          ? colorScheme.surface
+          : AppColors.darkBackground,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: Theme.of(context).brightness == Brightness.light
+            ? colorScheme.surface
+            : AppColors.darkBackground,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+          icon: Icon(Icons.arrow_back,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? colorScheme.onSurface
+                  : Colors.white),
           onPressed: () => context.pop(),
         ),
       ),
@@ -222,7 +229,9 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                       style: GoogleFonts.roboto(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? colorScheme.onSurface
+                            : Colors.white,
                       ),
                     ),
                   ],
@@ -236,7 +245,9 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                   style: GoogleFonts.roboto(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? colorScheme.onSurface
+                        : Colors.white,
                     height: 1.2,
                   ),
                 ),
@@ -245,7 +256,9 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                   'Enter the verification code sent to the relative\'s number ${_getFormattedPhone()}',
                   style: GoogleFonts.roboto(
                     fontSize: 16,
-                    color: colorScheme.onSurfaceVariant,
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? colorScheme.onSurfaceVariant
+                        : Colors.white70,
                     height: 1.5,
                   ),
                 ),
@@ -269,7 +282,9 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                         style: GoogleFonts.roboto(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
+                          color: Theme.of(context).brightness == Brightness.light
+                              ? colorScheme.onSurface
+                              : Colors.white,
                         ),
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(1),
@@ -278,19 +293,30 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                         decoration: InputDecoration(
                           contentPadding: EdgeInsets.zero,
                           filled: true,
-                          fillColor: colorScheme.surface,
+                          fillColor: Theme.of(context).brightness ==
+                                  Brightness.light
+                              ? colorScheme.surface
+                              : AppColors.darkCardBackground,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: colorScheme.outlineVariant),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? colorScheme.outlineVariant
+                                    : Colors.white24),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: colorScheme.outlineVariant),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? colorScheme.outlineVariant
+                                    : Colors.white24),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: colorScheme.primary,
+                              color: AppColors.primaryBlue,
                               width: 2,
                             ),
                           ),
@@ -316,7 +342,7 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                             ? TextSpan(
                                 text: 'Resend',
                                 style: GoogleFonts.roboto(
-                                  color: colorScheme.primary,
+                                  color: AppColors.primaryBlue,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 recognizer: TapGestureRecognizer()
@@ -325,7 +351,10 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
                             : TextSpan(
                                 text: 'Resend in ${_start}s',
                                 style: GoogleFonts.roboto(
-                                  color: colorScheme.onSurface,
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.light
+                                      ? colorScheme.onSurface
+                                      : Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

@@ -445,26 +445,40 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
                           const SizedBox(height: 24),
 
                           // Action Button
-                          SizedBox(
+                          Container(
                             width: double.infinity,
-                            height: 52,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              gradient: Theme.of(context).brightness == Brightness.light
+                                  ? AppColors.premiumGradient
+                                  : AppColors.darkPremiumGradient,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primaryBlue.withOpacity(0.2),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryBlue,
+                                backgroundColor: Colors.transparent,
                                 foregroundColor: Colors.white,
+                                shadowColor: Colors.transparent,
                                 padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
+                                  vertical: 0,
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(26),
+                                  borderRadius: BorderRadius.circular(30),
                                 ),
-                                elevation: 1,
+                                elevation: 0,
                               ),
                               child: _isLoading
                                   ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
+                                      height: 24,
+                                      width: 24,
                                       child: CircularProgressIndicator(
                                         color: Colors.white,
                                         strokeWidth: 2,

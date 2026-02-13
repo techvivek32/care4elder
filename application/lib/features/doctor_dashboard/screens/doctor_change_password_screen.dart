@@ -64,20 +64,22 @@ class _DoctorChangePasswordScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+              icon: Icon(Icons.arrow_back,
+                  color: isDark ? Colors.white : Colors.black, size: 20),
               onPressed: () => context.pop(),
             ),
           ),
@@ -85,7 +87,7 @@ class _DoctorChangePasswordScreenState
         title: Text(
           'Change Password',
           style: GoogleFonts.roboto(
-            color: Colors.black,
+            color: isDark ? Colors.white : Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -104,7 +106,7 @@ class _DoctorChangePasswordScreenState
                 style: GoogleFonts.roboto(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: isDark ? Colors.white : AppColors.textDark,
                 ),
               ),
               const SizedBox(height: 8),
@@ -112,7 +114,7 @@ class _DoctorChangePasswordScreenState
                 'Use a strong password with at least 8 characters.',
                 style: GoogleFonts.roboto(
                   fontSize: 13,
-                  color: Colors.grey[600],
+                  color: isDark ? Colors.white38 : Colors.grey[600],
                 ),
               ),
               const SizedBox(height: 24),
@@ -164,13 +166,27 @@ class _DoctorChangePasswordScreenState
                 },
               ),
               const SizedBox(height: 16),
-              SizedBox(
+              Container(
                 width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: isDark
+                      ? AppColors.darkPremiumGradient
+                      : AppColors.premiumGradient,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryBlue.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _handleSave,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
+                    backgroundColor: Colors.transparent,
                     foregroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -185,7 +201,12 @@ class _DoctorChangePasswordScreenState
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Update Password'),
+                      : Text(
+                          'Update Password',
+                          style: GoogleFonts.roboto(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -203,14 +224,15 @@ class _DoctorChangePasswordScreenState
     required VoidCallback onToggle,
     required String? Function(String?) validator,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -221,17 +243,22 @@ class _DoctorChangePasswordScreenState
         obscureText: obscureText,
         validator: validator,
         style: GoogleFonts.roboto(
-          color: AppColors.textDark,
+          color: isDark ? Colors.white : AppColors.textDark,
           fontSize: 16,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: GoogleFonts.roboto(color: Colors.grey),
-          prefixIcon: Icon(icon, color: AppColors.primaryBlue),
+          labelStyle: GoogleFonts.roboto(
+            color: isDark ? Colors.white38 : Colors.grey,
+          ),
+          prefixIcon: Icon(
+            icon,
+            color: isDark ? AppColors.primaryBlue : AppColors.primaryBlue,
+          ),
           suffixIcon: IconButton(
             icon: Icon(
               obscureText ? Icons.visibility_off : Icons.visibility,
-              color: Colors.grey,
+              color: isDark ? Colors.white38 : Colors.grey,
             ),
             onPressed: onToggle,
           ),
@@ -240,7 +267,7 @@ class _DoctorChangePasswordScreenState
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: isDark ? AppColors.darkCardBackground : Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
       ),

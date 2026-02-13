@@ -182,12 +182,16 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   void _showFilterSheet() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkBackground
+          : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
             return SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -199,7 +203,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                       style: GoogleFonts.roboto(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: isDark ? Colors.white : AppColors.textDark,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -207,7 +211,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                       'Status',
                       style: GoogleFonts.roboto(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: isDark ? Colors.white70 : AppColors.textDark,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -229,7 +233,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                       'Type',
                       style: GoogleFonts.roboto(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: isDark ? Colors.white70 : AppColors.textDark,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -251,7 +255,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                       'Date Range',
                       style: GoogleFonts.roboto(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: isDark ? Colors.white70 : AppColors.textDark,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -283,8 +287,12 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                               Navigator.pop(context);
                             },
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.textDark,
-                              side: BorderSide(color: Colors.grey.shade300),
+                              foregroundColor:
+                                  isDark ? Colors.white : AppColors.textDark,
+                              side: BorderSide(
+                                  color: isDark
+                                      ? Colors.white10
+                                      : Colors.grey.shade300),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -295,22 +303,40 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _syncSelectionWithFilters();
-                              });
-                              Navigator.pop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryBlue,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              gradient: isDark
+                                  ? AppColors.darkPremiumGradient
+                                  : AppColors.premiumGradient,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primaryBlue.withOpacity(0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            child: const Text('Apply Filters'),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _syncSelectionWithFilters();
+                                });
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                shadowColor: Colors.transparent,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text('Apply Filters'),
+                            ),
                           ),
                         ),
                       ],
@@ -328,8 +354,10 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final stats = _stats;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadHistory,
@@ -342,26 +370,29 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Consultation History',
-                      style: GoogleFonts.roboto(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                    Expanded(
+                      child: Text(
+                        'Consultation History',
+                        style: GoogleFonts.roboto(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : AppColors.textDark,
+                        ),
                       ),
                     ),
                     Row(
                       children: [
                         IconButton(
                           onPressed: _toggleSearch,
-                          icon: const Icon(Icons.search, color: Colors.black54),
+                          icon: Icon(Icons.search,
+                              color: isDark ? Colors.white70 : Colors.black54),
                           tooltip: 'Search',
                         ),
                         IconButton(
                           onPressed: _showFilterSheet,
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.filter_list,
-                            color: Colors.black54,
+                            color: isDark ? Colors.white70 : Colors.black54,
                           ),
                           tooltip: 'Filter',
                         ),
@@ -373,21 +404,27 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: _searchController,
+                    style: GoogleFonts.roboto(
+                      color: isDark ? Colors.white : AppColors.textDark,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Search patients, notes, or type',
                       hintStyle: GoogleFonts.roboto(
-                        color: AppColors.textGrey,
+                        color: isDark ? Colors.white38 : AppColors.textGrey,
                         fontSize: 14,
                       ),
-                      prefixIcon: const Icon(Icons.search),
+                      prefixIcon: Icon(Icons.search,
+                          color: isDark ? Colors.white70 : Colors.black54),
                       suffixIcon: _searchController.text.isEmpty
                           ? null
                           : IconButton(
-                              icon: const Icon(Icons.close),
+                              icon: Icon(Icons.close,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54),
                               onPressed: () => _searchController.clear(),
                             ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: isDark ? AppColors.darkCardBackground : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
@@ -427,18 +464,32 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                         Text(
                           _errorMessage!,
                           style: GoogleFonts.roboto(
-                            color: AppColors.textDark,
+                            color: isDark ? Colors.white : AppColors.textDark,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: _loadHistory,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryBlue,
-                            foregroundColor: Colors.white,
+                        Container(
+                          width: 120,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            gradient: isDark
+                                ? AppColors.darkPremiumGradient
+                                : AppColors.premiumGradient,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text('Retry'),
+                          child: ElevatedButton(
+                            onPressed: _loadHistory,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Retry'),
+                          ),
                         ),
                       ],
                     ),
@@ -448,7 +499,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                     child: Text(
                       'No history matches your search or filters.',
                       style: GoogleFonts.roboto(
-                        color: AppColors.textGrey,
+                        color: isDark ? Colors.white70 : AppColors.textGrey,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -478,19 +529,46 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
     required bool selected,
     required VoidCallback onTap,
   }) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onTap(),
-      selectedColor: AppColors.primaryBlue.withOpacity(0.12),
-      backgroundColor: Colors.white,
-      labelStyle: GoogleFonts.roboto(
-        fontWeight: FontWeight.w600,
-        color: selected ? AppColors.primaryBlue : AppColors.textGrey,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      side: BorderSide(
-        color: selected ? AppColors.primaryBlue : Colors.grey.shade300,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: selected
+              ? (isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient)
+              : null,
+          color: selected
+              ? null
+              : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected
+                ? Colors.transparent
+                : (isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade300),
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.roboto(
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+            color: selected
+                ? Colors.white
+                : (isDark ? Colors.white70 : AppColors.textDark),
+          ),
+        ),
       ),
     );
   }
@@ -501,47 +579,64 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
     required Color valueColor,
     bool showStar = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          color: isDark ? AppColors.darkCardBackground : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: isDark
+                  ? Colors.black.withOpacity(0.2)
+                  : AppColors.primaryBlue.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  value,
-                  style: GoogleFonts.roboto(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: valueColor,
-                  ),
-                ),
-                if (showStar) ...[
-                  const SizedBox(width: 4),
-                  const Icon(Icons.star, color: Color(0xFFFFAB00), size: 24),
-                ],
-              ],
-            ),
-            const SizedBox(height: 12),
             Text(
               label,
               style: GoogleFonts.roboto(
-                fontSize: 14,
-                color: const Color(0xFF64748B),
+                fontSize: 12,
+                color: isDark ? Colors.white38 : AppColors.textGrey,
                 fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (showStar) ...[
+                  const Icon(Icons.star, color: Color(0xFFFFAB00), size: 16),
+                  const SizedBox(width: 4),
+                ],
+                Text(
+                  value,
+                  style: GoogleFonts.roboto(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : AppColors.textDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Container(
+              width: 24,
+              height: 3,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [valueColor, valueColor.withOpacity(0.3)],
+                ),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
           ],
@@ -551,204 +646,208 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   }
 
   Widget _buildHistoryCard(ConsultationHistoryItem item) {
-    final isSelected = _selectedItem?.id == item.id;
-    final statusColor = item.status == HistoryStatus.completed
-        ? const Color(0xFF2E7D32)
-        : const Color(0xFFD32F2F);
-    final statusBg = item.status == HistoryStatus.completed
-        ? const Color(0xFFE8F5E9)
-        : const Color(0xFFFFEBEE);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final formattedDate =
+        '${item.date.day} ${_getMonth(item.date.month)} ${item.date.year}';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: isSelected
-            ? Border.all(color: AppColors.primaryBlue, width: 1.2)
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundImage: item.image.isNotEmpty
-                  ? NetworkImage(item.image)
-                  : const AssetImage('assets/images/logo.png') as ImageProvider,
-              backgroundColor: Colors.grey[200],
-              onBackgroundImageError: (exception, stackTrace) {},
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: GoogleFonts.roboto(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        item.type == 'Video'
-                            ? Icons.videocam_outlined
-                            : Icons.phone_outlined,
-                        size: 16,
-                        color: AppColors.textGrey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${item.type} • ${item.duration}',
-                        style: GoogleFonts.roboto(
-                          fontSize: 13,
-                          color: AppColors.textGrey,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _formatDate(item.date),
-                    style: GoogleFonts.roboto(
-                      fontSize: 13,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
+    return InkWell(
+      onTap: () {
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => DoctorHistoryDetailScreen(
+                callRequest: item.originalData!,
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusBg,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    item.status.label,
-                    style: GoogleFonts.roboto(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  item.price == 0 ? '-' : '₹${item.price}',
-                  style: GoogleFonts.roboto(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: statusColor,
-                  ),
-                ),
-              ],
+          ).then((_) => _loadHistory());
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCardBackground : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : AppColors.primaryBlue.withOpacity(0.1),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withOpacity(0.2)
+                  : AppColors.primaryBlue.withOpacity(0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDetailsCard(ConsultationHistoryItem item) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildDetailRow('Patient', item.name),
-          const SizedBox(height: 10),
-          _buildDetailRow('Type', item.type),
-          const SizedBox(height: 10),
-          _buildDetailRow('Duration', item.duration),
-          const SizedBox(height: 10),
-          _buildDetailRow('Date', _formatDate(item.date)),
-          const SizedBox(height: 10),
-          _buildDetailRow('Status', item.status.label),
-          const SizedBox(height: 10),
-          _buildDetailRow('Notes', item.notes),
-          const SizedBox(height: 10),
-          _buildDetailRow('Prescription', item.prescription),
-          const SizedBox(height: 10),
-          _buildDetailRow('Follow-up', item.followUp),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String title, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 100,
-          child: Text(
-            title,
-            style: GoogleFonts.roboto(
-              color: AppColors.textGrey,
-              fontWeight: FontWeight.w600,
-            ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      colors: [
+                        (item.status == HistoryStatus.completed
+                                ? Colors.green
+                                : Colors.red)
+                            .withOpacity(0.05),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryBlue.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(2),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isDark ? AppColors.darkCardBackground : Colors.white,
+                        ),
+                        child: ClipOval(
+                          child: item.image.isNotEmpty
+                              ? Image.network(
+                                  item.image,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Image.asset(
+                                    'assets/images/logo.png',
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Image.asset(
+                                  'assets/images/logo.png',
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                item.name,
+                                style: GoogleFonts.roboto(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : AppColors.textDark,
+                                ),
+                              ),
+                              Text(
+                                '₹${item.price}',
+                                style: GoogleFonts.roboto(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : AppColors.primaryBlue,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(
+                                item.type == 'Video'
+                                    ? Icons.videocam
+                                    : Icons.call,
+                                size: 14,
+                                color: isDark ? Colors.white54 : AppColors.textGrey,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${item.type} • ${item.duration}',
+                                style: GoogleFonts.roboto(
+                                  fontSize: 13,
+                                  color: isDark ? Colors.white54 : AppColors.textGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                formattedDate,
+                                style: GoogleFonts.roboto(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.white38 : AppColors.textGrey,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: (item.status == HistoryStatus.completed
+                                          ? Colors.green
+                                          : Colors.red)
+                                      .withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  item.status == HistoryStatus.completed
+                                      ? 'Completed'
+                                      : 'Cancelled',
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: item.status == HistoryStatus.completed
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        Expanded(
-          child: Text(
-            value,
-            style: GoogleFonts.roboto(
-              color: AppColors.textDark,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _getMonth(int month) {
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    return months[month - 1];
   }
 }
 

@@ -167,20 +167,22 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+              icon: Icon(Icons.arrow_back,
+                  color: isDark ? Colors.white : Colors.black, size: 20),
               onPressed: () => context.pop(),
             ),
           ),
@@ -188,7 +190,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
         title: Text(
           'Edit Profile',
           style: GoogleFonts.roboto(
-            color: Colors.black,
+            color: isDark ? Colors.white : Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -278,14 +280,29 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
                       validator: (v) => v?.isEmpty == true ? 'About section is required' : null,
                     ),
                     const SizedBox(height: 32),
-                    SizedBox(
+                    Container(
                       width: double.infinity,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: isDark
+                            ? AppColors.darkPremiumGradient
+                            : AppColors.premiumGradient,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryBlue.withOpacity(0.2),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
                       child: ElevatedButton(
                         onPressed: _isSaving ? null : _saveProfile,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryBlue,
+                          backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 0),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -293,8 +310,8 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
                         ),
                         child: _isSaving
                             ? const SizedBox(
-                                height: 20,
-                                width: 20,
+                                height: 24,
+                                width: 24,
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2,
@@ -318,6 +335,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
   }
 
   Widget _buildImagePicker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     Widget imageContent;
 
     if (_pickedImage != null && _pickedImage!.bytes != null) {
@@ -358,11 +376,14 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
             height: 120,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 4),
-              color: const Color(0xFFE3F2FD),
+              border: Border.all(
+                color: isDark ? Colors.white.withOpacity(0.1) : Colors.white,
+                width: 4,
+              ),
+              color: isDark ? AppColors.darkCardBackground : const Color(0xFFE3F2FD),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -375,20 +396,29 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
           Positioned(
             bottom: 0,
             right: 0,
-            child: Material(
-              color: AppColors.primaryBlue,
-              shape: const CircleBorder(),
-              elevation: 4,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                gradient: isDark
+                    ? AppColors.darkPremiumGradient
+                    : AppColors.premiumGradient,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: InkWell(
                 onTap: _pickImage,
-                customBorder: const CircleBorder(),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+                borderRadius: BorderRadius.circular(18),
+                child: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                  size: 20,
                 ),
               ),
             ),
@@ -408,13 +438,14 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
     int maxLines = 1,
     String? prefixText,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -427,16 +458,18 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
         inputFormatters: inputFormatters,
         maxLines: maxLines,
         style: GoogleFonts.roboto(
-          color: AppColors.textDark,
+          color: isDark ? Colors.white : AppColors.textDark,
           fontSize: 16,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: GoogleFonts.roboto(color: Colors.grey),
-          prefixIcon: Icon(icon, color: AppColors.primaryBlue),
+          labelStyle: GoogleFonts.roboto(
+            color: isDark ? Colors.white38 : Colors.grey,
+          ),
+          prefixIcon: Icon(icon, color: isDark ? const Color(0xFF2196F3) : AppColors.primaryBlue),
           prefixText: prefixText,
           prefixStyle: GoogleFonts.roboto(
-            color: AppColors.textDark,
+            color: isDark ? Colors.white : AppColors.textDark,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -445,7 +478,7 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: isDark ? AppColors.darkCardBackground : Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
       ),

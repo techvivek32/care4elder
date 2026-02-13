@@ -68,16 +68,17 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
     final rejectedCount = _requests
         .where((req) => req.status == RequestStatus.rejected)
         .length;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
         elevation: 0,
         title: Text(
           'Consultation Requests',
           style: GoogleFonts.roboto(
-            color: AppColors.textDark,
+            color: isDark ? Colors.white : AppColors.textDark,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -94,12 +95,13 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? AppColors.darkCardBackground : Colors.white,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(
+                    color: isDark ? Colors.white10 : Colors.grey.shade200),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -110,11 +112,13 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
                 controller: _tabController,
                 dividerColor: Colors.transparent,
                 indicator: BoxDecoration(
-                  color: AppColors.primaryBlue,
+                  gradient: isDark
+                      ? AppColors.darkPremiumGradient
+                      : AppColors.premiumGradient,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: AppColors.primaryBlue.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -122,7 +126,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
                 labelColor: Colors.white,
-                unselectedLabelColor: AppColors.textGrey,
+                unselectedLabelColor: isDark ? Colors.white38 : AppColors.textGrey,
                 labelStyle: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
@@ -185,6 +189,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
 
   Widget _buildRequestsList(RequestStatus status) {
     final filtered = _requests.where((req) => req.status == status).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (filtered.isEmpty) {
       return Center(
         child: Text(
@@ -194,7 +199,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
               ? 'No accepted requests'
               : 'No rejected requests',
           style: GoogleFonts.roboto(
-            color: AppColors.textGrey,
+            color: isDark ? Colors.white38 : AppColors.textGrey,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -224,6 +229,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
     final isVideo = req.type == 'Video Call';
     final statusLabel = _statusLabel(req.status);
     final statusColor = _statusColor(req.status);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
       color: Colors.transparent,
@@ -244,11 +250,12 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? AppColors.darkCardBackground : Colors.white,
             borderRadius: BorderRadius.circular(24),
+            border: isDark ? Border.all(color: Colors.white.withOpacity(0.05)) : null,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -262,10 +269,11 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
                 children: [
                   CircleAvatar(
                     radius: 24,
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: isDark ? Colors.white10 : Colors.grey.shade200,
                     backgroundImage: AssetImage(req.image),
                     onBackgroundImageError: (exception, stackTrace) {},
-                    child: const Icon(Icons.person, color: Colors.grey),
+                    child: Icon(Icons.person,
+                        color: isDark ? Colors.white24 : Colors.grey),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -282,7 +290,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
                               style: GoogleFonts.roboto(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textDark,
+                                color: isDark ? Colors.white : AppColors.textDark,
                                 decoration: TextDecoration.none,
                               ),
                             ),
@@ -338,14 +346,14 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
                                       ? Icons.videocam_outlined
                                       : Icons.phone_outlined,
                                   size: 16,
-                                  color: AppColors.textGrey,
+                                  color: isDark ? Colors.white38 : AppColors.textGrey,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   req.type,
                                   style: GoogleFonts.roboto(
                                     fontSize: 13,
-                                    color: AppColors.textGrey,
+                                    color: isDark ? Colors.white38 : AppColors.textGrey,
                                     decoration: TextDecoration.none,
                                   ),
                                 ),
@@ -354,17 +362,17 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.access_time,
                                   size: 16,
-                                  color: AppColors.textGrey,
+                                  color: isDark ? Colors.white38 : AppColors.textGrey,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   req.time,
                                   style: GoogleFonts.roboto(
                                     fontSize: 13,
-                                    color: AppColors.textGrey,
+                                    color: isDark ? Colors.white38 : AppColors.textGrey,
                                     decoration: TextDecoration.none,
                                   ),
                                 ),
@@ -382,7 +390,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
                 req.symptom,
                 style: GoogleFonts.roboto(
                   fontSize: 14,
-                  color: AppColors.textGrey,
+                  color: isDark ? Colors.white70 : AppColors.textGrey,
                   height: 1.4,
                   decoration: TextDecoration.none,
                 ),
@@ -397,39 +405,56 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
   }
 
   Widget _buildActionButtons(ConsultationRequest request) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (request.status == RequestStatus.pending) {
       return Row(
         children: [
           Expanded(
-            child: ElevatedButton(
-              onPressed: () {
-                _updateStatus(request, RequestStatus.accepted);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Request accepted')),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.check, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Accept',
-                    style: GoogleFonts.roboto(
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.none,
-                    ),
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: isDark
+                    ? AppColors.darkPremiumGradient
+                    : AppColors.premiumGradient,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
+              ),
+              child: ElevatedButton(
+                onPressed: () {
+                  _updateStatus(request, RequestStatus.accepted);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Request accepted')),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.check, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Accept',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -474,32 +499,48 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
       return Row(
         children: [
           Expanded(
-            child: ElevatedButton(
-              onPressed: () {
-                context.push('/doctor/call/${request.id}');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.videocam_outlined, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Start Call',
-                    style: GoogleFonts.roboto(
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.none,
-                    ),
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: isDark
+                    ? AppColors.darkPremiumGradient
+                    : AppColors.premiumGradient,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
+              ),
+              child: ElevatedButton(
+                onPressed: () {
+                  context.push('/doctor/call/${request.id}');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.videocam_outlined, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Start Call',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -543,32 +584,51 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
     return Row(
       children: [
         Expanded(
-          child: ElevatedButton(
-            onPressed: () {
-              _updateStatus(request, RequestStatus.accepted);
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Request accepted')));
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryBlue,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.check, size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  'Accept',
-                  style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
+          child: Container(
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: isDark
+                  ? AppColors.darkPremiumGradient
+                  : AppColors.premiumGradient,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryBlue.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
               ],
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                _updateStatus(request, RequestStatus.accepted);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Request accepted')));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(vertical: 0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.check, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Accept',
+                    style: GoogleFonts.roboto(
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

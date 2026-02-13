@@ -89,6 +89,7 @@ class _DoctorShellState extends State<DoctorShell> {
   @override
   Widget build(BuildContext context) {
     final currentIndex = _currentIndexFromLocation();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return PopScope(
       canPop: false,
@@ -102,9 +103,10 @@ class _DoctorShellState extends State<DoctorShell> {
         body: widget.child,
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
+            color: isDark ? AppColors.darkBackground : Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.05),
                 blurRadius: 20,
                 offset: const Offset(0, -4),
               ),
@@ -114,16 +116,23 @@ class _DoctorShellState extends State<DoctorShell> {
             currentIndex: currentIndex,
             onTap: _onItemTapped,
             type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.white,
-            selectedItemColor: AppColors.primaryBlue,
-            unselectedItemColor: AppColors.textGrey,
+            backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
+            selectedItemColor: isDark ? const Color(0xFF2196F3) : const Color(0xFF1565C0),
+            unselectedItemColor: isDark ? Colors.white38 : AppColors.textGrey,
             selectedLabelStyle: GoogleFonts.roboto(
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
             unselectedLabelStyle: GoogleFonts.roboto(
               fontWeight: FontWeight.w500,
               fontSize: 12,
+            ),
+            selectedIconTheme: IconThemeData(
+              size: 26,
+              color: isDark ? const Color(0xFF2196F3) : const Color(0xFF1565C0),
+            ),
+            unselectedIconTheme: const IconThemeData(
+              size: 24,
             ),
             items: const [
               BottomNavigationBarItem(

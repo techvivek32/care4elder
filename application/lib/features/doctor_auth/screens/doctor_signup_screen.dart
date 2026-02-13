@@ -666,8 +666,29 @@ class _DoctorSignupScreenState extends State<DoctorSignupScreen> {
                 const SizedBox(height: 48),
 
                 // --- Continue Button ---
-                SizedBox(
+                Container(
                   width: double.infinity,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: (_isPhoneVerified && _isEmailVerified)
+                        ? (Theme.of(context).brightness == Brightness.light
+                            ? AppColors.premiumGradient
+                            : AppColors.darkPremiumGradient)
+                        : null,
+                    color: !(_isPhoneVerified && _isEmailVerified)
+                        ? AppColors.primaryBlue.withOpacity(0.5)
+                        : null,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: (_isPhoneVerified && _isEmailVerified)
+                        ? [
+                            BoxShadow(
+                              color: AppColors.primaryBlue.withOpacity(0.2),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
+                  ),
                   child: ElevatedButton(
                     onPressed: (_isPhoneVerified && _isEmailVerified)
                         ? () {
@@ -681,14 +702,15 @@ class _DoctorSignupScreenState extends State<DoctorSignupScreen> {
                           }
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
+                      backgroundColor: Colors.transparent,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shadowColor: Colors.transparent,
+                      disabledBackgroundColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      elevation: 2,
-                      disabledBackgroundColor: AppColors.primaryBlue.withOpacity(0.5),
+                      elevation: 0,
                     ),
                     child: Text(
                       'Continue to Details',

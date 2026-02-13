@@ -110,27 +110,29 @@ class _DoctorConsultationFeeScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFF8FAFC),
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+              icon: Icon(Icons.arrow_back,
+                  color: isDark ? Colors.white : Colors.black, size: 20),
               onPressed: () => context.pop(),
             ),
           ),
@@ -138,7 +140,7 @@ class _DoctorConsultationFeeScreenState
         title: Text(
           'Consultation Fee',
           style: GoogleFonts.roboto(
-            color: Colors.black,
+            color: isDark ? Colors.white : Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -186,7 +188,7 @@ class _DoctorConsultationFeeScreenState
                     'Request payments anytime. Funds are transferred to your bank account within 2 business days.',
                     style: GoogleFonts.roboto(
                       fontSize: 14,
-                      color: AppColors.textDark,
+                      color: isDark ? Colors.white70 : AppColors.textDark,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -220,13 +222,27 @@ class _DoctorConsultationFeeScreenState
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
+            Container(
               width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: isDark
+                    ? AppColors.darkPremiumGradient
+                    : AppColors.premiumGradient,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryBlue.withOpacity(0.2),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: ElevatedButton(
                 onPressed: _isSaving ? null : _saveChanges,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
+                  backgroundColor: Colors.transparent,
                   foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -261,28 +277,42 @@ class _DoctorConsultationFeeScreenState
     required String label,
     required IconData icon,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
       controller: controller,
+      style: GoogleFonts.roboto(
+        color: isDark ? Colors.white : AppColors.textDark,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Colors.grey),
+        labelStyle: GoogleFonts.roboto(
+          color: isDark ? Colors.white38 : Colors.grey,
+        ),
+        prefixIcon: Icon(icon, color: isDark ? Colors.white38 : Colors.grey),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white10 : Colors.grey.shade300,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white10 : Colors.grey.shade300,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.primaryBlue),
         ),
+        filled: true,
+        fillColor: isDark ? Colors.white.withOpacity(0.02) : Colors.transparent,
       ),
     );
   }
 
   Widget _buildSectionHeader(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 12),
       child: Text(
@@ -290,7 +320,7 @@ class _DoctorConsultationFeeScreenState
         style: GoogleFonts.roboto(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: Colors.grey[500],
+          color: isDark ? Colors.white38 : Colors.grey[500],
           letterSpacing: 1.2,
         ),
       ),
@@ -303,15 +333,18 @@ class _DoctorConsultationFeeScreenState
     required String subtitle,
     required Color color,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.grey.shade100,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -337,7 +370,7 @@ class _DoctorConsultationFeeScreenState
                   style: GoogleFonts.roboto(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+                    color: isDark ? Colors.white : AppColors.textDark,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -345,7 +378,7 @@ class _DoctorConsultationFeeScreenState
                   subtitle,
                   style: GoogleFonts.roboto(
                     fontSize: 12,
-                    color: Colors.grey[500],
+                    color: isDark ? Colors.white38 : Colors.grey[500],
                   ),
                 ),
               ],
@@ -354,9 +387,11 @@ class _DoctorConsultationFeeScreenState
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[50],
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(
+                color: isDark ? Colors.white10 : Colors.grey.shade200,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -366,7 +401,7 @@ class _DoctorConsultationFeeScreenState
                   style: GoogleFonts.roboto(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
+                    color: isDark ? Colors.white : AppColors.textDark,
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -378,7 +413,7 @@ class _DoctorConsultationFeeScreenState
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: isDark ? Colors.white : AppColors.textDark,
                     ),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
@@ -396,14 +431,15 @@ class _DoctorConsultationFeeScreenState
   }
 
   Widget _buildInfoCard({required Widget child}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -414,18 +450,21 @@ class _DoctorConsultationFeeScreenState
   }
 
   Widget _buildIncludedItem(String text) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
           const Icon(Icons.check_circle, color: AppColors.primaryBlue, size: 20),
           const SizedBox(width: 12),
-          Text(
-            text,
-            style: GoogleFonts.roboto(
-              fontSize: 14,
-              color: AppColors.textDark,
-              fontWeight: FontWeight.w500,
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                color: isDark ? Colors.white70 : AppColors.textDark,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -434,6 +473,7 @@ class _DoctorConsultationFeeScreenState
   }
 
   Widget _buildDetailRow(String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -441,7 +481,7 @@ class _DoctorConsultationFeeScreenState
           label,
           style: GoogleFonts.roboto(
             fontSize: 14,
-            color: Colors.grey[600],
+            color: isDark ? Colors.white38 : Colors.grey[600],
           ),
         ),
         Text(
@@ -449,7 +489,7 @@ class _DoctorConsultationFeeScreenState
           style: GoogleFonts.roboto(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textDark,
+            color: isDark ? Colors.white : AppColors.textDark,
           ),
         ),
       ],

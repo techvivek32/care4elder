@@ -41,10 +41,12 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFF8FAFC),
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -54,7 +56,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
         final profile = DoctorProfileService().currentProfile;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -70,12 +72,12 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                         style: GoogleFonts.roboto(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: isDark ? Colors.white : AppColors.textDark,
                         ),
                       ),
                       Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkCardBackground : Colors.white,
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
@@ -83,7 +85,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                             context.push('/doctor/settings');
                           },
                           icon: const Icon(Icons.settings_outlined),
-                          color: AppColors.textDark,
+                          color: isDark ? Colors.white70 : AppColors.textDark,
                         ),
                       ),
                     ],
@@ -95,11 +97,11 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? AppColors.darkCardBackground : Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -113,9 +115,9 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                             Container(
                               width: 100,
                               height: 100,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Color(0xFFE3F2FD),
+                                color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFE3F2FD),
                               ),
                               child: ClipOval(
                                 child: profile.profileImage != null
@@ -125,37 +127,47 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                                         placeholder: (context, url) => const Center(
                                           child: CircularProgressIndicator(strokeWidth: 2),
                                         ),
-                                        errorWidget: (context, url, error) => const Icon(
+                                        errorWidget: (context, url, error) => Icon(
                                           Icons.person,
                                           size: 50,
-                                          color: AppColors.primaryBlue,
+                                          color: isDark ? Colors.white38 : AppColors.primaryBlue,
                                         ),
                                       )
-                                    : const Icon(
+                                    : Icon(
                                         Icons.person,
                                         size: 50,
-                                        color: AppColors.primaryBlue,
+                                        color: isDark ? Colors.white38 : AppColors.primaryBlue,
                                       ),
                               ),
                             ),
                             Positioned(
                               bottom: 0,
                               right: 0,
-                              child: Material(
-                                color: AppColors.primaryBlue,
-                                shape: const CircleBorder(),
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  gradient: isDark
+                                      ? AppColors.darkPremiumGradient
+                                      : AppColors.premiumGradient,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primaryBlue.withOpacity(0.3),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
                                 child: InkWell(
                                   onTap: () {
                                     context.push('/doctor/profile/edit');
                                   },
-                                  customBorder: const CircleBorder(),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    child: const Icon(
-                                      Icons.camera_alt_outlined,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    size: 16,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -168,7 +180,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                           style: GoogleFonts.roboto(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            color: isDark ? Colors.white : AppColors.textDark,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -176,7 +188,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                           profile.specialty,
                           style: GoogleFonts.roboto(
                             fontSize: 16,
-                            color: AppColors.primaryBlue,
+                            color: isDark ? Colors.white70 : AppColors.primaryBlue,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -188,14 +200,14 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                               icon: Icons.verified,
                               label: 'Verified',
                               color: Colors.green,
-                              bgColor: const Color(0xFFE8F5E9),
+                              bgColor: isDark ? Colors.green.withOpacity(0.1) : const Color(0xFFE8F5E9),
                             ),
                             const SizedBox(width: 12),
                             _buildBadge(
                               icon: Icons.emoji_events,
                               label: 'Top Doctor',
                               color: Colors.blue,
-                              bgColor: const Color(0xFFE3F2FD),
+                              bgColor: isDark ? Colors.blue.withOpacity(0.1) : const Color(0xFFE3F2FD),
                             ),
                           ],
                         ),
@@ -225,6 +237,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                         },
                       ),
                       const SizedBox(width: 8),
+                      /* // Hiding Consultations card as requested
                       _buildStatCard(
                         profile.totalConsultations.toString(),
                         'Consultations',
@@ -233,6 +246,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                         },
                       ),
                       const SizedBox(width: 8),
+                      */
                       _buildStatCard(
                         '₹${profile.walletBalance.toStringAsFixed(0)}',
                         'Earnings',
@@ -263,7 +277,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   // Info Cards
                   _buildInfoCard(
                     icon: Icons.work_outline,
-                    iconBg: const Color(0xFFE3F2FD),
+                    iconBg: isDark ? Colors.blue.withOpacity(0.1) : const Color(0xFFE3F2FD),
                     iconColor: Colors.blue,
                     label: 'Experience',
                     value: '${profile.experience} years',
@@ -271,7 +285,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   const SizedBox(height: 16),
                   _buildInfoCard(
                     icon: Icons.school_outlined,
-                    iconBg: const Color(0xFFE8F5E9),
+                    iconBg: isDark ? Colors.green.withOpacity(0.1) : const Color(0xFFE8F5E9),
                     iconColor: Colors.green,
                     label: 'Qualifications',
                     value: profile.qualifications,
@@ -279,7 +293,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   const SizedBox(height: 16),
                   _buildInfoCard(
                     icon: Icons.local_hospital_outlined,
-                    iconBg: const Color(0xFFFCE4EC),
+                    iconBg: isDark ? Colors.pink.withOpacity(0.1) : const Color(0xFFFCE4EC),
                     iconColor: Colors.pink,
                     label: 'Hospital/Clinic',
                     value: profile.hospitalAffiliation.isNotEmpty
@@ -289,7 +303,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   const SizedBox(height: 16),
                   _buildInfoCard(
                     icon: Icons.phone_outlined,
-                    iconBg: const Color(0xFFE3F2FD),
+                    iconBg: isDark ? Colors.blue.withOpacity(0.1) : const Color(0xFFE3F2FD),
                     iconColor: Colors.blue,
                     label: 'Phone',
                     value: profile.phone,
@@ -297,7 +311,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   const SizedBox(height: 16),
                   _buildInfoCard(
                     icon: Icons.email_outlined,
-                    iconBg: const Color(0xFFE3F2FD),
+                    iconBg: isDark ? Colors.blue.withOpacity(0.1) : const Color(0xFFE3F2FD),
                     iconColor: Colors.blue,
                     label: 'Email',
                     value: profile.email,
@@ -305,7 +319,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   const SizedBox(height: 16),
                   _buildInfoCard(
                     icon: Icons.info_outline,
-                    iconBg: const Color(0xFFFFF3E0),
+                    iconBg: isDark ? Colors.orange.withOpacity(0.1) : const Color(0xFFFFF3E0),
                     iconColor: Colors.orange,
                     label: 'About',
                     value: profile.about,
@@ -314,20 +328,31 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   const SizedBox(height: 32),
 
                   // Edit Profile Button
-                  SizedBox(
+                  Container(
                     width: double.infinity,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryBlue.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: ElevatedButton(
                       onPressed: () {
                         context.push('/doctor/profile/edit');
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryBlue,
+                        backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shadowColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        elevation: 0,
                       ),
                       child: Text(
                         'Edit Profile',
@@ -361,6 +386,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 16, color: color),
           const SizedBox(width: 4),
@@ -384,6 +410,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
     Color? iconColor,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -391,11 +418,11 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? AppColors.darkCardBackground : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -415,7 +442,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                     style: GoogleFonts.roboto(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: isDark ? Colors.white : AppColors.textDark,
                     ),
                   ),
                 ],
@@ -425,7 +452,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                 label,
                 style: GoogleFonts.roboto(
                   fontSize: 12,
-                  color: AppColors.textGrey,
+                  color: isDark ? Colors.white38 : AppColors.textGrey,
                 ),
               ),
             ],
@@ -442,14 +469,15 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
     required String label,
     required String value,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -471,7 +499,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   label,
                   style: GoogleFonts.roboto(
                     fontSize: 12,
-                    color: AppColors.textGrey,
+                    color: isDark ? Colors.white38 : AppColors.textGrey,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -479,7 +507,7 @@ class _DoctorProfileTabScreenState extends State<DoctorProfileTabScreen> {
                   value,
                   style: GoogleFonts.roboto(
                     fontSize: 16,
-                    color: AppColors.textDark,
+                    color: isDark ? Colors.white : AppColors.textDark,
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 2,

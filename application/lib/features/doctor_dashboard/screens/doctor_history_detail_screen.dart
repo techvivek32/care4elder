@@ -160,25 +160,26 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final patientName = widget.callRequest.patientName;
     final patientAge = widget.callRequest.patientDob != null 
         ? (DateTime.now().difference(widget.callRequest.patientDob!).inDays / 365).floor().toString() 
         : 'N/A';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(
           'Consultation Details',
           style: GoogleFonts.roboto(
-            color: Colors.black87,
+            color: isDark ? Colors.white : Colors.black87,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black87),
           onPressed: () => context.pop(),
         ),
       ),
@@ -191,11 +192,14 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? AppColors.darkCardBackground : Colors.white,
                 borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.transparent,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -203,11 +207,35 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: widget.callRequest.patientProfile.isNotEmpty
-                        ? NetworkImage(widget.callRequest.patientProfile)
-                        : const AssetImage('assets/images/logo.png') as ImageProvider,
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
+                    ),
+                    padding: const EdgeInsets.all(2),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark ? AppColors.darkCardBackground : Colors.white,
+                      ),
+                      child: ClipOval(
+                        child: widget.callRequest.patientProfile.isNotEmpty
+                            ? Image.network(
+                                widget.callRequest.patientProfile,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Image.asset(
+                                  'assets/images/logo.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Image.asset(
+                                'assets/images/logo.png',
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -219,7 +247,7 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
                           style: GoogleFonts.roboto(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -227,7 +255,7 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
                           'Age: $patientAge • ${widget.callRequest.patientLocation}',
                           style: GoogleFonts.roboto(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: isDark ? Colors.white60 : Colors.grey[600],
                           ),
                         ),
                       ],
@@ -276,17 +304,21 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: _isSaving ? null : onTap,
       borderRadius: BorderRadius.circular(24),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? AppColors.darkCardBackground : Colors.white,
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.transparent,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -297,10 +329,11 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color,
+                color: color.withOpacity(isDark ? 0.2 : 1),
                 borderRadius: BorderRadius.circular(16),
+                border: isDark ? Border.all(color: color.withOpacity(0.5)) : null,
               ),
-              child: Icon(icon, color: Colors.white, size: 24),
+              child: Icon(icon, color: isDark ? color : Colors.white, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -312,7 +345,7 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
                     style: GoogleFonts.roboto(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -320,7 +353,7 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
                     '$count files',
                     style: GoogleFonts.roboto(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: isDark ? Colors.white60 : Colors.grey[600],
                     ),
                   ),
                 ],
@@ -534,25 +567,26 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return WillPopScope(
       onWillPop: () async {
         Navigator.of(context).pop(_files);
         return false;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8F9FA),
         appBar: AppBar(
           title: Text(
             widget.title,
             style: GoogleFonts.roboto(
-              color: Colors.black87,
+              color: isDark ? Colors.white : Colors.black87,
               fontWeight: FontWeight.bold,
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black87),
             onPressed: () => Navigator.of(context).pop(_files),
           ),
         ),
@@ -564,11 +598,14 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? AppColors.darkCardBackground : Colors.white,
                   borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.transparent,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -579,10 +616,11 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: widget.color,
+                        color: widget.color.withOpacity(isDark ? 0.2 : 1),
                         borderRadius: BorderRadius.circular(16),
+                        border: isDark ? Border.all(color: widget.color.withOpacity(0.5)) : null,
                       ),
-                      child: Icon(widget.icon, color: Colors.white, size: 24),
+                      child: Icon(widget.icon, color: isDark ? widget.color : Colors.white, size: 24),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -594,7 +632,7 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
                             style: GoogleFonts.roboto(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -602,7 +640,7 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
                             '${_files.length} files',
                             style: GoogleFonts.roboto(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: isDark ? Colors.white60 : Colors.grey[600],
                             ),
                           ),
                         ],
@@ -621,10 +659,10 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 32),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0F7FF),
+                    color: isDark ? AppColors.primaryBlue.withOpacity(0.1) : const Color(0xFFF0F7FF),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFF90CAF9),
+                      color: isDark ? AppColors.primaryBlue.withOpacity(0.3) : const Color(0xFF90CAF9),
                       style: BorderStyle.solid,
                       width: 1.5,
                     ),
@@ -634,12 +672,12 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE3F2FD),
+                          color: isDark ? AppColors.primaryBlue.withOpacity(0.2) : const Color(0xFFE3F2FD),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.cloud_upload_outlined,
-                          color: AppColors.primaryBlue,
+                          color: isDark ? Colors.white : AppColors.primaryBlue,
                           size: 32,
                         ),
                       ),
@@ -649,7 +687,7 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
                         style: GoogleFonts.roboto(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -657,15 +695,18 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
                         'Upload any file format (Video, PDF, Image, etc)',
                         style: GoogleFonts.roboto(
                           fontSize: 12,
-                          color: Colors.grey[600],
+                          color: isDark ? Colors.white60 : Colors.grey[600],
                         ),
                       ),
                       if (_isUploading) ...[
                         const SizedBox(height: 16),
-                        const SizedBox(
+                        SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(isDark ? Colors.white : AppColors.primaryBlue),
+                          ),
                         ),
                       ],
                     ],
@@ -685,27 +726,27 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? AppColors.darkCardBackground : Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[200]!),
+                        border: Border.all(color: isDark ? Colors.white10 : Colors.grey[200]!),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.insert_drive_file_outlined, color: Colors.grey),
+                          Icon(Icons.insert_drive_file_outlined, color: isDark ? Colors.white38 : Colors.grey),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               fileName,
                               style: GoogleFonts.roboto(
                                 fontSize: 14,
-                                color: Colors.black87,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.download_rounded, color: AppColors.primaryBlue),
+                            icon: Icon(Icons.download_rounded, color: isDark ? Colors.white : AppColors.primaryBlue),
                             onPressed: () => _downloadFile(fileUrl),
                             tooltip: 'Download',
                           ),

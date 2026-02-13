@@ -71,15 +71,16 @@ class _DoctorRecordsScreenState extends State<DoctorRecordsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
         elevation: 0,
         title: Text(
           'Patient Records',
           style: GoogleFonts.roboto(
-            color: AppColors.textDark,
+            color: isDark ? Colors.white : AppColors.textDark,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -87,13 +88,28 @@ class _DoctorRecordsScreenState extends State<DoctorRecordsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-              ? Center(child: Text(_errorMessage!))
+              ? Center(
+                  child: Text(
+                    _errorMessage!,
+                    style: GoogleFonts.roboto(
+                      color: isDark ? Colors.white70 : AppColors.textDark,
+                    ),
+                  ),
+                )
               : _records.isEmpty
-                  ? const Center(child: Text('No records found'))
+                  ? Center(
+                      child: Text(
+                        'No records found',
+                        style: GoogleFonts.roboto(
+                          color: isDark ? Colors.white38 : AppColors.textGrey,
+                        ),
+                      ),
+                    )
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: _records.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 16),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 16),
                       itemBuilder: (context, index) {
                         final record = _records[index];
                         return _buildRecordCard(record);
@@ -104,67 +120,141 @@ class _DoctorRecordsScreenState extends State<DoctorRecordsScreen> {
 
   Widget _buildRecordCard(CallRequestData record) {
     final dateStr = DateFormat('MMM d, yyyy • h:mm a').format(record.createdAt);
-    
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: () async {
         if (mounted) {
-           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => DoctorHistoryDetailScreen(callRequest: record),
-            ),
-          ).then((_) => _loadRecords());
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (context) =>
+                      DoctorHistoryDetailScreen(callRequest: record),
+                ),
+              )
+              .then((_) => _loadRecords());
         }
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? AppColors.darkCardBackground : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.primaryBlue.withOpacity(0.1)),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : AppColors.primaryBlue.withOpacity(0.1),
+          ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryBlue.withOpacity(0.05),
-              blurRadius: 10,
+              color: isDark
+                  ? Colors.black.withOpacity(0.2)
+                  : AppColors.primaryBlue.withOpacity(0.1),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: AppColors.primaryBlue.withOpacity(0.1),
-              backgroundImage: record.patientProfile.isNotEmpty
-                  ? NetworkImage(record.patientProfile)
-                  : const AssetImage('assets/images/logo.png') as ImageProvider,
-              onBackgroundImageError: (_, __) {},
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                (isDark ? Colors.white : AppColors.primaryBlue).withOpacity(0.03),
+                Colors.transparent,
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    record.patientName,
-                    style: GoogleFonts.roboto(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isDark ? AppColors.primaryBlue : AppColors.primaryBlue).withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(2),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark ? AppColors.darkCardBackground : Colors.white,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    dateStr,
-                    style: GoogleFonts.roboto(
-                      fontSize: 12,
-                      color: AppColors.textGrey,
-                    ),
+                  child: ClipOval(
+                    child: record.patientProfile.isNotEmpty
+                        ? Image.network(
+                            record.patientProfile,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.cover,
+                          ),
                   ),
-                ],
+                ),
               ),
-            ),
-            const Icon(Icons.chevron_right, color: AppColors.textGrey),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      record.patientName,
+                      style: GoogleFonts.roboto(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppColors.textDark,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 12,
+                          color: isDark ? Colors.white54 : AppColors.textGrey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          dateStr,
+                          style: GoogleFonts.roboto(
+                            fontSize: 12,
+                            color: isDark ? Colors.white54 : AppColors.textGrey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.white : AppColors.primaryBlue).withOpacity(0.05),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: isDark ? Colors.white54 : AppColors.primaryBlue,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

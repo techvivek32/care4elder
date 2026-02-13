@@ -10,6 +10,10 @@ class AppColors {
   static const Color textGrey = Color(0xFF757575);
   static const Color error = Color(0xFFD32F2F);
   
+  // Dark Mode Specifics
+  static const Color darkBackground = Color(0xFF01080E); // Deepest Navy
+  static const Color darkCardBackground = Color(0xFF021220); // Slightly Lighter Navy for Cards
+  
   // Premium Glossy Gradient (Light Mode) - Refined for "Glossy Blue" feel
   static const LinearGradient premiumGradient = LinearGradient(
     begin: Alignment.topLeft,

@@ -11,7 +11,9 @@ class DoctorCallSummaryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.light
+          ? const Color(0xFFF8FAFC)
+          : AppColors.darkBackground,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -40,8 +42,11 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                     ),
                     Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Colors.blue,
+                      decoration: BoxDecoration(
+                        gradient: Theme.of(context).brightness ==
+                                Brightness.light
+                            ? AppColors.premiumGradient
+                            : AppColors.darkPremiumGradient,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -61,7 +66,9 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                 style: GoogleFonts.roboto(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? AppColors.textDark
+                      : Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -81,7 +88,9 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : AppColors.darkCardBackground,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
@@ -99,16 +108,17 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                       style: GoogleFonts.roboto(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.textDark
+                            : Colors.white,
                       ),
                     ),
                     const SizedBox(height: 24),
 
                     // Patient
                     _buildSummaryItem(
+                      context: context,
                       icon: Icons.person_outline,
-                      iconColor: Colors.blue,
-                      iconBg: Colors.blue.withOpacity(0.1),
                       label: 'Patient',
                       value: 'Sarah Johnson',
                     ),
@@ -116,9 +126,8 @@ class DoctorCallSummaryScreen extends StatelessWidget {
 
                     // Duration
                     _buildSummaryItem(
+                      context: context,
                       icon: Icons.access_time,
-                      iconColor: Colors.blue,
-                      iconBg: Colors.blue.withOpacity(0.1),
                       label: 'Duration',
                       value: '15 minutes',
                     ),
@@ -126,9 +135,8 @@ class DoctorCallSummaryScreen extends StatelessWidget {
 
                     // Fee
                     _buildSummaryItem(
+                      context: context,
                       icon: Icons.description_outlined,
-                      iconColor: Colors.blue,
-                      iconBg: Colors.blue.withOpacity(0.1),
                       label: 'Consultation Fee',
                       value: '₹500 Earned',
                       valueColor: Colors.green,
@@ -144,7 +152,9 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? const Color(0xFFF1F5F9)
+                      : Colors.white10,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -153,14 +163,17 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
+                        gradient: Theme.of(context).brightness ==
+                                Brightness.light
+                            ? AppColors.premiumGradient
+                            : AppColors.darkPremiumGradient,
                         shape: BoxShape.circle,
                       ),
                       child: Center(
                         child: Text(
                           'SJ',
                           style: GoogleFonts.roboto(
-                            color: Colors.blue,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -176,7 +189,10 @@ class DoctorCallSummaryScreen extends StatelessWidget {
                             style: GoogleFonts.roboto(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textDark,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.light
+                                  ? AppColors.textDark
+                                  : Colors.white,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -197,16 +213,31 @@ class DoctorCallSummaryScreen extends StatelessWidget {
               const SizedBox(height: 40),
 
               // Buttons
-              SizedBox(
+              Container(
                 width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: Theme.of(context).brightness == Brightness.light
+                      ? AppColors.premiumGradient
+                      : AppColors.darkPremiumGradient,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryBlue.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ElevatedButton(
                   onPressed: () {
                     context.go('/doctor/home');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
+                    backgroundColor: Colors.transparent,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
@@ -224,14 +255,21 @@ class DoctorCallSummaryScreen extends StatelessWidget {
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
+                height: 56,
                 child: OutlinedButton(
                   onPressed: () {
                     // Navigate to history
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primaryBlue,
-                    side: const BorderSide(color: AppColors.primaryBlue),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    foregroundColor:
+                        Theme.of(context).brightness == Brightness.light
+                            ? AppColors.primaryBlue
+                            : Colors.white,
+                    side: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.primaryBlue
+                            : Colors.white24),
+                    padding: const EdgeInsets.symmetric(vertical: 0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
@@ -253,9 +291,8 @@ class DoctorCallSummaryScreen extends StatelessWidget {
   }
 
   Widget _buildSummaryItem({
+    required BuildContext context,
     required IconData icon,
-    required Color iconColor,
-    required Color iconBg,
     required String label,
     required String value,
     Color? valueColor,
@@ -265,8 +302,13 @@ class DoctorCallSummaryScreen extends StatelessWidget {
         Container(
           width: 48,
           height: 48,
-          decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
-          child: Icon(icon, color: iconColor, size: 24),
+          decoration: BoxDecoration(
+            gradient: Theme.of(context).brightness == Brightness.light
+                ? AppColors.premiumGradient
+                : AppColors.darkPremiumGradient,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Colors.white, size: 24),
         ),
         const SizedBox(width: 16),
         Column(
@@ -285,7 +327,10 @@ class DoctorCallSummaryScreen extends StatelessWidget {
               style: GoogleFonts.roboto(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: valueColor ?? AppColors.textDark,
+                color: valueColor ??
+                    (Theme.of(context).brightness == Brightness.light
+                        ? AppColors.textDark
+                        : Colors.white),
               ),
             ),
           ],

@@ -134,7 +134,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 title: 'Prescriptions',
                 count: '$prescriptionsCount files',
                 icon: Icons.description_outlined,
-                color: Colors.blue,
+                color: const Color(0xFF041E34),
                 onTap: () {
                   final allPrescriptions = _records.expand((r) => r.prescriptions).toList();
                   Navigator.push(
@@ -144,7 +144,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         title: 'Prescriptions',
                         files: allPrescriptions,
                         icon: Icons.description_outlined,
-                        color: Colors.blue,
+                        color: const Color(0xFF041E34),
                       ),
                     ),
                   );
@@ -155,7 +155,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 title: 'Lab Reports',
                 count: '$labReportsCount files',
                 icon: Icons.science_outlined,
-                color: Colors.green,
+                color: const Color(0xFF041E34),
                 onTap: () {
                   final allLabReports = _records.expand((r) => r.labReports).toList();
                   Navigator.push(
@@ -165,7 +165,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         title: 'Lab Reports',
                         files: allLabReports,
                         icon: Icons.science_outlined,
-                        color: Colors.green,
+                        color: const Color(0xFF041E34),
                       ),
                     ),
                   );
@@ -176,7 +176,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 title: 'Medical Documents',
                 count: '$medicalDocsCount files',
                 icon: Icons.folder_open_outlined,
-                color: Colors.orange,
+                color: const Color(0xFF041E34),
                 onTap: () {
                   final allMedicalDocs = _records.expand((r) => r.medicalDocuments).toList();
                   Navigator.push(
@@ -186,7 +186,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         title: 'Medical Documents',
                         files: allMedicalDocs,
                         icon: Icons.folder_open_outlined,
-                        color: Colors.orange,
+                        color: const Color(0xFF041E34),
                       ),
                     ),
                   );
@@ -232,7 +232,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           'Prescription',
           Icons.description_outlined,
           record.prescriptions,
-          Colors.blue,
+          const Color(0xFF041E34),
         ));
       }
       if (record.labReports.isNotEmpty) {
@@ -241,7 +241,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           'Lab Report',
           Icons.science_outlined,
           record.labReports,
-          Colors.green,
+          const Color(0xFF041E34),
         ));
       }
       if (record.medicalDocuments.isNotEmpty) {
@@ -250,7 +250,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           'Medical Document',
           Icons.folder_open_outlined,
           record.medicalDocuments,
-          Colors.orange,
+          const Color(0xFF041E34),
         ));
       }
     }
@@ -372,12 +372,12 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.08),
+        color: const Color(0xFF041E34).withOpacity(0.08),
         borderRadius: BorderRadius.circular(20),
       ),
       child: CustomPaint(
         painter: DashedBorderPainter(
-          color: Colors.blue.withOpacity(0.4),
+          color: const Color(0xFF041E34).withOpacity(0.4),
           strokeWidth: 2,
           radius: 20,
           gap: 6,
@@ -390,12 +390,12 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: const Color(0xFF041E34).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.cloud_upload_outlined,
-                  color: Colors.blue,
+                  color: Color(0xFF041E34),
                   size: 32,
                 ),
               ),
@@ -493,13 +493,13 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: const Color(0xFF041E34).withOpacity(0.1),
               shape: BoxShape.circle,
               // shape: BoxShape.circle, // Duplicate
             ),
             child: const Icon(
               Icons.download_rounded,
-              color: Colors.blue,
+              color: Color(0xFF041E34),
               size: 20,
             ),
           ),

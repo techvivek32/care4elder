@@ -39,10 +39,10 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
                   ? Icons.science
                   : Icons.folder,
           color: category == 'Prescriptions'
-              ? const Color(0xFF2196F3)
+              ? const Color(0xFF041E34)
               : category == 'Lab Reports'
-                  ? const Color(0xFF4CAF50)
-                  : const Color(0xFFFF9800),
+                  ? const Color(0xFF041E34)
+                  : const Color(0xFF041E34),
         ),
       ),
     );
@@ -186,7 +186,7 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
               'Prescriptions',
               '${_prescriptions.length} files',
               Icons.description,
-              const Color(0xFF2196F3),
+              const Color(0xFF041E34),
               () => _openCategoryFiles('Prescriptions', _prescriptions),
             ),
             const SizedBox(height: 12),
@@ -194,7 +194,7 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
               'Lab Reports',
               '${_labReports.length} files',
               Icons.science,
-              const Color(0xFF4CAF50),
+              const Color(0xFF041E34),
               () => _openCategoryFiles('Lab Reports', _labReports),
             ),
             const SizedBox(height: 12),
@@ -202,7 +202,7 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
               'Medical Documents',
               '${_medicalDocuments.length} files',
               Icons.folder,
-              const Color(0xFFFF9800),
+              const Color(0xFF041E34),
               () => _openCategoryFiles('Medical Documents', _medicalDocuments),
             ),
           ],
@@ -452,7 +452,7 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
                               overflow: TextOverflow.ellipsis,
                             ),
                             trailing: IconButton(
-                              icon: const Icon(Icons.download_rounded, color: Colors.blue),
+                              icon: const Icon(Icons.download_rounded, color: Color(0xFF041E34)),
                               onPressed: () => _downloadFile(file),
                             ),
                           ),

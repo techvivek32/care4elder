@@ -451,7 +451,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                 child: _buildQuickActionCard(
                                   icon: Icons.medical_services_outlined,
                                   label: 'Consult a\nDoctor',
-                                  color: Colors.blue,
+                                  color: const Color(0xFF041E34),
                                   onTap: () =>
                                       context.push('/patient/consultation'),
                                 ),
@@ -461,7 +461,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                 child: _buildQuickActionCard(
                                   icon: Icons.description_outlined,
                                   label: 'Medical\nRecords',
-                                  color: Colors.blue,
+                                  color: const Color(0xFF041E34),
                                   onTap: () => context.push('/patient/records'),
                                 ),
                               ),
@@ -470,7 +470,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                 child: _buildQuickActionCard(
                                   icon: Icons.people_outline,
                                   label: 'Emergency\nContacts',
-                                  color: Colors.blue,
+                                  color: const Color(0xFF041E34),
                                   onTap: () => context.push('/patient/contacts'),
                                 ),
                               ),

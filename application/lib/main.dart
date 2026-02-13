@@ -31,6 +31,13 @@ Future<void> main() async {
       router.go('/patient/sos?autoStart=true&trigger=${event['trigger']}');
     }
   });
+
+  service.on('sosCancelled').listen((event) {
+    // If the user cancels from notification, take them to the records/home screen
+    // or keep them where they are but show a message. 
+    // Usually, opening the app on cancellation is desired.
+    router.go('/patient/records'); 
+  });
   
   HotwordService().start();
   

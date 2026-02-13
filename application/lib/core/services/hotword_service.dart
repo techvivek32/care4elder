@@ -20,6 +20,7 @@ class HotwordService {
   bool _isListening = false;
   bool get isListening => _isListening;
   bool _isAttemptingListen = false;
+  VoidCallback? onTrigger;
 
   void setBackgroundService(ServiceInstance service) {
     _bgService = service;
@@ -166,6 +167,11 @@ class HotwordService {
 
   Future<void> _triggerSos() async {
     try {
+      // Execute custom callback if set (used by background service for notification)
+      if (onTrigger != null) {
+        onTrigger!();
+      }
+
       // Play beep sound (optional, don't let it block SOS)
       try {
         // Only try to play if file exists in future, for now we catch the error

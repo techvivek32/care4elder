@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 import 'hotword_service.dart';
 import '../../features/emergency/services/fall_detection_service.dart';
 import '../../features/emergency/services/sos_service.dart';
@@ -17,6 +18,20 @@ class BackgroundServiceHelper {
   static Future<void> initializeService() async {
     final service = FlutterBackgroundService();
 
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+
+    // SOS Trigger Channel (High Importance with Sound & Actions)
+    const AndroidNotificationChannel sosTriggerChannel = AndroidNotificationChannel(
+      'sos_trigger_channel',
+      'SOS Alerts',
+      description: 'Triggered when a fall or voice command is detected',
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+      showBadge: true,
+    );
+
     // Setup notifications
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'sos_background_channel',
@@ -25,9 +40,6 @@ class BackgroundServiceHelper {
       importance: Importance.low,
     );
 
-    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-        FlutterLocalNotificationsPlugin();
-
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -35,12 +47,24 @@ class BackgroundServiceHelper {
       android: initializationSettingsAndroid,
     );
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        if (response.actionId == 'cancel_sos') {
+          // Handle cancellation in the main isolate if app is running
+          // or via the service if it's not
+          final service = FlutterBackgroundService();
+          service.invoke('cancelSosAction');
+        }
+      },
+    );
 
-    await flutterLocalNotificationsPlugin
+    final androidPlugin = flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+            AndroidFlutterLocalNotificationsPlugin>();
+    
+    await androidPlugin?.createNotificationChannel(channel);
+    await androidPlugin?.createNotificationChannel(sosTriggerChannel);
 
     await service.configure(
       androidConfiguration: AndroidConfiguration(
@@ -117,24 +141,49 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
+  service.on('cancelSosAction').listen((event) async {
+    try {
+      await SOSService().stopSOS(
+        cancellationReason: 'User cancelled from notification',
+        cancellationComments: 'SOS cancelled via background notification action'
+      );
+      // Notify main app to redirect if open
+      service.invoke('sosCancelled');
+    } catch (e) {
+      print('Background: Failed to cancel SOS: $e');
+    }
+  });
+
   // Start Voice Listening in Background
   final hotwordService = HotwordService();
   hotwordService.setBackgroundService(service);
   // Ensure we stop any existing listener before starting
   hotwordService.stop();
+  
+  // Custom trigger for Voice SOS
+  hotwordService.onTrigger = () async {
+    print('Background: Voice SOS Triggered!');
+    _showSosNotification('Voice Command Detected', 'SOS triggered via voice. Tap to manage or cancel.');
+    try {
+      await SOSService().startSOS();
+      service.invoke('openSos', {'trigger': 'voice'});
+    } catch (e) {
+      print('Background Voice SOS failed: $e');
+    }
+  };
+  
   await hotwordService.start();
 
   // Start Fall Detection in Background
   final fallDetectionService = FallDetectionService();
   fallDetectionService.startMonitoring(() async {
-    // print is fine here for debugging background service
     print('Background: Fall Detected!');
+    _showSosNotification('Fall Detected', 'A fall was detected. SOS alert sent to emergency contacts.');
     try {
       await SOSService().startSOS();
-      // Try to notify the app to open SOS screen if it's alive
       service.invoke('openSos', {'trigger': 'fall'});
     } catch (e) {
-      print('Background SOS failed: $e');
+      print('Background Fall SOS failed: $e');
     }
   });
 
@@ -153,4 +202,43 @@ void onStart(ServiceInstance service) async {
       await hotwordService.start();
     }
   });
+}
+
+Future<void> _showSosNotification(String title, String content) async {
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  const AndroidNotificationDetails androidPlatformChannelSpecifics =
+      AndroidNotificationDetails(
+    'sos_trigger_channel',
+    'SOS Alerts',
+    channelDescription: 'Triggered when a fall or voice command is detected',
+    importance: Importance.max,
+    priority: Priority.high,
+    ticker: 'SOS Triggered',
+    ongoing: true, // Keep it ongoing until cancelled
+    autoCancel: false, // Don't cancel when tapped
+    playSound: true,
+    enableVibration: true,
+    color: Colors.red,
+    icon: '@mipmap/ic_launcher',
+    actions: <AndroidNotificationAction>[
+      AndroidNotificationAction(
+        'cancel_sos',
+        'Cancel SOS',
+        showsUserInterface: true,
+        cancelNotification: true,
+      ),
+    ],
+  );
+
+  const NotificationDetails platformChannelSpecifics =
+      NotificationDetails(android: androidPlatformChannelSpecifics);
+
+  await flutterLocalNotificationsPlugin.show(
+    999, // Unique ID for SOS trigger notification
+    title,
+    content,
+    platformChannelSpecifics,
+  );
 }

@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../features/emergency/services/sos_service.dart';
 import '../services/profile_service.dart';
 import '../../router.dart';
@@ -41,6 +42,19 @@ class HotwordService {
         _listen();
       }
       return;
+    }
+
+    // Check if the user is a Doctor. If so, do not start HotwordService.
+    // HotwordService is only intended for Patients (SOS voice trigger).
+    try {
+      const storage = FlutterSecureStorage();
+      final doctorToken = await storage.read(key: 'doctor_token');
+      if (doctorToken != null) {
+        if (kDebugMode) print('HotwordService: User is a Doctor, skipping SOS voice trigger.');
+        return;
+      }
+    } catch (e) {
+      if (kDebugMode) print('HotwordService: Error checking role: $e');
     }
     
     // Check permission without blocking UI excessively

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/services/hotword_service.dart';
 
 class DoctorRegistrationData {
   String? phoneNumber;
@@ -444,6 +445,9 @@ class DoctorAuthService extends ChangeNotifier {
     if (doctorId != null) {
       await _storage.write(key: _doctorIdKey, value: doctorId);
     }
+    
+    // Stop HotwordService if it was running, as Doctors do not need SOS voice trigger
+    HotwordService().stop();
   }
 
   Future<String?> getDoctorToken() async {

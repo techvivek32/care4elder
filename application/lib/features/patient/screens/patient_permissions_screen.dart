@@ -294,10 +294,22 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colorScheme.primary,
+                gradient: Theme.of(context).brightness == Brightness.light
+                    ? AppColors.premiumGradient
+                    : AppColors.darkPremiumGradient,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.blue
+                            : const Color(0xFF041E34))
+                        .withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: colorScheme.onPrimary, size: 24),
+              child: Icon(icon, color: Colors.white, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(

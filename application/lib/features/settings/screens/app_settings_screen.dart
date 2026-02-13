@@ -34,11 +34,23 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: Theme.of(context).brightness == Brightness.light
+                ? AppColors.premiumGradient
+                : AppColors.darkPremiumGradient,
+          ),
+        ),
         title: Text(
           'Settings',
-          style: GoogleFonts.roboto(fontSize: 20, fontWeight: FontWeight.bold),
+          style: GoogleFonts.roboto(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: AnimatedBuilder(
         animation: SettingsService(),
@@ -50,7 +62,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              _buildSectionHeader('Appearance'),
+              _buildSectionHeader('Appearance', context),
               _buildSwitchTile(
                 context: context,
                 title: 'Dark Mode',
@@ -60,7 +72,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 onChanged: (value) => settings.toggleTheme(value),
               ),
               const SizedBox(height: 24),
-              _buildSectionHeader('Protection'),
+              _buildSectionHeader('Protection', context),
               _buildSwitchTile(
                 context: context,
                 title: 'Background Protection',
@@ -93,7 +105,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 },
               ),
               const SizedBox(height: 24),
-              _buildSectionHeader('General'),
+              _buildSectionHeader('General', context),
               /*
               _buildSwitchTile(
                 context: context,
@@ -113,7 +125,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 onTap: () => _showLanguageDialog(context, settings),
               ),
               const SizedBox(height: 24),
-              _buildSectionHeader('Data & Privacy'),
+              _buildSectionHeader('Data & Privacy', context),
               _buildListTile(
                 context: context,
                 title: 'Data Backup',
@@ -134,7 +146,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 onTap: () {},
               ),
               const SizedBox(height: 24),
-              _buildSectionHeader('Account'),
+              _buildSectionHeader('Account', context),
               _buildListTile(
                 context: context,
                 title: 'Logout',
@@ -151,15 +163,18 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
-        title,
+        title.toUpperCase(),
         style: GoogleFonts.roboto(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primaryBlue,
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.2,
+          color: Theme.of(context).brightness == Brightness.light
+              ? const Color(0xFF041E34).withOpacity(0.6)
+              : Colors.blue.withOpacity(0.6),
         ),
       ),
     );
@@ -202,12 +217,30 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
         secondary: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primaryBlue.withOpacity(0.1),
+            gradient: Theme.of(context).brightness == Brightness.light
+                ? AppColors.premiumGradient
+                : AppColors.darkPremiumGradient,
             shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: (Theme.of(context).brightness == Brightness.light
+                        ? const Color(0xFF041E34)
+                        : Colors.blue)
+                    .withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Icon(icon, color: AppColors.primaryBlue),
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
-        activeTrackColor: Theme.of(context).colorScheme.primary,
+        activeColor: Theme.of(context).brightness == Brightness.light
+            ? const Color(0xFF041E34)
+            : Colors.blue,
+        activeTrackColor: (Theme.of(context).brightness == Brightness.light
+                ? const Color(0xFF041E34)
+                : Colors.blue)
+            .withOpacity(0.3),
       ),
     );
   }
@@ -326,14 +359,30 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: isDestructive
-                ? AppColors.error.withOpacity(0.1)
-                : AppColors.primaryBlue.withOpacity(0.1),
+            gradient: isDestructive
+                ? null
+                : (Theme.of(context).brightness == Brightness.light
+                    ? AppColors.premiumGradient
+                    : AppColors.darkPremiumGradient),
+            color: isDestructive ? AppColors.error.withOpacity(0.1) : null,
             shape: BoxShape.circle,
+            boxShadow: isDestructive
+                ? null
+                : [
+                    BoxShadow(
+                      color: (Theme.of(context).brightness == Brightness.light
+                              ? const Color(0xFF041E34)
+                              : Colors.blue)
+                          .withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: Icon(
             icon,
-            color: isDestructive ? AppColors.error : AppColors.primaryBlue,
+            color: isDestructive ? AppColors.error : Colors.white,
+            size: 20,
           ),
         ),
         trailing: Icon(

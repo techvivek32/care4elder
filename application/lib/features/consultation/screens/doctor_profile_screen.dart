@@ -189,11 +189,29 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   Positioned(
                     top: 40,
                     left: 16,
-                    child: CircleAvatar(
-                      backgroundColor: colorScheme.surface,
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
-                        onPressed: () => context.pop(),
+                    child: GestureDetector(
+                      onTap: () => context.pop(),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          gradient: Theme.of(context).brightness == Brightness.light
+                              ? AppColors.premiumGradient
+                              : AppColors.darkPremiumGradient,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),

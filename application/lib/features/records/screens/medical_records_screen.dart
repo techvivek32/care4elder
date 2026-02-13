@@ -94,31 +94,34 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: Theme.of(context).brightness == Brightness.light
+                ? AppColors.premiumGradient
+                : AppColors.darkPremiumGradient,
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Medical Records',
               style: GoogleFonts.roboto(
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 4),
             Text(
-              'Manage your health documents',
+              'Your health documents',
               style: GoogleFonts.roboto(
-                fontSize: 14,
-                color: Theme.of(context).textTheme.bodySmall?.color,
+                fontSize: 12,
+                color: Colors.white.withOpacity(0.8),
                 fontWeight: FontWeight.normal,
               ),
             ),
           ],
         ),
-        toolbarHeight: 80,
       ),
       body: _isLoading 
           ? const Center(child: CircularProgressIndicator())
@@ -301,37 +304,53 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withOpacity(0.08),
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(icon, color: Colors.white, size: 28),
-            ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: isDarkMode
+                        ? AppColors.darkPremiumGradient
+                        : AppColors.premiumGradient,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isDarkMode ? Colors.blue : const Color(0xFF041E34))
+                            .withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -362,22 +381,25 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   .onSurface
                   .withOpacity(0.5),
             ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildUploadButton() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFF041E34).withOpacity(0.08),
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(20),
       ),
       child: CustomPaint(
         painter: DashedBorderPainter(
-          color: const Color(0xFF041E34).withOpacity(0.4),
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
           strokeWidth: 2,
           radius: 20,
           gap: 6,
@@ -390,12 +412,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF041E34).withOpacity(0.1),
+                  gradient: isDarkMode
+                      ? AppColors.darkPremiumGradient
+                      : AppColors.premiumGradient,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.cloud_upload_outlined,
-                  color: Color(0xFF041E34),
+                  color: Colors.white,
                   size: 32,
                 ),
               ),
@@ -452,18 +476,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .surface
-                  .withOpacity(0.5),
+              gradient: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.premiumGradient
+                  : AppColors.darkPremiumGradient,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               icon,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withOpacity(0.7),
+              color: Colors.white,
               size: 24,
             ),
           ),
@@ -493,13 +513,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF041E34).withOpacity(0.1),
+              gradient: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.premiumGradient
+                  : AppColors.darkPremiumGradient,
               shape: BoxShape.circle,
-              // shape: BoxShape.circle, // Duplicate
             ),
             child: const Icon(
               Icons.download_rounded,
-              color: Color(0xFF041E34),
+              color: Colors.white,
               size: 20,
             ),
           ),

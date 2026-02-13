@@ -237,26 +237,34 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                   return Center(
                     child: Stack(
                       children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                          backgroundImage: _profileService
-                                      .currentUser?.profilePictureUrl
-                                      .isNotEmpty ==
-                                  true
-                              ? NetworkImage(
-                                  _profileService.currentUser!.profilePictureUrl,
-                                )
-                              : null,
-                          child: _profileService.currentUser?.profilePictureUrl
-                                      .isEmpty ==
-                                  true
-                              ? Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: colorScheme.onSurface.withOpacity(0.4),
-                                )
-                              : null,
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            gradient: Theme.of(context).brightness == Brightness.light
+                                ? AppColors.premiumGradient
+                                : AppColors.darkPremiumGradient,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: _profileService.currentUser?.profilePictureUrl
+                                        .isNotEmpty ==
+                                    true
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(50),
+                                    child: Image.network(
+                                      _profileService.currentUser!.profilePictureUrl,
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: Colors.white,
+                                  ),
+                          ),
                         ),
                         if (_profileService.isLoading)
                           Positioned.fill(
@@ -279,9 +287,12 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                             onTap: _profileService.isLoading ? null : _pickProfileImage,
                             child: Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: AppColors.primaryBlue,
+                              decoration: BoxDecoration(
+                                gradient: Theme.of(context).brightness == Brightness.light
+                                    ? AppColors.premiumGradient
+                                    : AppColors.darkPremiumGradient,
                                 shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
                               ),
                               child: const Icon(
                                 Icons.camera_alt,

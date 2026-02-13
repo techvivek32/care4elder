@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/theme/app_colors.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -374,14 +375,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: _getTypeColor(
-                        notification.type,
-                      ).withOpacity(0.1),
+                      gradient: Theme.of(context).brightness == Brightness.light
+                          ? AppColors.premiumGradient
+                          : AppColors.darkPremiumGradient,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: (Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.blue
+                                  : const Color(0xFF041E34))
+                              .withOpacity(0.15),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       _getTypeIcon(notification.type),
-                      color: _getTypeColor(notification.type),
+                      color: Colors.white,
                       size: 24,
                     ),
                   ),

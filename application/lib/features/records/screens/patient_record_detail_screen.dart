@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/services/call_request_service.dart';
 
@@ -52,19 +53,17 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Consultation Details',
           style: GoogleFonts.roboto(
-            color: colorScheme.onSurface,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -90,22 +89,42 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.blue.withOpacity(0.1),
-                    backgroundImage: widget.callRequest.doctorProfileImage != null
-                        ? NetworkImage(widget.callRequest.doctorProfileImage!)
-                        : null,
-                    child: widget.callRequest.doctorProfileImage == null
-                        ? Text(
-                            widget.callRequest.doctorName.substring(0, 1).toUpperCase(),
-                            style: GoogleFonts.roboto(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      gradient: Theme.of(context).brightness == Brightness.light
+                          ? AppColors.premiumGradient
+                          : AppColors.darkPremiumGradient,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: widget.callRequest.doctorProfileImage != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(30),
+                              child: Image.network(
+                                widget.callRequest.doctorProfileImage!,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Text(
+                              widget.callRequest.doctorName.substring(0, 1).toUpperCase(),
+                              style: GoogleFonts.roboto(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          )
-                        : null,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -218,26 +237,43 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
     Color color,
     VoidCallback onTap,
   ) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
+          color: Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                gradient: color == colorScheme.primary
+                    ? (isDarkMode
+                        ? AppColors.darkPremiumGradient
+                        : AppColors.premiumGradient)
+                    : null,
+                color: color == colorScheme.primary ? null : color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(
+                icon,
+                color: color == colorScheme.primary ? Colors.white : color,
+                size: 24,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -325,21 +361,20 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           widget.title,
           style: GoogleFonts.roboto(
-            color: colorScheme.onSurface,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -351,12 +386,11 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: colorScheme.surface,
+                color: Theme.of(context).cardTheme.color,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: colorScheme.outlineVariant),
                 boxShadow: [
                   BoxShadow(
-                    color: colorScheme.onSurface.withOpacity(0.05),
+                    color: widget.color.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -367,7 +401,12 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: widget.color,
+                      gradient: widget.color == colorScheme.primary
+                          ? (isDarkMode
+                              ? AppColors.darkPremiumGradient
+                              : AppColors.premiumGradient)
+                          : null,
+                      color: widget.color == colorScheme.primary ? null : widget.color,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(widget.icon, color: Colors.white, size: 24),
@@ -422,9 +461,15 @@ class _PatientCategoryFilesScreenState extends State<PatientCategoryFilesScreen>
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(
-                            color: colorScheme.surface,
+                            color: Theme.of(context).cardTheme.color,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(

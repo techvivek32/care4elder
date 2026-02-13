@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/call_request_service.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/theme/app_colors.dart';
 
 class DoctorReviewsScreen extends StatefulWidget {
   final String doctorId;
@@ -124,15 +125,28 @@ class _DoctorReviewsScreenState extends State<DoctorReviewsScreen> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: colorScheme.surfaceVariant,
-                backgroundImage: review.patientProfile.isNotEmpty
-                    ? NetworkImage(ApiConstants.resolveImageUrl(review.patientProfile))
-                    : null,
-                child: review.patientProfile.isEmpty
-                    ? Icon(Icons.person, color: colorScheme.onSurfaceVariant)
-                    : null,
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient: Theme.of(context).brightness == Brightness.light
+                      ? AppColors.premiumGradient
+                      : AppColors.darkPremiumGradient,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: review.patientProfile.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.network(
+                            ApiConstants.resolveImageUrl(review.patientProfile),
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : const Icon(Icons.person, color: Colors.white, size: 24),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

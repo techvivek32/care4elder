@@ -177,15 +177,13 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          gradient: Theme.of(context).brightness == Brightness.light
+                              ? AppColors.premiumGradient
+                              : AppColors.darkPremiumGradient,
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF2E3192).withOpacity(0.3),
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -386,22 +384,35 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 width: double.infinity,
-                child: SizedBox(
+                child: Container(
                   height: 56,
+                  decoration: BoxDecoration(
+                    gradient: Theme.of(context).brightness == Brightness.light
+                        ? AppColors.premiumGradient
+                        : AppColors.darkPremiumGradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: _openCheckout,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      elevation: 2,
                     ),
                     child: profileService.isLoading
-                      ? CircularProgressIndicator(color: colorScheme.onPrimary)
+                      ? const CircularProgressIndicator(color: Colors.white)
                       : Text(
-                        'Recharge',
+                        'Recharge Now',
                         style: GoogleFonts.roboto(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

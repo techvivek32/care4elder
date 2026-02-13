@@ -41,17 +41,22 @@ class PatientProfileScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: Theme.of(context).brightness == Brightness.light
+                ? AppColors.premiumGradient
+                : AppColors.darkPremiumGradient,
+          ),
+        ),
         centerTitle: true,
         title: Text(
           'Profile',
           style: GoogleFonts.roboto(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
+            color: Colors.white,
           ),
         ),
       ),
@@ -116,6 +121,7 @@ class PatientProfileScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return InkWell(
       onTap: onTap,
@@ -123,26 +129,27 @@ class PatientProfileScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
+          color: Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.shadow.withOpacity(0.05),
+              color: colorScheme.primary.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
-          border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                gradient: isDarkMode
+                    ? AppColors.darkPremiumGradient
+                    : AppColors.premiumGradient,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.blue, size: 24),
+              child: Icon(icon, color: Colors.white, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(

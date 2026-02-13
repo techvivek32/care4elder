@@ -8,6 +8,7 @@ import '../../../core/services/notification_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/services/hero_service.dart';
 import '../../../core/services/health_tip_service.dart';
+import '../../../core/theme/app_colors.dart';
 
 class PatientDashboardScreen extends StatefulWidget {
   const PatientDashboardScreen({super.key});
@@ -180,7 +181,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: colorScheme.primary,
+                            gradient: Theme.of(context).brightness == Brightness.light
+                                ? AppColors.premiumGradient
+                                : AppColors.darkPremiumGradient,
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
@@ -419,8 +422,13 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                     width: _carouselIndex == index ? 24 : 8,
                                     height: 8,
                                     decoration: BoxDecoration(
+                                      gradient: _carouselIndex == index
+                                          ? (Theme.of(context).brightness == Brightness.light
+                                              ? AppColors.premiumGradient
+                                              : AppColors.darkPremiumGradient)
+                                          : null,
                                       color: _carouselIndex == index
-                                          ? colorScheme.primary
+                                          ? null
                                           : colorScheme.onSurface.withOpacity(0.3),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
@@ -515,7 +523,12 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                             width: double.infinity,
                                             padding: const EdgeInsets.all(20),
                                             decoration: BoxDecoration(
-                                              color: cardColor,
+                                              gradient: cardColor == colorScheme.primary
+                                                  ? (Theme.of(context).brightness == Brightness.light
+                                                      ? AppColors.premiumGradient
+                                                      : AppColors.darkPremiumGradient)
+                                                  : null,
+                                              color: cardColor == colorScheme.primary ? null : cardColor,
                                               borderRadius: BorderRadius.circular(20),
                                             ),
                                             child: Row(
@@ -702,8 +715,20 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color,
+                gradient: Theme.of(context).brightness == Brightness.light
+                    ? AppColors.premiumGradient
+                    : AppColors.darkPremiumGradient,
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.blue
+                            : const Color(0xFF041E34))
+                        .withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Icon(icon, color: Colors.white, size: 24),
             ),

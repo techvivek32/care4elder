@@ -443,15 +443,25 @@ class _PatientEmergencyContactsScreenState
                     final contact = contacts[i];
                     final phone = contact.phones.first.number;
                     return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: colorScheme.primary.withOpacity(
-                          0.1,
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          gradient: Theme.of(context).brightness == Brightness.light
+                              ? AppColors.premiumGradient
+                              : AppColors.darkPremiumGradient,
+                          shape: BoxShape.circle,
                         ),
-                        child: Text(
-                          contact.displayName.isNotEmpty
-                              ? contact.displayName[0].toUpperCase()
-                              : '?',
-                          style: TextStyle(color: colorScheme.primary),
+                        child: Center(
+                          child: Text(
+                            contact.displayName.isNotEmpty
+                                ? contact.displayName[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                       title: Text(
@@ -493,10 +503,22 @@ class _PatientEmergencyContactsScreenState
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
+              gradient: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.premiumGradient
+                  : AppColors.darkPremiumGradient,
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.blue
+                          : const Color(0xFF041E34))
+                      .withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+            child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
           ),
           onPressed: () => context.pop(),
         ),
@@ -589,36 +611,42 @@ class _PatientEmergencyContactsScreenState
 
               const SizedBox(height: 16),
 
-              // Save Button
+              // Save and Verify Button
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                child: SizedBox(
+                child: Container(
                   width: double.infinity,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: Theme.of(context).brightness == Brightness.light
+                        ? AppColors.premiumGradient
+                        : AppColors.darkPremiumGradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _saveAndVerify,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      elevation: 0,
                     ),
                     child: _isLoading
-                        ? SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: colorScheme.onPrimary,
-                              strokeWidth: 2,
-                            ),
-                          )
+                        ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                            'Save & Verify',
+                            'Save and Verify',
                             style: GoogleFonts.roboto(
-                              fontSize: 16,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: colorScheme.onPrimary,
                             ),
                           ),
                   ),

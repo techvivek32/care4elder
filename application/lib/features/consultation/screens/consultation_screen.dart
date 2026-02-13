@@ -142,17 +142,31 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
+                                gradient: isSelected
+                                    ? (Theme.of(context).brightness == Brightness.light
+                                        ? AppColors.premiumGradient
+                                        : AppColors.darkPremiumGradient)
+                                    : null,
                                 color: isSelected
-                                    ? colorScheme.primary
+                                    ? null
                                     : colorScheme.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: Text(
-                                  category,
-                                  style: GoogleFonts.roboto(
-                                    color: isSelected
-                                        ? colorScheme.onPrimary
-                                        : colorScheme.onSurface.withOpacity(0.6),
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: colorScheme.primary.withOpacity(0.3),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Text(
+                                category,
+                                style: GoogleFonts.roboto(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : colorScheme.onSurface.withOpacity(0.6),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -219,165 +233,182 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                         onTap: () =>
                             context.push('/patient/doctor/${doctor.id}'),
                         child: Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(1.5),
                           decoration: BoxDecoration(
-                            color: colorScheme.surface,
+                            gradient: Theme.of(context).brightness == Brightness.light
+                                ? AppColors.premiumGradient
+                                : AppColors.darkPremiumGradient,
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
                             boxShadow: [
                               BoxShadow(
-                                color: colorScheme.shadow.withOpacity(0.05),
-                                blurRadius: 10,
+                                color: colorScheme.shadow.withOpacity(0.08),
+                                blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
                             ],
                           ),
-                          child: Row(
-                            children: [
-                              Hero(
-                                tag: 'doctor-${doctor.id}',
-                                child: SizedBox(
-                                  height: 80,
-                                  width: 80,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: doctor.profileImage.isNotEmpty
-                                        ? Image.network(
-                                            doctor.profileImage,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return Container(
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surface,
+                              borderRadius: BorderRadius.circular(22.5),
+                            ),
+                            child: Row(
+                              children: [
+                                Hero(
+                                  tag: 'doctor-${doctor.id}',
+                                    child: Container(
+                                      height: 80,
+                                      width: 80,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: colorScheme.shadow.withOpacity(0.1),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: doctor.profileImage.isNotEmpty
+                                            ? Image.network(
+                                                doctor.profileImage,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return Container(
+                                                    color: colorScheme.surfaceContainerHighest,
+                                                    child: Icon(
+                                                      Icons.person,
+                                                      color: colorScheme.onSurface.withOpacity(0.4),
+                                                      size: 40,
+                                                    ),
+                                                  );
+                                                },
+                                              )
+                                            : Container(
                                                 color: colorScheme.surfaceContainerHighest,
                                                 child: Icon(
                                                   Icons.person,
                                                   color: colorScheme.onSurface.withOpacity(0.4),
                                                   size: 40,
                                                 ),
-                                              );
-                                            },
-                                          )
-                                        : Container(
-                                            color: colorScheme.surfaceContainerHighest,
-                                            child: Icon(
-                                              Icons.person,
-                                              color: colorScheme.onSurface.withOpacity(0.4),
-                                              size: 40,
-                                            ),
-                                          ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            doctor.name,
-                                            style: GoogleFonts.roboto(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: colorScheme.onSurface,
-                                            ),
-                                          ),
-                                        ),
-                                        Builder(
-                                          builder: (context) {
-                                            Color statusColor;
-                                            String statusText;
-                                            
-                                            if (doctor.status == 'busy') {
-                                              statusColor = Colors.orange;
-                                              statusText = 'Busy';
-                                            } else if (doctor.status == 'online' || (doctor.status == 'offline' && doctor.isAvailable)) {
-                                              // If status is online OR status is offline but isAvailable is true (fallback)
-                                              statusColor = Colors.green;
-                                              statusText = 'Online';
-                                            } else {
-                                              statusColor = Colors.grey;
-                                              statusText = 'Offline';
-                                            }
-
-                                            return Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
                                               ),
-                                              decoration: BoxDecoration(
-                                                color: statusColor.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              child: Text(
-                                                statusText,
-                                                style: GoogleFonts.roboto(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: statusColor,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      doctor.specialization,
-                                      style: GoogleFonts.roboto(
-                                        fontSize: 13,
-                                        color: colorScheme.onSurface.withOpacity(0.6),
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Row(
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(
-                                          Icons.star,
-                                          color: Colors.amber,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${doctor.rating}',
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: colorScheme.onSurface,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            '•  ${doctor.experienceYears} years',
-                                            style: GoogleFonts.roboto(
-                                              fontSize: 12,
-                                              color: colorScheme.onSurface.withOpacity(0.6),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                doctor.name,
+                                                style: GoogleFonts.roboto(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: colorScheme.onSurface,
+                                                ),
+                                              ),
                                             ),
-                                            overflow: TextOverflow.ellipsis,
+                                            Builder(
+                                              builder: (context) {
+                                                Color statusColor;
+                                                String statusText;
+                                                
+                                                if (doctor.status == 'busy') {
+                                                  statusColor = Colors.orange;
+                                                  statusText = 'Busy';
+                                                } else if (doctor.status == 'online' || (doctor.status == 'offline' && doctor.isAvailable)) {
+                                                  statusColor = Colors.green;
+                                                  statusText = 'Online';
+                                                } else {
+                                                  statusColor = Colors.grey;
+                                                  statusText = 'Offline';
+                                                }
+
+                                                return Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: statusColor.withOpacity(0.1),
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                  child: Text(
+                                                    statusText,
+                                                    style: GoogleFonts.roboto(
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: statusColor,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          doctor.specialization,
+                                          style: GoogleFonts.roboto(
+                                            fontSize: 13,
+                                            color: colorScheme.onSurface.withOpacity(0.6),
                                           ),
                                         ),
-                                        Text(
-                                          '₹${doctor.totalConsultationFee.toStringAsFixed(0)}',
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: colorScheme.primary,
-                                          ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.star,
+                                              color: Colors.amber,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${doctor.rating}',
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: colorScheme.onSurface,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                '•  ${doctor.experienceYears} years',
+                                                style: GoogleFonts.roboto(
+                                                  fontSize: 12,
+                                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            Text(
+                                              '₹${doctor.totalConsultationFee.toStringAsFixed(0)}',
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: colorScheme.primary,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      );
+                        );
                     },
                   );
                 },

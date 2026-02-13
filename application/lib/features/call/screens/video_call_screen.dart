@@ -8,7 +8,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/services/background_service.dart';
 import '../../../core/services/call_request_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
@@ -59,6 +61,13 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Update notification for ongoing call
+    FlutterBackgroundService().invoke('updateNotification', {
+      'title': 'Video Call Ongoing',
+      'content': 'Talking with ${widget.remoteUserName}...',
+    });
+
     // Generate a random UID if not provided, to ensure unique identification
     _localUid = widget.isDoctor ? 1 : 2;
     _initAgora();
@@ -242,6 +251,12 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   Future<void> _disposeAgora() async {
     await _engine.leaveChannel();
     await _engine.release();
+    
+    // Reset background service notification
+    FlutterBackgroundService().invoke('updateNotification', {
+      'title': 'CareSafe Protection Active',
+      'content': 'Voice SOS is listening for "Help"',
+    });
   }
 
   void _startTimer() {
@@ -359,6 +374,12 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
         );
         setState(() {
           _isLoading = false;
+        });
+        
+        // Update background service notification for video call
+        FlutterBackgroundService().invoke('updateNotification', {
+          'title': 'Video Call in Progress',
+          'content': 'Active consultation with ${widget.remoteUserName}',
         });
       } else {
         debugPrint('Failed to fetch token');

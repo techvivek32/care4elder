@@ -52,7 +52,11 @@ Future<void> main() async {
   }
   
   // Initialize background service helper
-  await BackgroundServiceHelper.initializeService();
+  try {
+    await BackgroundServiceHelper.initializeService();
+  } catch (e) {
+    if (kDebugMode) print("Background Service Init Error: $e");
+  }
   
   // Listen for background service events
   final service = bg.FlutterBackgroundService();
@@ -69,7 +73,13 @@ Future<void> main() async {
     router.go('/patient/records'); 
   });
   
-  HotwordService().start();
+  // HotwordService should ONLY be started if user is a Patient and logged in.
+  // It checks internal storage itself, but we can delay it or wrap in try-catch.
+  try {
+    HotwordService().start();
+  } catch (e) {
+    if (kDebugMode) print("Hotword Service Start Error: $e");
+  }
   
   // Initialize profiles and config
   final profileService = ProfileService();

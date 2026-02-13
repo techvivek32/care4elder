@@ -127,7 +127,13 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.go('/selection');
+      },
+      child: Scaffold(
       backgroundColor: colorScheme.surface,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
@@ -645,6 +651,6 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
           ),
         ),
       ),
-    );
+    ),);
   }
 }

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/services/call_request_service.dart';
@@ -117,12 +118,26 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
       setState(() => _isSaving = true);
       
       if (!mounted) return;
+      
+      // Update background service notification for file upload
+      FlutterBackgroundService().invoke('updateNotification', {
+        'title': 'Uploading Medical Record',
+        'content': 'Syncing $name with secure server...',
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Uploading report file...')),
       );
 
       final token = await DoctorAuthService().getDoctorToken();
-      if (token == null) return;
+      if (token == null) {
+        // Reset notification if failed
+        FlutterBackgroundService().invoke('updateNotification', {
+          'title': 'CareSafe Protection Active',
+          'content': 'Voice SOS is listening for "Help"',
+        });
+        return;
+      }
 
       final url = await _callService.uploadReportFile(
         token: token, 
@@ -154,6 +169,11 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
         SnackBar(content: Text('Error: $e')),
       );
     } finally {
+      // Reset background service notification
+      FlutterBackgroundService().invoke('updateNotification', {
+        'title': 'CareSafe Protection Active',
+        'content': 'Voice SOS is listening for "Help"',
+      });
       if (mounted) setState(() => _isSaving = false);
     }
   }
@@ -419,12 +439,26 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
       setState(() => _isUploading = true);
       
       if (!mounted) return;
+
+      // Update background service notification for file upload
+      FlutterBackgroundService().invoke('updateNotification', {
+        'title': 'Uploading ${widget.title}',
+        'content': 'Syncing $name with secure server...',
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Uploading file...')),
       );
 
       final token = await DoctorAuthService().getDoctorToken();
-      if (token == null) return;
+      if (token == null) {
+        // Reset notification if failed
+        FlutterBackgroundService().invoke('updateNotification', {
+          'title': 'CareSafe Protection Active',
+          'content': 'Voice SOS is listening for "Help"',
+        });
+        return;
+      }
 
       final url = await _callService.uploadReportFile(
         token: token, 
@@ -475,6 +509,11 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
         SnackBar(content: Text('Error: $e')),
       );
     } finally {
+      // Reset background service notification
+      FlutterBackgroundService().invoke('updateNotification', {
+        'title': 'CareSafe Protection Active',
+        'content': 'Voice SOS is listening for "Help"',
+      });
       if (mounted) setState(() => _isUploading = false);
     }
   }

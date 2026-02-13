@@ -37,7 +37,10 @@ class BackgroundServiceHelper {
       'sos_background_channel',
       'SOS Background Protection',
       description: 'Keeps you safe even when the app is closed',
-      importance: Importance.low,
+      importance: Importance.max, // Max importance for maximum visibility
+      enableVibration: true,
+      playSound: true,
+      showBadge: true,
     );
 
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -119,6 +122,28 @@ void onStart(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
 
+  // Initialize notifications for the background isolate
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  // Ensure notification is shown immediately on start
+  if (service is AndroidServiceInstance) {
+    service.setAsForegroundService();
+    service.setForegroundNotificationInfo(
+      title: 'CareSafe Protection Active',
+      content: 'Voice SOS is listening for "Help"',
+    );
+  }
+
   // Initialize dotenv for background isolate
   try {
     await dotenv.load(fileName: ".env");
@@ -128,8 +153,10 @@ void onStart(ServiceInstance service) async {
   }
 
   if (service is AndroidServiceInstance) {
-    service.on('setAsForeground').listen((event) {
-      service.setAsForegroundService();
+    service.setAsForegroundService();
+    
+    service.on('setAsForeground').listen((event) async {
+      await service.setAsForegroundService();
     });
 
     service.on('setAsBackground').listen((event) {
@@ -141,12 +168,60 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
+  String currentTitle = "CareSafe Protection Active";
+  String currentContent = "Voice SOS is listening for \"Help\"";
+
+  // Handle updates to the foreground notification
+  service.on('updateNotification').listen((event) async {
+    if (service is AndroidServiceInstance) {
+      final title = event?['title'] as String?;
+      final content = event?['content'] as String?;
+      if (title != null && content != null) {
+        currentTitle = title;
+        currentContent = content;
+        
+        // Force immediate update
+        service.setForegroundNotificationInfo(
+          title: title,
+          content: content,
+        );
+
+        // FALLBACK: Also use local notifications directly to ensure drawer visibility
+        await flutterLocalNotificationsPlugin.show(
+          888, // Must match foregroundServiceNotificationId
+          title,
+          content,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              'sos_background_channel',
+              'SOS Background Protection',
+              importance: Importance.max,
+              priority: Priority.max,
+              ongoing: true,
+              autoCancel: false,
+              showWhen: true,
+              icon: '@mipmap/ic_launcher',
+            ),
+          ),
+        );
+
+        // Explicitly re-assert foreground status to ensure drawer visibility
+        await service.setAsForegroundService();
+      }
+    }
+  });
+
   service.on('cancelSosAction').listen((event) async {
     try {
       await SOSService().stopSOS(
         cancellationReason: 'User cancelled from notification',
         cancellationComments: 'SOS cancelled via background notification action'
       );
+      // Reset notification
+      service.invoke('updateNotification', {
+        'title': 'CareSafe Protection Active',
+        'content': 'Voice SOS is listening for "Help"',
+      });
       // Notify main app to redirect if open
       service.invoke('sosCancelled');
     } catch (e) {
@@ -157,8 +232,6 @@ void onStart(ServiceInstance service) async {
   // Start Voice Listening in Background
   final hotwordService = HotwordService();
   hotwordService.setBackgroundService(service);
-  // Ensure we stop any existing listener before starting
-  hotwordService.stop();
   
   // Custom trigger for Voice SOS
   hotwordService.onTrigger = () async {
@@ -167,12 +240,24 @@ void onStart(ServiceInstance service) async {
     try {
       await SOSService().startSOS();
       service.invoke('openSos', {'trigger': 'voice'});
+      
+      // Update background notification to show location sharing
+      service.invoke('updateNotification', {
+        'title': 'SOS Alert Active',
+        'content': 'Sharing live location with emergency contacts...',
+      });
     } catch (e) {
       print('Background Voice SOS failed: $e');
     }
   };
   
-  await hotwordService.start();
+  try {
+    // Ensure we stop any existing listener before starting
+    hotwordService.stop();
+    await hotwordService.start();
+  } catch (e) {
+    print('Background: HotwordService start failed: $e');
+  }
 
   // Start Fall Detection in Background
   final fallDetectionService = FallDetectionService();
@@ -182,6 +267,12 @@ void onStart(ServiceInstance service) async {
     try {
       await SOSService().startSOS();
       service.invoke('openSos', {'trigger': 'fall'});
+      
+      // Update background notification to show location sharing
+      service.invoke('updateNotification', {
+        'title': 'SOS Alert Active',
+        'content': 'Sharing live location with emergency contacts...',
+      });
     } catch (e) {
       print('Background Fall SOS failed: $e');
     }
@@ -189,17 +280,43 @@ void onStart(ServiceInstance service) async {
 
   // Periodic update to notification or state
   Timer.periodic(const Duration(seconds: 10), (timer) async {
-    if (service is AndroidServiceInstance) {
-      if (await service.isForegroundService()) {
-        service.setForegroundNotificationInfo(
-          title: "CareSafe Protection Active",
-          content: "Listening for \"Help\" or \"Bachao\"",
-        );
+    try {
+      if (service is AndroidServiceInstance) {
+        if (await service.isForegroundService()) {
+          // Re-assert foreground status to keep notification visible
+          await service.setAsForegroundService();
+          
+          service.setForegroundNotificationInfo(
+            title: currentTitle,
+            content: currentContent,
+          );
+
+          // Periodically refresh local notification to ensure it stays in drawer
+          await flutterLocalNotificationsPlugin.show(
+            888,
+            currentTitle,
+            currentContent,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                'sos_background_channel',
+                'SOS Background Protection',
+                importance: Importance.max,
+                priority: Priority.max,
+                ongoing: true,
+                autoCancel: false,
+                silent: true, // Don't buzz every 10 seconds
+                icon: '@mipmap/ic_launcher',
+              ),
+            ),
+          );
+        }
       }
-    }
-    // Check if hotword service is still running
-    if (!hotwordService.isListening) {
-      await hotwordService.start();
+      // Check if hotword service is still running
+      if (!hotwordService.isListening) {
+        await hotwordService.start();
+      }
+    } catch (e) {
+      print('Background: Periodic timer error: $e');
     }
   });
 }

@@ -415,6 +415,7 @@ class _SosScreenState extends State<SosScreen> {
         _etaRemaining = const Duration(minutes: 8);
       });
       _startEtaTimer();
+      _startStatusPolling();
       _logEvent('activation_success');
     } catch (error) {
       if (!mounted) return;
@@ -507,7 +508,7 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   void _logEvent(String event) {
-    debugPrint('SOS_EVENT: $event');
+    debugPrint('SOS_LOG: $event');
   }
 
   String _formatEta(Duration duration) {
@@ -1056,7 +1057,8 @@ class _SosConfirmationDialogState extends State<SosConfirmationDialog> {
             style: TextStyle(color: Theme.of(context).colorScheme.primary),
           ),
         ),
-        Flexible(
+        SizedBox(
+          width: 140,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF3B30),

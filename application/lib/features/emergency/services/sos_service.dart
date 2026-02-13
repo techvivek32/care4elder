@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -33,6 +34,7 @@ class SOSService {
 
   Future<void> startSOS() async {
     try {
+      if (kDebugMode) print('SOS_LOG: startSOS requested');
       // 1. Check/Request Permissions
       bool serviceEnabled;
       LocationPermission permission;
@@ -55,7 +57,31 @@ class SOSService {
       }
 
       // 2. Get Location
-      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      Position position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 15),
+        );
+      } on TimeoutException catch (e) {
+        if (kDebugMode) print('SOS_ERROR: Location timeout: $e');
+        final lastKnown = await Geolocator.getLastKnownPosition();
+        if (lastKnown != null) {
+          position = lastKnown;
+        } else {
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium,
+            timeLimit: const Duration(seconds: 15),
+          );
+        }
+      } catch (e) {
+        final lastKnown = await Geolocator.getLastKnownPosition();
+        if (lastKnown != null) {
+          position = lastKnown;
+        } else {
+          rethrow;
+        }
+      }
       
       // 3. Get User ID
       if (_profileService.currentUser == null) {
@@ -101,6 +127,7 @@ class SOSService {
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         final sosId = data['_id'];
+        if (kDebugMode) print('SOS_LOG: SOS created successfully, ID: $sosId');
 
         // 4. Save State Locally
         final prefs = await SharedPreferences.getInstance();
@@ -108,10 +135,14 @@ class SOSService {
         await prefs.setString(_activeSosIdKey, sosId);
         await prefs.setInt(_sosStartTimeKey, DateTime.now().millisecondsSinceEpoch);
       } else {
+        if (kDebugMode) print('SOS_ERROR: Failed to create SOS alert: ${response.statusCode} ${response.body}');
         throw Exception('Failed to create SOS alert: ${response.body}');
       }
-    } catch (e) {
-      print('SOS Start Error: $e');
+    } catch (e, stack) {
+      if (kDebugMode) {
+        print('SOS_ERROR: $e');
+        print('SOS_STACK: $stack');
+      }
       rethrow;
     }
   }
@@ -129,9 +160,13 @@ class SOSService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
+      if (kDebugMode) print('SOS_ERROR: getSOSStatus failed: ${response.statusCode} ${response.body}');
       return null;
-    } catch (e) {
-      print('Get SOS Status Error: $e');
+    } catch (e, stack) {
+      if (kDebugMode) {
+        print('SOS_ERROR: getSOSStatus Error: $e');
+        print('SOS_STACK: $stack');
+      }
       return null;
     }
   }

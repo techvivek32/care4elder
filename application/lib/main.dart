@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +16,35 @@ import 'router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    print('APP_ERROR: ${details.exceptionAsString()}');
+    if (details.stack != null) {
+      print('APP_STACK: ${details.stack}');
+    }
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    print('APP_ERROR: $error');
+    print('APP_STACK: $stack');
+    return true;
+  };
+  ErrorWidget.builder = (details) {
+    final message = kDebugMode
+        ? details.exceptionAsString()
+        : 'Something went wrong. Please restart the app.';
+    return Material(
+      color: Colors.white,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  };
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {

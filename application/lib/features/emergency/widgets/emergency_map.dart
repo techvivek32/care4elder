@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -18,10 +19,18 @@ class _EmergencyMapState extends State<EmergencyMap> {
   bool _isLoading = true;
   String _locationStatus = 'Locating...';
 
+  StreamSubscription<Position>? _positionSubscription;
+
   @override
   void initState() {
     super.initState();
     _determinePosition();
+  }
+
+  @override
+  void dispose() {
+    _positionSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _determinePosition() async {
@@ -69,6 +78,7 @@ class _EmergencyMapState extends State<EmergencyMap> {
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.bestForNavigation,
+        timeLimit: const Duration(seconds: 15),
       );
       _updateLocation(position);
 
@@ -78,7 +88,7 @@ class _EmergencyMapState extends State<EmergencyMap> {
         distanceFilter: 0,
       );
       
-      Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) {
+      _positionSubscription = Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) {
         _updateLocation(position);
       });
     } catch (e) {

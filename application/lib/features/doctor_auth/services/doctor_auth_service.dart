@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/services/hotword_service.dart';
+import '../../../core/services/background_service.dart';
 
 class DoctorRegistrationData {
   String? phoneNumber;
@@ -483,6 +484,10 @@ class DoctorAuthService extends ChangeNotifier {
   }
 
   Future<void> clearDoctorSession() async {
+    // Stop any SOS services that might be running
+    HotwordService().stop();
+    await BackgroundServiceHelper.stopService();
+
     await _storage.delete(key: _doctorTokenKey);
     await _storage.delete(key: _doctorRefreshTokenKey);
     await _storage.delete(key: _doctorIdKey);

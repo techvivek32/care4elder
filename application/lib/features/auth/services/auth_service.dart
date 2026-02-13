@@ -4,6 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constants/api_constants.dart';
+import '../../../core/services/hotword_service.dart';
+import '../../../core/services/background_service.dart';
 
 /// Service to handle Authentication logic.
 class AuthService {
@@ -520,7 +522,14 @@ class AuthService {
 
   /// Sign out
   Future<void> signOut() async {
+    // Stop SOS voice trigger service
+    HotwordService().stop();
+    // Stop background monitoring service (includes Fall Detection)
+    await BackgroundServiceHelper.stopService();
+    
     await _googleSignIn.signOut();
     await _storage.delete(key: _userKey);
+    await _storage.delete(key: 'auth_token');
+    await _storage.delete(key: _patientIdKey);
   }
 }

@@ -221,21 +221,39 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
             // Continue Button (Fixed at bottom)
             Padding(
               padding: const EdgeInsets.all(24.0),
-              child: SizedBox(
+              child: Container(
                 width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: _agreedToTerms
+                      ? (Theme.of(context).brightness == Brightness.light
+                          ? AppColors.premiumGradient
+                          : AppColors.darkPremiumGradient)
+                      : null,
+                  color: !_agreedToTerms
+                      ? colorScheme.primary.withOpacity(0.5)
+                      : null,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: _agreedToTerms
+                      ? [
+                          BoxShadow(
+                            color: colorScheme.primary.withOpacity(0.2),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                ),
                 child: ElevatedButton.icon(
                   key: const Key('continue_button'),
                   onPressed: _agreedToTerms ? _handleContinue : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    disabledBackgroundColor: colorScheme.primary.withOpacity(
-                      0.5,
-                    ),
-                    foregroundColor: colorScheme.onPrimary,
-                    disabledForegroundColor: colorScheme.onPrimary.withOpacity(
-                      0.8,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
+                    disabledBackgroundColor: Colors.transparent,
+                    disabledForegroundColor: Colors.white.withOpacity(0.8),
+                    padding: const EdgeInsets.symmetric(vertical: 0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),

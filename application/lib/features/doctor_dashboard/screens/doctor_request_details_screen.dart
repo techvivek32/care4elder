@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
@@ -165,7 +166,7 @@ class _DoctorRequestDetailsScreenState extends State<DoctorRequestDetailsScreen>
             ),
           ),
           const SizedBox(height: 20),
-          // Prominent Medical Information Section (as requested)
+          // General Medical History & Additional Info (Prominent placement)
           _buildSectionCard(
             isDark: isDark,
             title: 'Medical Information Menu',
@@ -174,15 +175,43 @@ class _DoctorRequestDetailsScreenState extends State<DoctorRequestDetailsScreen>
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Current Status', 'Active Request', isDark),
                 _buildInfoRow('Age', age, isDark),
                 _buildInfoRow('Blood Group', bloodType, isDark),
                 _buildInfoRow('Location', _patientProfile?.location ?? '—', isDark),
                 const Divider(height: 24),
-                _buildMedicalMenuButton(context, 'Patient Medical History', Icons.history, () => _tabController.animateTo(1)),
-                _buildMedicalMenuButton(context, 'Prescriptions & Medication', Icons.medication_outlined, () => _tabController.animateTo(2)),
-                _buildMedicalMenuButton(context, 'Laboratory Reports', Icons.microscope_outlined, () => _tabController.animateTo(3)),
-                _buildMedicalMenuButton(context, 'Other Medical Documentation', Icons.description_outlined, () => _tabController.animateTo(4)),
+                // NEW: Open Full Medical Record Page Button
+                if (_patientProfile != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.push('/doctor/patient-medical-info', extra: _patientProfile),
+                        icon: const Icon(Icons.open_in_new, size: 18),
+                        label: const Text('OPEN FULL MEDICAL RECORD', style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ),
+                // Medical History Summary
+                const Text('Medical History:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey)),
+                const SizedBox(height: 8),
+                _buildFormattedMedicalHistory(isDark),
+                const SizedBox(height: 16),
+                // Additional Info
+                const Text('Additional Info:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey)),
+                const SizedBox(height: 8),
+                Text(_patientProfile?.additionalInfo ?? 'No additional info.', style: const TextStyle(fontSize: 14)),
+                const Divider(height: 24),
+                _buildMedicalMenuButton(context, 'Full Clinical Details', Icons.history, () => _tabController.animateTo(1)),
+                _buildMedicalMenuButton(context, 'Prescriptions', Icons.medication_outlined, () => _tabController.animateTo(2)),
+                _buildMedicalMenuButton(context, 'Lab Reports', Icons.science_outlined, () => _tabController.animateTo(3)),
+                _buildMedicalMenuButton(context, 'All Documents', Icons.description_outlined, () => _tabController.animateTo(4)),
               ],
             ),
           ),
@@ -201,6 +230,45 @@ class _DoctorRequestDetailsScreenState extends State<DoctorRequestDetailsScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFormattedMedicalHistory(bool isDark) {
+    if (_patientProfile == null || _patientProfile!.medicalHistory.isEmpty) {
+      return const Text('No medical history recorded.', style: TextStyle(fontSize: 13, color: Colors.grey, fontStyle: FontStyle.italic));
+    }
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.black26 : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: _patientProfile!.medicalHistory.entries.map((e) {
+          // If value is a map/list, stringify it
+          String valStr = e.value.toString();
+          if (e.value is Map || e.value is List) {
+            try {
+              valStr = JsonEncoder.withIndent('  ').convert(e.value);
+            } catch (_) {}
+          }
+          
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${e.key}:', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
+                Text(valStr, style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : AppColors.textDark)),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -228,6 +296,40 @@ class _DoctorRequestDetailsScreenState extends State<DoctorRequestDetailsScreen>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          _buildSectionCard(
+            isDark: isDark,
+            title: 'General Medical History',
+            icon: Icons.history_edu,
+            iconColor: Colors.redAccent,
+            content: _patientProfile!.medicalHistory.isEmpty
+                ? const Text('No general medical history recorded.')
+                : Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.black26 : Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: _patientProfile!.medicalHistory.entries.map((e) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: RichText(
+                          text: TextSpan(
+                            style: GoogleFonts.roboto(
+                              fontSize: 13,
+                              color: isDark ? Colors.white : AppColors.textDark,
+                            ),
+                            children: [
+                              TextSpan(text: '${e.key}: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              TextSpan(text: '${e.value}'),
+                            ],
+                          ),
+                        ),
+                      )).toList(),
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 16),
           _buildSectionCard(isDark: isDark, title: 'Allergies', icon: Icons.warning_amber, iconColor: Colors.orange, content: Text(_patientProfile!.allergies.isEmpty ? 'None reported.' : _patientProfile!.allergies)),
           const SizedBox(height: 16),
           _buildSectionCard(

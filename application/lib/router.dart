@@ -22,6 +22,7 @@ import 'features/doctor_dashboard/screens/doctor_home_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_requests_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_records_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_request_details_screen.dart';
+import 'features/doctor_dashboard/screens/doctor_patient_medical_info_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_call_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_call_summary_screen.dart';
 import 'features/consultation/screens/consultation_screen.dart';
@@ -30,7 +31,8 @@ import 'features/emergency/screens/sos_screen.dart';
 import 'features/records/screens/medical_records_screen.dart';
 import 'features/profile/screens/patient_profile_screen.dart';
 import 'features/profile/screens/personal_info_screen.dart';
- import 'features/profile/screens/patient_medical_info_screen.dart';
+import 'features/profile/screens/patient_medical_info_screen.dart';
+import 'core/services/profile_service.dart';
 import 'features/call/screens/video_call_screen.dart';
 import 'features/call/screens/patient_ringing_screen.dart';
 import 'features/notifications/screens/notification_screen.dart';
@@ -233,6 +235,13 @@ final router = GoRouter(
           requestId: id,
           requestData: requestData,
         );
+      },
+    ),
+    GoRoute(
+      path: '/doctor/patient-medical-info',
+      builder: (context, state) {
+        final patient = state.extra as UserProfile;
+        return DoctorPatientMedicalInfoScreen(patient: patient);
       },
     ),
     GoRoute(

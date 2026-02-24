@@ -7,6 +7,8 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/services/call_request_service.dart';
+import '../../../core/services/doctor_patient_service.dart';
+import '../../../core/services/profile_service.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
 import 'package:intl/intl.dart';
 
@@ -23,6 +25,8 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
   late TextEditingController _reportController;
   final CallRequestService _callService = CallRequestService();
   bool _isSaving = false;
+  bool _isLoadingProfile = true;
+  UserProfile? _patientProfile;
   
   late List<String> _prescriptions;
   late List<String> _labReports;
@@ -35,6 +39,21 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
     _prescriptions = List.from(widget.callRequest.prescriptions);
     _labReports = List.from(widget.callRequest.labReports);
     _medicalDocuments = List.from(widget.callRequest.medicalDocuments);
+    _loadPatientProfile();
+  }
+
+  Future<void> _loadPatientProfile() async {
+    if (widget.callRequest.patientId.isNotEmpty) {
+      final profile = await DoctorPatientService().fetchPatientById(widget.callRequest.patientId);
+      if (mounted) {
+        setState(() {
+          _patientProfile = profile;
+          _isLoadingProfile = false;
+        });
+      }
+    } else {
+      if (mounted) setState(() => _isLoadingProfile = false);
+    }
   }
 
   @override
@@ -278,6 +297,21 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
                             color: isDark ? Colors.white60 : Colors.grey[600],
                           ),
                         ),
+                        if (_patientProfile != null) ...[
+                          const SizedBox(height: 12),
+                          ElevatedButton.icon(
+                            onPressed: () => context.push('/doctor/patient-medical-info', extra: _patientProfile),
+                            icon: const Icon(Icons.medical_services_outlined, size: 14),
+                            label: const Text('View Full Medical Record', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryBlue,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 36),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

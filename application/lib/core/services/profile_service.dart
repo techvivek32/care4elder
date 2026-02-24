@@ -18,6 +18,7 @@ class UserProfile {
   String bloodGroup;
   String allergies;
   double walletBalance;
+  Map<String, dynamic> medicalHistory;
   List<EmergencyContact> emergencyContacts;
   List<PastSurgery> pastSurgeries;
   List<Medication> currentMedications;
@@ -38,6 +39,7 @@ class UserProfile {
     required this.bloodGroup,
     required this.allergies,
     this.walletBalance = 0.0,
+    this.medicalHistory = const {},
     this.emergencyContacts = const [],
     this.pastSurgeries = const [],
     this.currentMedications = const [],
@@ -59,6 +61,7 @@ class UserProfile {
     String? bloodGroup,
     String? allergies,
     double? walletBalance,
+    Map<String, dynamic>? medicalHistory,
     List<EmergencyContact>? emergencyContacts,
     List<PastSurgery>? pastSurgeries,
     List<Medication>? currentMedications,
@@ -79,6 +82,7 @@ class UserProfile {
       bloodGroup: bloodGroup ?? this.bloodGroup,
       allergies: allergies ?? this.allergies,
       walletBalance: walletBalance ?? this.walletBalance,
+      medicalHistory: medicalHistory ?? this.medicalHistory,
       emergencyContacts: emergencyContacts ?? this.emergencyContacts,
       pastSurgeries: pastSurgeries ?? this.pastSurgeries,
       currentMedications: currentMedications ?? this.currentMedications,
@@ -104,6 +108,7 @@ class UserProfile {
       bloodGroup: json['bloodGroup'] ?? '',
       allergies: json['allergies'] ?? '',
       walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0.0,
+      medicalHistory: json['medicalHistory'] is Map ? Map<String, dynamic>.from(json['medicalHistory']) : {},
       emergencyContacts: (json['emergencyContacts'] as List?)
               ?.map((e) => EmergencyContact.fromJson(e))
               .toList() ??
@@ -143,6 +148,7 @@ class UserProfile {
       'location': location,
       'bloodGroup': bloodGroup,
       'allergies': allergies,
+      'medicalHistory': medicalHistory,
       'emergencyContacts': emergencyContacts.map((e) => e.toJson()).toList(),
       'pastSurgeries': pastSurgeries.map((e) => e.toJson()).toList(),
       'currentMedications': currentMedications.map((e) => e.toJson()).toList(),

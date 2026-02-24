@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
           } else if (isDoctorLoggedIn) {
             context.go('/doctor/home');
           } else {
-            context.go('/selection');
+            context.go('/onboarding');
           }
         }
       }

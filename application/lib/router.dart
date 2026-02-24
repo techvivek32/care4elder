@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'features/splash/screens/splash_screen.dart';
+import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/selection/screens/user_selection_screen.dart';
 import 'features/patient/screens/patient_login_screen.dart';
 import 'features/patient/screens/patient_signup_screen.dart';
@@ -51,6 +52,10 @@ final router = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingScreen(),
+    ),
     GoRoute(
       path: '/selection',
       builder: (context, state) => const UserSelectionScreen(),

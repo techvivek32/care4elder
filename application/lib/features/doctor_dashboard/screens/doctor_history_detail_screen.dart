@@ -9,6 +9,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/services/call_request_service.dart';
 import '../../../core/services/doctor_patient_service.dart';
 import '../../../core/services/profile_service.dart';
+import '../../../core/services/file_download_service.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
 import 'package:intl/intl.dart';
 
@@ -605,37 +606,7 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
   }
 
   Future<void> _downloadFile(String url) async {
-    String finalUrl = url;
-    if (!url.startsWith('http')) {
-      // Handle relative URLs
-      final baseUrl = ApiConstants.baseUrl; // e.g., http://10.0.2.2:3000/api
-      // Remove '/api' suffix if present to get root
-      final rootUrl = baseUrl.endsWith('/api') 
-          ? baseUrl.substring(0, baseUrl.length - 4) 
-          : baseUrl;
-      
-      if (!url.startsWith('/')) {
-        finalUrl = '$rootUrl/$url';
-      } else {
-        finalUrl = '$rootUrl$url';
-      }
-    }
-
-    final uri = Uri.parse(finalUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      // Fallback: try launching without checking canLaunchUrl (sometimes required for specific schemes)
-      try {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not launch file URL: $finalUrl')),
-          );
-        }
-      }
-    }
+    await FileDownloadService.downloadAndOpenFile(context, url);
   }
 
   @override

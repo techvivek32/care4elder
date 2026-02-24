@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/profile_service.dart';
+import '../../../core/constants/api_constants.dart';
+import '../../../core/services/file_download_service.dart';
 
 class DoctorPatientMedicalInfoScreen extends StatelessWidget {
   final UserProfile patient;
@@ -10,14 +12,7 @@ class DoctorPatientMedicalInfoScreen extends StatelessWidget {
   const DoctorPatientMedicalInfoScreen({super.key, required this.patient});
 
   Future<void> _downloadDocument(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open document')),
-      );
-    }
+    await FileDownloadService.downloadAndOpenFile(context, url);
   }
 
   @override

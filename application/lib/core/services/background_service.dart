@@ -12,6 +12,8 @@ import 'hotword_service.dart';
 import '../../features/emergency/services/fall_detection_service.dart';
 import '../../features/emergency/services/sos_service.dart';
 
+const bool kEnableVoiceSos = false;
+
 class BackgroundServiceHelper {
   static const String backgroundServiceEnabledKey = 'background_service_enabled';
 
@@ -76,7 +78,7 @@ class BackgroundServiceHelper {
         isForegroundMode: true,
         notificationChannelId: 'sos_background_channel',
         initialNotificationTitle: 'CareSafe Protection Active',
-        initialNotificationContent: 'Voice SOS is listening for "Help"',
+        initialNotificationContent: 'Background protection active',
         foregroundServiceNotificationId: 888,
       ),
       iosConfiguration: IosConfiguration(
@@ -140,7 +142,7 @@ void onStart(ServiceInstance service) async {
     service.setAsForegroundService();
     service.setForegroundNotificationInfo(
       title: 'CareSafe Protection Active',
-      content: 'Voice SOS is listening for "Help"',
+      content: 'Background protection active',
     );
   }
 
@@ -169,7 +171,7 @@ void onStart(ServiceInstance service) async {
   });
 
   String currentTitle = "CareSafe Protection Active";
-  String currentContent = "Voice SOS is listening for \"Help\"";
+  String currentContent = "Background protection active";
 
   // Handle updates to the foreground notification
   service.on('updateNotification').listen((event) async {
@@ -220,7 +222,7 @@ void onStart(ServiceInstance service) async {
       // Reset notification
       service.invoke('updateNotification', {
         'title': 'CareSafe Protection Active',
-        'content': 'Voice SOS is listening for "Help"',
+        'content': 'Background protection active',
       });
       // Notify main app to redirect if open
       service.invoke('sosCancelled');
@@ -229,34 +231,29 @@ void onStart(ServiceInstance service) async {
     }
   });
 
-  // Start Voice Listening in Background
-  final hotwordService = HotwordService();
-  hotwordService.setBackgroundService(service);
-  
-  // Custom trigger for Voice SOS
-  hotwordService.onTrigger = () async {
-    print('Background: Voice SOS Triggered!');
-    _showSosNotification('Voice Command Detected', 'SOS triggered via voice. Tap to manage or cancel.');
+  if (kEnableVoiceSos) {
+    final hotwordService = HotwordService();
+    hotwordService.setBackgroundService(service);
+    hotwordService.onTrigger = () async {
+      print('Background: Voice SOS Triggered!');
+      _showSosNotification('Voice Command Detected', 'SOS triggered via voice. Tap to manage or cancel.');
+      try {
+        await SOSService().startSOS();
+        service.invoke('openSos', {'trigger': 'voice'});
+        service.invoke('updateNotification', {
+          'title': 'SOS Alert Active',
+          'content': 'Sharing live location with emergency contacts...',
+        });
+      } catch (e) {
+        print('Background Voice SOS failed: $e');
+      }
+    };
     try {
-      await SOSService().startSOS();
-      service.invoke('openSos', {'trigger': 'voice'});
-      
-      // Update background notification to show location sharing
-      service.invoke('updateNotification', {
-        'title': 'SOS Alert Active',
-        'content': 'Sharing live location with emergency contacts...',
-      });
+      hotwordService.stop();
+      await hotwordService.start();
     } catch (e) {
-      print('Background Voice SOS failed: $e');
+      print('Background: HotwordService start failed: $e');
     }
-  };
-  
-  try {
-    // Ensure we stop any existing listener before starting
-    hotwordService.stop();
-    await hotwordService.start();
-  } catch (e) {
-    print('Background: HotwordService start failed: $e');
   }
 
   // Start Fall Detection in Background
@@ -312,8 +309,11 @@ void onStart(ServiceInstance service) async {
         }
       }
       // Check if hotword service is still running
-      if (!hotwordService.isListening) {
-        await hotwordService.start();
+      if (kEnableVoiceSos) {
+        final hs = HotwordService();
+        if (!hs.isListening) {
+          await hs.start();
+        }
       }
     } catch (e) {
       print('Background: Periodic timer error: $e');

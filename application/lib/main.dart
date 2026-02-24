@@ -14,6 +14,8 @@ import 'core/services/hotword_service.dart';
 import 'core/services/background_service.dart';
 import 'router.dart';
 
+const bool kEnableVoiceSos = false;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlutterError.onError = (details) {
@@ -75,10 +77,12 @@ Future<void> main() async {
   
   // HotwordService should ONLY be started if user is a Patient and logged in.
   // It checks internal storage itself, but we can delay it or wrap in try-catch.
-  try {
-    HotwordService().start();
-  } catch (e) {
-    if (kDebugMode) print("Hotword Service Start Error: $e");
+  if (kEnableVoiceSos) {
+    try {
+      HotwordService().start();
+    } catch (e) {
+      if (kDebugMode) print("Hotword Service Start Error: $e");
+    }
   }
   
   // Initialize profiles and config

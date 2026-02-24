@@ -331,6 +331,7 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
                 IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => setState(() => _medications.removeAt(index))),
               ],
             ),
+            const SizedBox(height: 12),
             TextFormField(controller: row.purpose, decoration: const InputDecoration(labelText: 'Purpose / Frequency')),
           ],
         ),

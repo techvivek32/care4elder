@@ -164,6 +164,28 @@ class _DoctorRequestDetailsScreenState extends State<DoctorRequestDetailsScreen>
               ],
             ),
           ),
+          const SizedBox(height: 20),
+          // Prominent Medical Information Section (as requested)
+          _buildSectionCard(
+            isDark: isDark,
+            title: 'Medical Information Menu',
+            icon: Icons.medical_services_outlined,
+            iconColor: AppColors.primaryBlue,
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow('Current Status', 'Active Request', isDark),
+                _buildInfoRow('Age', age, isDark),
+                _buildInfoRow('Blood Group', bloodType, isDark),
+                _buildInfoRow('Location', _patientProfile?.location ?? '—', isDark),
+                const Divider(height: 24),
+                _buildMedicalMenuButton(context, 'Patient Medical History', Icons.history, () => _tabController.animateTo(1)),
+                _buildMedicalMenuButton(context, 'Prescriptions & Medication', Icons.medication_outlined, () => _tabController.animateTo(2)),
+                _buildMedicalMenuButton(context, 'Laboratory Reports', Icons.microscope_outlined, () => _tabController.animateTo(3)),
+                _buildMedicalMenuButton(context, 'Other Medical Documentation', Icons.description_outlined, () => _tabController.animateTo(4)),
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
           _buildSectionCard(
             isDark: isDark,
@@ -179,6 +201,23 @@ class _DoctorRequestDetailsScreenState extends State<DoctorRequestDetailsScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMedicalMenuButton(BuildContext context, String title, IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: AppColors.primaryBlue),
+            const SizedBox(width: 12),
+            Expanded(child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
+            const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+          ],
+        ),
       ),
     );
   }

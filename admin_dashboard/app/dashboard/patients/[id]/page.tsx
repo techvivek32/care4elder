@@ -102,127 +102,169 @@ export default async function PatientDetailsPage(props: { params: Promise<{ id: 
             <div className="mt-8 border-t pt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center">
                 <Stethoscope className="w-6 h-6 mr-2 text-blue-500" />
-                Patient Medical Information
+                Patient Medical Information Summary
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Age</span>
-                  <span className="text-lg font-bold text-gray-900">{calculateAge(patient.dateOfBirth) ?? '—'} years</span>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                  <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider block mb-1">Age</span>
+                  <span className="text-xl font-bold text-gray-900">{calculateAge(patient.dateOfBirth) ?? '—'} yrs</span>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Gender</span>
-                  <span className="text-lg font-bold text-gray-900">{patient.gender || '—'}</span>
+                <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                  <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider block mb-1">Gender</span>
+                  <span className="text-xl font-bold text-gray-900">{patient.gender || '—'}</span>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Blood Group</span>
-                  <span className="text-lg font-bold text-gray-900">{patient.bloodGroup || '—'}</span>
+                <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                  <span className="text-xs font-semibold text-red-600 uppercase tracking-wider block mb-1">Blood Group</span>
+                  <span className="text-xl font-bold text-gray-900">{patient.bloodGroup || '—'}</span>
+                </div>
+                <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+                  <span className="text-xs font-semibold text-green-600 uppercase tracking-wider block mb-1">Wallet</span>
+                  <span className="text-xl font-bold text-gray-900">₹{patient.walletBalance?.toFixed(2) || '0.00'}</span>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
-                  <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                    <Activity className="w-4 h-4 mr-2 text-orange-500" />
-                    Allergies
-                  </h4>
-                  <p className="text-gray-700">{patient.allergies || 'No allergies reported.'}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center text-sm uppercase tracking-tight">
+                      <Activity className="w-4 h-4 mr-2 text-orange-500" />
+                      Allergies & Sensitivities
+                    </h4>
+                    <div className={`p-3 rounded-lg text-sm ${patient.allergies ? 'bg-orange-50 text-orange-800' : 'bg-gray-50 text-gray-500 italic'}`}>
+                      {patient.allergies || 'No allergies reported by the patient.'}
+                    </div>
+                  </div>
+
+                  <div className="p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center text-sm uppercase tracking-tight">
+                      <Calendar className="w-4 h-4 mr-2 text-blue-500" />
+                      Birth & Location
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Date of Birth:</span>
+                        <span className="font-medium text-gray-900">{patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Location:</span>
+                        <span className="font-medium text-gray-900">{patient.location || '—'}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
-                    <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                  <div className="p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center text-sm uppercase tracking-tight">
                       <ClipboardList className="w-4 h-4 mr-2 text-purple-500" />
-                      Past Surgeries
+                      Past Surgical History
                     </h4>
                     {patient.pastSurgeries && patient.pastSurgeries.length > 0 ? (
                       <div className="space-y-3">
                         {patient.pastSurgeries.map((s: any, i: number) => (
-                          <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                             <div>
-                              <div className="font-medium text-sm">{s.procedure}</div>
-                              {s.date && <div className="text-xs text-gray-500">{new Date(s.date).toLocaleDateString()}</div>}
+                              <div className="font-bold text-sm text-gray-900">{s.procedure}</div>
+                              {s.date && <div className="text-xs text-gray-500 mt-0.5">{new Date(s.date).toLocaleDateString()}</div>}
                             </div>
                             {s.documentUrl && (
-                              <a href={s.documentUrl} target="_blank" className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
+                              <a href={s.documentUrl} target="_blank" className="p-2 bg-white text-blue-600 hover:text-blue-700 rounded-full shadow-sm border border-gray-100 transition-all">
                                 <Download className="w-4 h-4" />
                               </a>
                             )}
                           </div>
                         ))}
                       </div>
-                    ) : <p className="text-sm text-gray-500 italic">No surgeries reported.</p>}
+                    ) : <div className="text-center py-4 bg-gray-50 rounded-xl text-sm text-gray-400 italic border border-dashed border-gray-200">No surgical history available.</div>}
                   </div>
 
-                  <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
-                    <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                  <div className="p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center text-sm uppercase tracking-tight">
                       <Pill className="w-4 h-4 mr-2 text-green-500" />
                       Active Medications
                     </h4>
                     {patient.currentMedications && patient.currentMedications.length > 0 ? (
                       <div className="space-y-2">
                         {patient.currentMedications.map((m: any, i: number) => (
-                          <div key={i} className="p-2 bg-gray-50 rounded-lg">
-                            <div className="font-medium text-sm">{m.name}</div>
-                            {m.purpose && <div className="text-xs text-gray-500">{m.purpose}</div>}
+                          <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="font-bold text-sm text-gray-900">{m.name}</div>
+                            {m.purpose && <div className="text-xs text-gray-600 mt-1 flex items-center">
+                              <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
+                              {m.purpose}
+                            </div>}
                           </div>
                         ))}
                       </div>
-                    ) : <p className="text-sm text-gray-500 italic">No active medications.</p>}
+                    ) : <div className="text-center py-4 bg-gray-50 rounded-xl text-sm text-gray-400 italic border border-dashed border-gray-200">No active medications listed.</div>}
                   </div>
                 </div>
 
-                <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
-                  <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                <div className="p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
+                  <h4 className="font-bold text-gray-900 mb-4 flex items-center text-sm uppercase tracking-tight">
                     <Microscope className="w-4 h-4 mr-2 text-indigo-500" />
-                    Medical Documents & Reports
+                    Laboratory & Diagnostic Reports
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase block mb-2">Lab Reports</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block">Lab Reports</span>
                       {patient.labReports && patient.labReports.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-1 gap-2">
                           {patient.labReports.map((url: string, i: number) => (
-                            <a key={i} href={url} target="_blank" className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs border border-indigo-100 hover:bg-indigo-100 transition-colors">
-                              Report {i + 1}
+                            <a key={i} href={url} target="_blank" className="flex items-center justify-between p-3 bg-indigo-50 text-indigo-700 rounded-xl text-xs border border-indigo-100 hover:bg-indigo-100 transition-colors">
+                              <div className="flex items-center font-bold">
+                                <FileText className="w-4 h-4 mr-2" />
+                                LAB REPORT #{i + 1}
+                              </div>
+                              <Download className="w-4 h-4" />
                             </a>
                           ))}
                         </div>
-                      ) : <span className="text-xs text-gray-400 italic">None</span>}
+                      ) : <span className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-xl block text-center">No lab reports uploaded.</span>}
                     </div>
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase block mb-2">Prescriptions</span>
+                    <div className="space-y-3">
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block">Medical Prescriptions</span>
                       {patient.prescriptions && patient.prescriptions.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-1 gap-2">
                           {patient.prescriptions.map((url: string, i: number) => (
-                            <a key={i} href={url} target="_blank" className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs border border-green-100 hover:bg-green-100 transition-colors">
-                              Prescription {i + 1}
+                            <a key={i} href={url} target="_blank" className="flex items-center justify-between p-3 bg-green-50 text-green-700 rounded-xl text-xs border border-green-100 hover:bg-green-100 transition-colors">
+                              <div className="flex items-center font-bold">
+                                <FileText className="w-4 h-4 mr-2" />
+                                PRESCRIPTION #{i + 1}
+                              </div>
+                              <Download className="w-4 h-4" />
                             </a>
                           ))}
                         </div>
-                      ) : <span className="text-xs text-gray-400 italic">None</span>}
+                      ) : <span className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-xl block text-center">No prescriptions uploaded.</span>}
                     </div>
                   </div>
                 </div>
 
                 {/* Additional Info & Documents */}
-                <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
-                  <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                <div className="p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
+                  <h4 className="font-bold text-gray-900 mb-4 flex items-center text-sm uppercase tracking-tight">
                     <FileText className="w-4 h-4 mr-2 text-blue-500" />
-                    Additional Information
+                    Additional Patient Context
                   </h4>
-                  <p className="text-gray-700 mb-4">{patient.additionalInfo || 'No additional information provided.'}</p>
+                  <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-700 mb-6 border border-gray-100 leading-relaxed">
+                    {patient.additionalInfo || 'No additional clinical context provided by the patient.'}
+                  </div>
                   
-                  <span className="text-xs font-semibold text-gray-500 uppercase block mb-2">Additional Documents</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-3">Other Supporting Documents</span>
                   {patient.additionalDocuments && patient.additionalDocuments.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {patient.additionalDocuments.map((url: string, i: number) => (
-                        <a key={i} href={url} target="_blank" className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs border border-blue-100 hover:bg-blue-100 transition-colors">
-                          Document {i + 1}
+                        <a key={i} href={url} target="_blank" className="flex items-center justify-between p-3 bg-blue-50 text-blue-700 rounded-xl text-xs border border-blue-100 hover:bg-blue-100 transition-colors">
+                          <div className="flex items-center font-bold">
+                            <FileText className="w-4 h-4 mr-2" />
+                            DOC #{i + 1}
+                          </div>
+                          <Download className="w-4 h-4" />
                         </a>
                       ))}
                     </div>
-                  ) : <span className="text-xs text-gray-400 italic">No additional documents.</span>}
+                  ) : <span className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-xl block text-center">No additional supporting documents.</span>}
                 </div>
               </div>
             </div>

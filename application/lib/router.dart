@@ -319,22 +319,24 @@ final router = GoRouter(
         GoRoute(
           path: '/patient/profile',
           builder: (context, state) => const PatientProfileScreen(),
-        ),
-        GoRoute(
-          path: '/patient/profile/settings',
-          builder: (context, state) => const AppSettingsScreen(),
-        ),
-        GoRoute(
-          path: '/patient/profile/wallet',
-          builder: (context, state) => const PatientWalletScreen(),
-        ),
-        GoRoute(
-          path: '/patient/profile/medical-info',
-          builder: (context, state) => const PatientMedicalInfoScreen(),
-        ),
-        GoRoute(
-          path: '/patient/profile/personal-info',
-          builder: (context, state) => const PersonalInfoScreen(),
+          routes: [
+            GoRoute(
+              path: 'settings',
+              builder: (context, state) => const AppSettingsScreen(),
+            ),
+            GoRoute(
+              path: 'wallet',
+              builder: (context, state) => const PatientWalletScreen(),
+            ),
+            GoRoute(
+              path: 'medical-info',
+              builder: (context, state) => const PatientMedicalInfoScreen(),
+            ),
+            GoRoute(
+              path: 'personal-info',
+              builder: (context, state) => const PersonalInfoScreen(),
+            ),
+          ],
         ),
       ],
     ),

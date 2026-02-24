@@ -137,16 +137,16 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
         pastSurgeries: surgeries,
         currentMedications: meds,
         additionalInfo: _additionalInfoCtrl.text.trim().isEmpty ? null : _additionalInfoCtrl.text.trim(),
-        additionalDocuments: _additionalDocs,
-        labReports: _labReports,
-        prescriptions: _prescriptions,
+        additionalDocuments: List<String>.from(_additionalDocs),
+        labReports: List<String>.from(_labReports),
+        prescriptions: List<String>.from(_prescriptions),
       );
 
       final ok = await ProfileService().updateProfile(updated);
       if (mounted) {
         if (ok) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved successfully')));
-          context.pop();
+          // Removed context.pop() to allow editing after save
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ProfileService().error ?? 'Failed to save')));
         }

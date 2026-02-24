@@ -204,6 +204,26 @@ export default async function PatientDetailsPage(props: { params: Promise<{ id: 
                     </div>
                   </div>
                 </div>
+
+                {/* Additional Info & Documents */}
+                <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
+                  <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                    <FileText className="w-4 h-4 mr-2 text-blue-500" />
+                    Additional Information
+                  </h4>
+                  <p className="text-gray-700 mb-4">{patient.additionalInfo || 'No additional information provided.'}</p>
+                  
+                  <span className="text-xs font-semibold text-gray-500 uppercase block mb-2">Additional Documents</span>
+                  {patient.additionalDocuments && patient.additionalDocuments.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {patient.additionalDocuments.map((url: string, i: number) => (
+                        <a key={i} href={url} target="_blank" className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs border border-blue-100 hover:bg-blue-100 transition-colors">
+                          Document {i + 1}
+                        </a>
+                      ))}
+                    </div>
+                  ) : <span className="text-xs text-gray-400 italic">No additional documents.</span>}
+                </div>
               </div>
             </div>
 

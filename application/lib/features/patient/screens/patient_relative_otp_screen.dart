@@ -158,13 +158,18 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
     });
 
     try {
-      await AuthService().sendOtp(widget.phoneNumber);
+      // Re-trigger server-side OTP by re-submitting the same contacts
+      if (widget.contactsToSave != null && widget.contactsToSave!.isNotEmpty) {
+        await AuthService().updateRelatives(widget.contactsToSave!);
+      } else {
+        throw Exception('Contacts data missing for resend');
+      }
 
       if (mounted) {
         _startTimer();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('OTP Resent!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('OTP resent to relative')),
+        );
       }
     } catch (e) {
       if (mounted) {

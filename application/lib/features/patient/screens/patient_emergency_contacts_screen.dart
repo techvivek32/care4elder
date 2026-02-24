@@ -285,7 +285,7 @@ class _PatientEmergencyContactsScreenState
     });
 
     try {
-      final List<Map<String, String>> contactsData = _contacts.map((c) {
+      List<Map<String, String>> contactsData = _contacts.map((c) {
         String relation = c.selectedRelation ?? '';
         if (relation == 'Custom') {
           relation = c.customRelationController.text.trim();
@@ -306,18 +306,26 @@ class _PatientEmergencyContactsScreenState
       );
       final phoneToVerify = contactToVerify.phoneController.text.trim();
 
-      // We send OTP (Mock/Static) to simulate the process
-      await AuthService().sendOtp(phoneToVerify);
+      // Ensure the intended contact receives the OTP: backend targets relatives[0]
+      final int verifyIndex = _contacts.indexOf(contactToVerify);
+      if (verifyIndex > 0) {
+        final selectedMap = contactsData[verifyIndex];
+        contactsData.removeAt(verifyIndex);
+        contactsData = [selectedMap, ...contactsData];
+      }
+
+      // Save relatives and trigger server-side OTP to the selected phone
+      await AuthService().updateRelatives(contactsData);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Sending OTP for verification...'),
+            content: Text('OTP sent to selected relative'),
             backgroundColor: AppColors.primaryBlue,
           ),
         );
 
-        // Navigate to OTP verification and pass contactsData to be saved AFTER verification
+        // Navigate to OTP verification and pass contactsData for local persistence after success
         context.push(
           '/patient/contacts/otp',
           extra: {

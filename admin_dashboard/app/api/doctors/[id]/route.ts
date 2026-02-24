@@ -152,6 +152,31 @@ export async function GET(
   }
 }
 
+export async function DELETE(
+  request: Request,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    await dbConnect();
+    const authUser = await getAuthUser(request);
+    if (!authUser?.id || authUser.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const { id } = await props.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Invalid Doctor ID' }, { status: 400 });
+    }
+    const deleted = await Doctor.findByIdAndDelete(id);
+    if (!deleted) {
+      return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, id });
+  } catch (error) {
+    console.error('Delete doctor error:', error);
+    return NextResponse.json({ error: 'Failed to delete doctor' }, { status: 500 });
+  }
+}
+
 export async function PUT(
   request: Request,
   props: { params: Promise<{ id: string }> }

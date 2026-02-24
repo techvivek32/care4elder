@@ -22,6 +22,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
     _requests = [
       ConsultationRequest(
         id: '1',
+        patientId: '699d71822f9703958a21dea6', // Added real patient ID for testing
         name: 'Sarah Johnson',
         type: 'Video Call',
         time: '10:30 AM',
@@ -32,6 +33,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
       ),
       ConsultationRequest(
         id: '2',
+        patientId: '699d71822f9703958a21dea6',
         name: 'Mike Chen',
         type: 'Voice Call',
         time: '11:00 AM',
@@ -41,6 +43,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
       ),
       ConsultationRequest(
         id: '3',
+        patientId: '699d71822f9703958a21dea6',
         name: 'Emily Davis',
         type: 'Video Call',
         time: '11:30 AM',
@@ -238,6 +241,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen>
         onTap: () {
           final extra = {
             'id': req.id,
+            'patientId': req.patientId, // Added patientId to extra
             'name': req.name,
             'type': req.type,
             'time': req.time,
@@ -663,6 +667,7 @@ enum RequestStatus { pending, accepted, rejected }
 
 class ConsultationRequest {
   final String id;
+  final String patientId; // Added patientId
   final String name;
   final String type;
   final String time;
@@ -672,6 +677,7 @@ class ConsultationRequest {
 
   ConsultationRequest({
     required this.id,
+    required this.patientId,
     required this.name,
     required this.type,
     required this.time,
@@ -683,6 +689,7 @@ class ConsultationRequest {
   ConsultationRequest copyWith({RequestStatus? status}) {
     return ConsultationRequest(
       id: id,
+      patientId: patientId,
       name: name,
       type: type,
       time: time,

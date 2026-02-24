@@ -16,10 +16,24 @@ export interface IPatient extends Document {
   otpExpiry?: Date;
   medicalHistory: Record<string, any>;
   dateOfBirth?: Date;
+  gender?: string;
   location?: string;
   profilePictureUrl?: string;
   bloodGroup?: string;
   allergies?: string;
+  pastSurgeries?: Array<{
+    procedure: string;
+    date?: Date;
+    documentUrl?: string;
+  }>;
+  currentMedications?: Array<{
+    name: string;
+    purpose?: string;
+  }>;
+  additionalInfo?: string;
+  additionalDocuments?: string[];
+  labReports?: string[];
+  prescriptions?: string[];
   walletBalance: number;
 }
 
@@ -39,10 +53,24 @@ const PatientSchema: Schema = new Schema({
   otpExpiry: { type: Date, select: false },
   medicalHistory: { type: Object, default: {} },
   dateOfBirth: { type: Date },
+  gender: { type: String, enum: ['Male', 'Female', 'Other', 'Prefer not to say'], default: undefined },
   location: { type: String },
   profilePictureUrl: { type: String },
   bloodGroup: { type: String },
   allergies: { type: String },
+  pastSurgeries: [{
+    procedure: { type: String, required: true },
+    date: { type: Date },
+    documentUrl: { type: String },
+  }],
+  currentMedications: [{
+    name: { type: String, required: true },
+    purpose: { type: String },
+  }],
+  additionalInfo: { type: String },
+  additionalDocuments: [{ type: String }],
+  labReports: [{ type: String }],
+  prescriptions: [{ type: String }],
   walletBalance: { type: Number, default: 0 }
 }, { timestamps: true });
 

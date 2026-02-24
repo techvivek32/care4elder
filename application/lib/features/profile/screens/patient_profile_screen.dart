@@ -80,6 +80,13 @@ class PatientProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildMenuItem(
               context,
+              icon: Icons.medical_services_outlined,
+              title: 'Patient Medical Information',
+              onTap: () => context.push('/patient/profile/medical-info'),
+            ),
+            const SizedBox(height: 16),
+            _buildMenuItem(
+              context,
               icon: Icons.people_outline,
               title: 'Emergency Contacts',
               onTap: () => context.push('/patient/contacts'),

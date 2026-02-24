@@ -3,9 +3,22 @@ import dbConnect from '@/lib/db';
 import Patient from '@/models/Patient';
 import { 
   User, Phone, Mail, FileText, Calendar, Users, 
-  Activity, CheckCircle, XCircle, Clock, HeartPulse 
+  Activity, CheckCircle, XCircle, Clock, HeartPulse, 
+  Stethoscope, Pill, Microscope, ClipboardList, Download
 } from 'lucide-react';
 import Link from 'next/link';
+
+function calculateAge(dob: string | Date | undefined) {
+  if (!dob) return null;
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
 
 async function getPatient(id: string) {
   await dbConnect();
@@ -81,6 +94,115 @@ export default async function PatientDetailsPage(props: { params: Promise<{ id: 
                 <div className="flex items-center text-gray-900">
                   <Phone className="w-4 h-4 mr-2 text-gray-400" />
                   {patient.phone}
+                </div>
+              </div>
+            </div>
+
+            {/* Patient Medical Information (New Section) */}
+            <div className="mt-8 border-t pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center">
+                <Stethoscope className="w-6 h-6 mr-2 text-blue-500" />
+                Patient Medical Information
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Age</span>
+                  <span className="text-lg font-bold text-gray-900">{calculateAge(patient.dateOfBirth) ?? '—'} years</span>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Gender</span>
+                  <span className="text-lg font-bold text-gray-900">{patient.gender || '—'}</span>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Blood Group</span>
+                  <span className="text-lg font-bold text-gray-900">{patient.bloodGroup || '—'}</span>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
+                  <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                    <Activity className="w-4 h-4 mr-2 text-orange-500" />
+                    Allergies
+                  </h4>
+                  <p className="text-gray-700">{patient.allergies || 'No allergies reported.'}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
+                    <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                      <ClipboardList className="w-4 h-4 mr-2 text-purple-500" />
+                      Past Surgeries
+                    </h4>
+                    {patient.pastSurgeries && patient.pastSurgeries.length > 0 ? (
+                      <div className="space-y-3">
+                        {patient.pastSurgeries.map((s: any, i: number) => (
+                          <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <div>
+                              <div className="font-medium text-sm">{s.procedure}</div>
+                              {s.date && <div className="text-xs text-gray-500">{new Date(s.date).toLocaleDateString()}</div>}
+                            </div>
+                            {s.documentUrl && (
+                              <a href={s.documentUrl} target="_blank" className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
+                                <Download className="w-4 h-4" />
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : <p className="text-sm text-gray-500 italic">No surgeries reported.</p>}
+                  </div>
+
+                  <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
+                    <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                      <Pill className="w-4 h-4 mr-2 text-green-500" />
+                      Active Medications
+                    </h4>
+                    {patient.currentMedications && patient.currentMedications.length > 0 ? (
+                      <div className="space-y-2">
+                        {patient.currentMedications.map((m: any, i: number) => (
+                          <div key={i} className="p-2 bg-gray-50 rounded-lg">
+                            <div className="font-medium text-sm">{m.name}</div>
+                            {m.purpose && <div className="text-xs text-gray-500">{m.purpose}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    ) : <p className="text-sm text-gray-500 italic">No active medications.</p>}
+                  </div>
+                </div>
+
+                <div className="p-4 border border-gray-100 rounded-xl bg-white shadow-sm">
+                  <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                    <Microscope className="w-4 h-4 mr-2 text-indigo-500" />
+                    Medical Documents & Reports
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-xs font-semibold text-gray-500 uppercase block mb-2">Lab Reports</span>
+                      {patient.labReports && patient.labReports.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {patient.labReports.map((url: string, i: number) => (
+                            <a key={i} href={url} target="_blank" className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs border border-indigo-100 hover:bg-indigo-100 transition-colors">
+                              Report {i + 1}
+                            </a>
+                          ))}
+                        </div>
+                      ) : <span className="text-xs text-gray-400 italic">None</span>}
+                    </div>
+                    <div>
+                      <span className="text-xs font-semibold text-gray-500 uppercase block mb-2">Prescriptions</span>
+                      {patient.prescriptions && patient.prescriptions.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {patient.prescriptions.map((url: string, i: number) => (
+                            <a key={i} href={url} target="_blank" className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs border border-green-100 hover:bg-green-100 transition-colors">
+                              Prescription {i + 1}
+                            </a>
+                          ))}
+                        </div>
+                      ) : <span className="text-xs text-gray-400 italic">None</span>}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

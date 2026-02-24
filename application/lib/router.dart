@@ -30,6 +30,7 @@ import 'features/emergency/screens/sos_screen.dart';
 import 'features/records/screens/medical_records_screen.dart';
 import 'features/profile/screens/patient_profile_screen.dart';
 import 'features/profile/screens/personal_info_screen.dart';
+ import 'features/profile/screens/patient_medical_info_screen.dart';
 import 'features/call/screens/video_call_screen.dart';
 import 'features/call/screens/patient_ringing_screen.dart';
 import 'features/notifications/screens/notification_screen.dart';
@@ -318,16 +319,18 @@ final router = GoRouter(
         GoRoute(
           path: '/patient/profile',
           builder: (context, state) => const PatientProfileScreen(),
-          routes: [
-            GoRoute(
-              path: 'settings',
-              builder: (context, state) => const AppSettingsScreen(),
-            ),
-            GoRoute(
-              path: 'wallet',
-              builder: (context, state) => const PatientWalletScreen(),
-            ),
-          ],
+        ),
+        GoRoute(
+          path: '/patient/profile/settings',
+          builder: (context, state) => const AppSettingsScreen(),
+        ),
+        GoRoute(
+          path: '/patient/profile/wallet',
+          builder: (context, state) => const PatientWalletScreen(),
+        ),
+        GoRoute(
+          path: '/patient/profile/medical-info',
+          builder: (context, state) => const PatientMedicalInfoScreen(),
         ),
         GoRoute(
           path: '/patient/profile/personal-info',

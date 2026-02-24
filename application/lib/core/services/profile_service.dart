@@ -13,11 +13,18 @@ class UserProfile {
   String phoneNumber;
   String profilePictureUrl;
   DateTime? dateOfBirth;
+  String? gender;
   String location;
   String bloodGroup;
   String allergies;
   double walletBalance;
   List<EmergencyContact> emergencyContacts;
+  List<PastSurgery> pastSurgeries;
+  List<Medication> currentMedications;
+  String? additionalInfo;
+  List<String> additionalDocuments;
+  List<String> labReports;
+  List<String> prescriptions;
 
   UserProfile({
     required this.id,
@@ -26,11 +33,18 @@ class UserProfile {
     required this.phoneNumber,
     required this.profilePictureUrl,
     this.dateOfBirth,
+    this.gender,
     required this.location,
     required this.bloodGroup,
     required this.allergies,
     this.walletBalance = 0.0,
     this.emergencyContacts = const [],
+    this.pastSurgeries = const [],
+    this.currentMedications = const [],
+    this.additionalInfo,
+    this.additionalDocuments = const [],
+    this.labReports = const [],
+    this.prescriptions = const [],
   });
 
   UserProfile copyWith({
@@ -40,11 +54,18 @@ class UserProfile {
     String? phoneNumber,
     String? profilePictureUrl,
     DateTime? dateOfBirth,
+    String? gender,
     String? location,
     String? bloodGroup,
     String? allergies,
     double? walletBalance,
     List<EmergencyContact>? emergencyContacts,
+    List<PastSurgery>? pastSurgeries,
+    List<Medication>? currentMedications,
+    String? additionalInfo,
+    List<String>? additionalDocuments,
+    List<String>? labReports,
+    List<String>? prescriptions,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -53,11 +74,18 @@ class UserProfile {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      gender: gender ?? this.gender,
       location: location ?? this.location,
       bloodGroup: bloodGroup ?? this.bloodGroup,
       allergies: allergies ?? this.allergies,
       walletBalance: walletBalance ?? this.walletBalance,
       emergencyContacts: emergencyContacts ?? this.emergencyContacts,
+      pastSurgeries: pastSurgeries ?? this.pastSurgeries,
+      currentMedications: currentMedications ?? this.currentMedications,
+      additionalInfo: additionalInfo ?? this.additionalInfo,
+      additionalDocuments: additionalDocuments ?? this.additionalDocuments,
+      labReports: labReports ?? this.labReports,
+      prescriptions: prescriptions ?? this.prescriptions,
     );
   }
 
@@ -71,12 +99,34 @@ class UserProfile {
       dateOfBirth: json['dateOfBirth'] != null
           ? DateTime.parse(json['dateOfBirth'])
           : null,
+      gender: json['gender'],
       location: json['location'] ?? '',
       bloodGroup: json['bloodGroup'] ?? '',
       allergies: json['allergies'] ?? '',
       walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0.0,
       emergencyContacts: (json['emergencyContacts'] as List?)
               ?.map((e) => EmergencyContact.fromJson(e))
+              .toList() ??
+          [],
+      pastSurgeries: (json['pastSurgeries'] as List?)
+              ?.map((e) => PastSurgery.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      currentMedications: (json['currentMedications'] as List?)
+              ?.map((e) => Medication.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      additionalInfo: json['additionalInfo'],
+      additionalDocuments: (json['additionalDocuments'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      labReports: (json['labReports'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      prescriptions: (json['prescriptions'] as List?)
+              ?.map((e) => e.toString())
               .toList() ??
           [],
     );
@@ -89,10 +139,17 @@ class UserProfile {
       'phone': phoneNumber,
       'profilePictureUrl': profilePictureUrl,
       'dateOfBirth': dateOfBirth?.toIso8601String(),
+      'gender': gender,
       'location': location,
       'bloodGroup': bloodGroup,
       'allergies': allergies,
       'emergencyContacts': emergencyContacts.map((e) => e.toJson()).toList(),
+      'pastSurgeries': pastSurgeries.map((e) => e.toJson()).toList(),
+      'currentMedications': currentMedications.map((e) => e.toJson()).toList(),
+      'additionalInfo': additionalInfo,
+      'additionalDocuments': additionalDocuments,
+      'labReports': labReports,
+      'prescriptions': prescriptions,
     };
   }
 }
@@ -121,6 +178,51 @@ class EmergencyContact {
       'name': name,
       'relation': relation,
       'phone': phone,
+    };
+  }
+}
+
+class PastSurgery {
+  final String procedure;
+  final DateTime? date;
+  final String? documentUrl;
+
+  PastSurgery({required this.procedure, this.date, this.documentUrl});
+
+  factory PastSurgery.fromJson(Map<String, dynamic> json) {
+    return PastSurgery(
+      procedure: json['procedure'] ?? '',
+      date: json['date'] != null ? DateTime.tryParse(json['date']) : null,
+      documentUrl: json['documentUrl'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'procedure': procedure,
+      'date': date?.toIso8601String(),
+      'documentUrl': documentUrl,
+    };
+  }
+}
+
+class Medication {
+  final String name;
+  final String? purpose;
+
+  Medication({required this.name, this.purpose});
+
+  factory Medication.fromJson(Map<String, dynamic> json) {
+    return Medication(
+      name: json['name'] ?? '',
+      purpose: json['purpose'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'purpose': purpose,
     };
   }
 }

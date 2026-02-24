@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/doctor_patient_service.dart';
+import '../../../core/services/profile_service.dart';
 
-class DoctorRequestDetailsScreen extends StatelessWidget {
+class DoctorRequestDetailsScreen extends StatefulWidget {
   final String requestId;
-  final Map<String, String>? requestData;
+  final Map<String, dynamic>? requestData;
 
   const DoctorRequestDetailsScreen({
     super.key,
@@ -14,21 +17,77 @@ class DoctorRequestDetailsScreen extends StatelessWidget {
   });
 
   @override
+  State<DoctorRequestDetailsScreen> createState() => _DoctorRequestDetailsScreenState();
+}
+
+class _DoctorRequestDetailsScreenState extends State<DoctorRequestDetailsScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  UserProfile? _patientProfile;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 5, vsync: this);
+    _loadPatientData();
+  }
+
+  Future<void> _loadPatientData() async {
+    final patientId = widget.requestData?['patientId'] as String?;
+    if (patientId != null) {
+      final profile = await DoctorPatientService().fetchPatientById(patientId);
+      if (mounted) {
+        setState(() {
+          _patientProfile = profile;
+          _isLoading = false;
+        });
+      }
+    } else {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  int _calculateAge(DateTime? dob) {
+    if (dob == null) return 0;
+    final now = DateTime.now();
+    int age = now.year - dob.year;
+    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  Future<void> _downloadDocument(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open document')),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hasData = requestData != null && requestData!.isNotEmpty;
-    final patientName = hasData
-        ? (requestData!['name'] ?? '')
-        : "Sarah Johnson";
-    final age = "32 yrs";
-    final gender = "Female";
-    final bloodType = "O+";
-    final time = hasData ? (requestData!['time'] ?? '') : "10:30 AM";
-    final isVideo = hasData
-        ? (requestData!['type'] == 'Video Call')
-        : (int.tryParse(requestId) != null
-              ? int.parse(requestId).isEven
-              : true);
+    final hasData = widget.requestData != null && widget.requestData!.isNotEmpty;
+    final patientName = _patientProfile?.fullName ?? (hasData ? (widget.requestData!['name'] ?? '') : "Sarah Johnson");
+    final age = _patientProfile?.dateOfBirth != null ? "${_calculateAge(_patientProfile!.dateOfBirth)} yrs" : "—";
+    final gender = _patientProfile?.gender ?? "—";
+    final bloodType = _patientProfile?.bloodGroup ?? "—";
+    final time = hasData ? (widget.requestData!['time'] ?? '') : "—";
+    final isVideo = hasData ? (widget.requestData!['type'] == 'Video Call') : true;
+
+    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
@@ -47,456 +106,152 @@ class DoctorRequestDetailsScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: false,
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          indicatorColor: AppColors.primaryBlue,
+          labelColor: isDark ? Colors.white : AppColors.primaryBlue,
+          unselectedLabelColor: Colors.grey,
+          labelStyle: GoogleFonts.roboto(fontSize: 13, fontWeight: FontWeight.bold),
+          tabs: const [
+            Tab(text: 'Patient Info'),
+            Tab(text: 'Medical Info'),
+            Tab(text: 'Prescription'),
+            Tab(text: 'Lab Report'),
+            Tab(text: 'Medical Documentation'),
+          ],
+        ),
       ),
-      body: (hasData || int.tryParse(requestId) != null)
-          ? Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Patient Header Card
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkCardBackground : Colors.white,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: isDark ? Colors.white.withOpacity(0.05) : Colors.transparent,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
-                                    ),
-                                    padding: const EdgeInsets.all(2),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: isDark ? AppColors.darkCardBackground : Colors.white,
-                                      ),
-                                      child: ClipOval(
-                                        child: Image.asset(
-                                          'assets/images/patient_female_1.png',
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Icon(
-                                            Icons.person,
-                                            size: 30,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          patientName,
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: isDark ? Colors.white : AppColors.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '$age • $gender • $bloodType',
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 14,
-                                            color: isDark ? Colors.white60 : AppColors.textGrey,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            border: Border.all(
-                                              color: Colors.orange.withOpacity(0.3),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Container(
-                                                width: 6,
-                                                height: 6,
-                                                decoration: const BoxDecoration(
-                                                  color: Colors.orange,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                'New Request',
-                                                style: GoogleFonts.roboto(
-                                                  fontSize: 12,
-                                                  color: Colors.orange,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      isVideo
-                                          ? Icons.videocam_outlined
-                                          : Icons.phone_outlined,
-                                      color: isDark ? Colors.white : AppColors.primaryBlue,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      isVideo ? 'Video Call' : 'Voice Call',
-                                      style: GoogleFonts.roboto(
-                                        color: isDark ? Colors.white : AppColors.textDark,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Icon(
-                                      Icons.access_time,
-                                      color: isDark ? Colors.white60 : AppColors.textGrey,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      time,
-                                      style: GoogleFonts.roboto(
-                                        color: isDark ? Colors.white60 : AppColors.textGrey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Symptoms Card
-                        _buildSectionCard(
-                          isDark: isDark,
-                          title: 'Symptoms',
-                          icon: Icons
-                              .show_chart, // Closest match to heartbeat wave
-                          iconColor: isDark ? Colors.white : AppColors.primaryBlue,
-                          content: Text(
-                            'Experiencing recurring headaches and dizziness for the past 3 days. The headaches are mostly in the morning and get worse with screen time.',
-                            style: GoogleFonts.roboto(
-                              color: isDark ? Colors.white60 : AppColors.textGrey,
-                              height: 1.5,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Recent Vitals Card
-                        _buildSectionCard(
-                          isDark: isDark,
-                          title: 'Recent Vitals',
-                          icon: Icons.favorite_border,
-                          iconColor: Colors.red,
-                          content: Row(
-                            children: [
-                              _buildVitalItem(isDark, '120/80', 'Blood Pressure'),
-                              const SizedBox(width: 12),
-                              _buildVitalItem(isDark, '72 bpm', 'Pulse'),
-                              const SizedBox(width: 12),
-                              _buildVitalItem(isDark, '98.6°F', 'Temperature'),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Known Allergies Card
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.red.withOpacity(0.05) : const Color(0xFFFEF2F2), // Light red bg
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Colors.red.withOpacity(isDark ? 0.2 : 0.1),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline,
-                                    color: Colors.red,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Known Allergies',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 8,
-                                children: [
-                                  _buildAllergyChip('Penicillin'),
-                                  _buildAllergyChip('Peanuts'),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Medical History Card
-                        _buildSectionCard(
-                          isDark: isDark,
-                          title: 'Medical History',
-                          icon: Icons.description_outlined,
-                          iconColor: isDark ? Colors.white : AppColors.primaryBlue,
-                          content: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildBulletPoint(isDark, 'Hypertension (controlled)'),
-                              const SizedBox(height: 8),
-                              _buildBulletPoint(isDark, 'Migraine history'),
-                            ],
-                          ),
-                        ),
-
-                        // Extra space for scrolling above buttons
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Bottom Action Buttons
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkBackground : Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, -5),
-                      ),
-                    ],
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => context.pop(),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red,
-                              side: const BorderSide(color: Colors.red),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            child: Text(
-                              'Reject',
-                              style: GoogleFonts.roboto(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primaryBlue.withOpacity(0.2),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                context.push('/doctor/call/$requestId');
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                foregroundColor: Colors.white,
-                                shadowColor: Colors.transparent,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: Text(
-                                'Accept & Connect',
-                                style: GoogleFonts.roboto(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: Colors.red.shade400,
-                      size: 32,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Request not found',
-                      style: GoogleFonts.roboto(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : AppColors.textDark,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'The request may have been removed or is invalid.',
-                      style: GoogleFonts.roboto(color: isDark ? Colors.white60 : AppColors.textGrey),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () => context.pop(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          shadowColor: Colors.transparent,
-                        ),
-                        child: Text(
-                          'Back to Requests',
-                          style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildPatientInfoTab(isDark, patientName, age, gender, bloodType, isVideo, time),
+          _buildMedicalInfoTab(isDark),
+          _buildDocumentsTab(isDark, 'Prescription', _patientProfile?.prescriptions ?? []),
+          _buildDocumentsTab(isDark, 'Lab Report', _patientProfile?.labReports ?? []),
+          _buildDocumentsTab(isDark, 'Medical Documentation', _patientProfile?.additionalDocuments ?? []),
+        ],
+      ),
     );
   }
 
-  Widget _buildSectionCard({
-    required bool isDark,
-    required String title,
-    required IconData icon,
-    required Color iconColor,
-    required Widget content,
-  }) {
+  Widget _buildPatientInfoTab(bool isDark, String name, String age, String gender, String bloodType, bool isVideo, String time) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCardBackground : Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(radius: 30, backgroundColor: AppColors.primaryBlue.withOpacity(0.1), child: const Icon(Icons.person, size: 30, color: AppColors.primaryBlue)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: GoogleFonts.roboto(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppColors.textDark)),
+                      const SizedBox(height: 4),
+                      Text('$age • $gender • $bloodType', style: GoogleFonts.roboto(fontSize: 14, color: isDark ? Colors.white60 : AppColors.textGrey)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSectionCard(
+            isDark: isDark,
+            title: 'Consultation Detail',
+            icon: isVideo ? Icons.videocam : Icons.phone,
+            iconColor: AppColors.primaryBlue,
+            content: Column(
+              children: [
+                _buildInfoRow('Type', isVideo ? 'Video Call' : 'Voice Call', isDark),
+                _buildInfoRow('Time', time, isDark),
+                _buildInfoRow('Symptoms', widget.requestData?['symptom'] ?? '—', isDark),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMedicalInfoTab(bool isDark) {
+    if (_patientProfile == null) return const Center(child: Text('No medical data available.'));
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildSectionCard(isDark: isDark, title: 'Allergies', icon: Icons.warning_amber, iconColor: Colors.orange, content: Text(_patientProfile!.allergies.isEmpty ? 'None reported.' : _patientProfile!.allergies)),
+          const SizedBox(height: 16),
+          _buildSectionCard(
+            isDark: isDark,
+            title: 'Current Medications',
+            icon: Icons.medication,
+            iconColor: Colors.green,
+            content: _patientProfile!.currentMedications.isEmpty
+                ? const Text('No active medications.')
+                : Column(children: _patientProfile!.currentMedications.map((m) => _buildInfoRow(m.name, m.purpose ?? '—', isDark)).toList()),
+          ),
+          const SizedBox(height: 16),
+          _buildSectionCard(
+            isDark: isDark,
+            title: 'Past Surgeries',
+            icon: Icons.history,
+            iconColor: Colors.purple,
+            content: _patientProfile!.pastSurgeries.isEmpty
+                ? const Text('No past surgeries reported.')
+                : Column(
+                    children: _patientProfile!.pastSurgeries.map((s) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(s.procedure, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                      subtitle: s.date != null ? Text('${s.date!.day}/${s.date!.month}/${s.date!.year}') : null,
+                      trailing: s.documentUrl != null ? IconButton(icon: const Icon(Icons.download), onPressed: () => _downloadDocument(s.documentUrl!)) : null,
+                    )).toList(),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentsTab(bool isDark, String label, List<String> urls) {
+    if (urls.isEmpty) return Center(child: Text('No $label found.'));
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: urls.length,
+      itemBuilder: (context, index) => Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: ListTile(
+          leading: const Icon(Icons.description, color: AppColors.primaryBlue),
+          title: Text('$label ${index + 1}'),
+          trailing: const Icon(Icons.download),
+          onTap: () => _downloadDocument(urls[index]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({required bool isDark, required String title, required IconData icon, required Color iconColor, required Widget content}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCardBackground : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isDark ? Colors.white.withOpacity(0.05) : Colors.transparent,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: iconColor, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: GoogleFonts.roboto(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : AppColors.textDark,
-                ),
-              ),
-            ],
-          ),
+          Row(children: [Icon(icon, color: iconColor, size: 20), const SizedBox(width: 8), Text(title, style: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.bold))]),
           const SizedBox(height: 12),
           content,
         ],
@@ -504,76 +259,16 @@ class DoctorRequestDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVitalItem(bool isDark, String value, String label) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: GoogleFonts.roboto(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: GoogleFonts.roboto(
-                fontSize: 11,
-                color: isDark ? Colors.white60 : AppColors.textGrey,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+  Widget _buildInfoRow(String label, String value, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 100, child: Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey))),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold))),
+        ],
       ),
-    );
-  }
-
-  Widget _buildAllergyChip(String label) {
-    return Chip(
-      label: Text(
-        label,
-        style: GoogleFonts.roboto(
-          color: Colors.red,
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
-        ),
-      ),
-      backgroundColor: Colors.red.withOpacity(0.1),
-      side: BorderSide.none,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-    );
-  }
-
-  Widget _buildBulletPoint(bool isDark, String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 6),
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            color: isDark ? Colors.white : AppColors.primaryBlue,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.roboto(fontSize: 14, color: isDark ? Colors.white60 : AppColors.textGrey),
-          ),
-        ),
-      ],
     );
   }
 }

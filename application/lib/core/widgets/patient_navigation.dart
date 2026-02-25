@@ -141,7 +141,11 @@ class PatientBottomNavBar extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   color: isSelected
-                      ? themeColor
+                      ? (isEmergency
+                          ? themeColor
+                          : (Theme.of(context).brightness == Brightness.light
+                              ? themeColor
+                              : Colors.white))
                       : (isEmergency
                             ? themeColor.withOpacity(0.7)
                             : Theme.of(context)

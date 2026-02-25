@@ -576,53 +576,48 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                         const SizedBox(height: 32),
 
                         // Tagline
-                        Center(
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.health_and_safety_outlined,
-                                    size: 20,
-                                    color: Color(0xFF007BFF),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    'Smart Care with Human Touch',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF007BFF),
-                                      fontStyle: FontStyle.italic,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  const Icon(
-                                    Icons.medical_services_outlined,
-                                    size: 20,
-                                    color: Color(0xFF007BFF),
-                                  ),
-                                ],
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '#Care4Elder',
+                              style: GoogleFonts.roboto(
+                                fontSize: 42,
+                                fontWeight: FontWeight.w900,
+                                color: colorScheme.onSurface.withOpacity(0.15),
+                                letterSpacing: 1,
+                                fontStyle: FontStyle.italic,
                               ),
-                              const SizedBox(height: 12),
-                              Container(
-                                width: 60,
-                                height: 3,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      const Color(0xFF007BFF).withOpacity(0.1),
-                                      const Color(0xFF007BFF),
-                                      const Color(0xFF007BFF).withOpacity(0.1),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(2),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                const Text(
+                                  '🇮🇳',
+                                  style: TextStyle(fontSize: 20),
                                 ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Made for India',
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onSurface.withOpacity(0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Smart Care with Human Touch',
+                              style: GoogleFonts.roboto(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface.withOpacity(0.7),
+                                fontStyle: FontStyle.italic,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
 
                         // Extra padding for bottom nav

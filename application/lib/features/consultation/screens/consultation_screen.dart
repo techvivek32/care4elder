@@ -94,31 +94,51 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                     children: [
                       Expanded(
                         child: Container(
-                          height: 48,
+                          height: 44,
+                          clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: colorScheme.outlineVariant),
+                            color: Theme.of(context).brightness == Brightness.light
+                                ? Colors.white
+                                : Colors.grey.shade800,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? const Color(0xFF9E9E9E)
+                                  : Colors.grey.shade600,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: TextField(
                             controller: _searchController,
                             onChanged: (value) => setState(() {}),
-                            style: GoogleFonts.roboto(color: colorScheme.onSurface),
+                            style: GoogleFonts.roboto(
+                              color: colorScheme.onSurface,
+                              fontSize: 13,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Search doctors, specialization',
                               hintStyle: GoogleFonts.roboto(
                                 color: colorScheme.onSurface.withOpacity(0.4),
-                                fontSize: 14,
+                                fontSize: 13,
                               ),
                               prefixIcon: Icon(
                                 Icons.search,
-                                color: colorScheme.onSurface.withOpacity(0.4),
+                                color: colorScheme.onSurface.withOpacity(0.5),
+                                size: 20,
                               ),
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                                horizontal: 12,
                                 vertical: 12,
                               ),
+                              isDense: true,
                             ),
                           ),
                         ),

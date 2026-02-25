@@ -6,6 +6,7 @@ import '../../auth/services/auth_service.dart';
 import '../../../core/services/settings_service.dart';
 import '../../../core/services/background_service.dart';
 import '../../../core/theme/app_colors.dart';
+import 'privacy_policy_screen.dart';
 
 class AppSettingsScreen extends StatefulWidget {
   const AppSettingsScreen({super.key});
@@ -126,24 +127,32 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
               ),
               const SizedBox(height: 24),
               _buildSectionHeader('Data & Privacy', context),
-              _buildListTile(
-                context: context,
-                title: 'Data Backup',
-                subtitle: 'Last backup: Never',
-                icon: Icons.backup_outlined,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Backup feature coming soon')),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
+              // Data Backup button hidden as requested
+              // _buildListTile(
+              //   context: context,
+              //   title: 'Data Backup',
+              //   subtitle: 'Last backup: Never',
+              //   icon: Icons.backup_outlined,
+              //   onTap: () {
+              //     ScaffoldMessenger.of(context).showSnackBar(
+              //       const SnackBar(content: Text('Backup feature coming soon')),
+              //     );
+              //   },
+              // ),
+              // const SizedBox(height: 12),
               _buildListTile(
                 context: context,
                 title: 'Privacy Policy',
                 subtitle: 'View privacy policy',
                 icon: Icons.privacy_tip_outlined,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PrivacyPolicyScreen(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 24),
               _buildSectionHeader('Account', context),

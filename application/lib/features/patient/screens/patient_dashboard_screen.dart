@@ -578,8 +578,8 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                         // Tagline with background image
                         Container(
                           width: double.infinity,
-                          height: 200,
-                          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                          height: 250,
+                          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                           decoration: BoxDecoration(
                             image: DecorationImage(
                               image: AssetImage(
@@ -588,7 +588,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                   : 'assets/images/footer_black_on_white.png',
                               ),
                               fit: BoxFit.cover,
-                              opacity: 0.2,
+                              opacity: 0.12,
                             ),
                           ),
                           child: Column(

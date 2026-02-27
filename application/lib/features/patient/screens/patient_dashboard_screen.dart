@@ -575,53 +575,67 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 
                         const SizedBox(height: 32),
 
-                        // Tagline
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '#Care4Elder',
-                              style: GoogleFonts.roboto(
-                                fontSize: 42,
-                                fontWeight: FontWeight.w900,
-                                color: colorScheme.onSurface.withOpacity(0.15),
-                                letterSpacing: 1,
-                                fontStyle: FontStyle.italic,
+                        // Tagline with background image
+                        Container(
+                          width: double.infinity,
+                          height: 200,
+                          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(
+                                Theme.of(context).brightness == Brightness.dark
+                                  ? 'assets/images/footer app c4e.png'
+                                  : 'assets/images/footer_black_on_white.png',
                               ),
+                              fit: BoxFit.cover,
+                              opacity: 0.2,
                             ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                const Text(
-                                  '🇮🇳',
-                                  style: TextStyle(fontSize: 20),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '#Care4Elder',
+                                style: GoogleFonts.roboto(
+                                  fontSize: 42,
+                                  fontWeight: FontWeight.w900,
+                                  color: colorScheme.onSurface.withOpacity(0.15),
+                                  letterSpacing: 1,
+                                  fontStyle: FontStyle.italic,
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Made for India',
-                                  style: GoogleFonts.roboto(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.onSurface.withOpacity(0.7),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  const Text(
+                                    '🇮🇳',
+                                    style: TextStyle(fontSize: 20),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Smart Care with Human Touch',
-                              style: GoogleFonts.roboto(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.onSurface.withOpacity(0.7),
-                                fontStyle: FontStyle.italic,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Made for India',
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurface.withOpacity(0.7),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                'Smart Care with Human Touch',
+                                style: GoogleFonts.roboto(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.onSurface.withOpacity(0.7),
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-
-                        // Extra padding for bottom nav
-                        const SizedBox(height: 80),
                       ],
                     ),
                   ),

@@ -9,7 +9,7 @@ import 'features/patient/screens/patient_otp_screen.dart';
 import 'features/patient/screens/patient_permissions_screen.dart';
 import 'features/patient/screens/patient_emergency_contacts_screen.dart';
 import 'features/patient/screens/patient_relative_otp_screen.dart';
-import 'features/patient/screens/patient_dashboard_screen.dart';
+import 'features/patient/screens/patient_home_screen.dart';
 import 'features/patient/screens/patient_shell.dart';
 import 'features/doctor_auth/screens/doctor_login_screen.dart';
 import 'features/doctor_auth/screens/doctor_otp_screen.dart';
@@ -33,6 +33,7 @@ import 'features/records/screens/medical_records_screen.dart';
 import 'features/profile/screens/patient_profile_screen.dart';
 import 'features/profile/screens/personal_info_screen.dart';
 import 'features/profile/screens/patient_medical_info_screen.dart';
+import 'features/patient/screens/medicines_screen.dart';
 import 'core/services/profile_service.dart';
 import 'features/call/screens/video_call_screen.dart';
 import 'features/call/screens/patient_ringing_screen.dart';
@@ -305,7 +306,7 @@ final router = GoRouter(
       routes: [
         GoRoute(
           path: '/patient/dashboard',
-          builder: (context, state) => const PatientDashboardScreen(),
+          builder: (context, state) => const PatientHomeScreen(),
         ),
         GoRoute(
           path: '/patient/consultation',
@@ -349,6 +350,10 @@ final router = GoRouter(
             GoRoute(
               path: 'personal-info',
               builder: (context, state) => const PersonalInfoScreen(),
+            ),
+            GoRoute(
+              path: 'medicines',
+              builder: (context, state) => const MedicinesScreen(),
             ),
           ],
         ),

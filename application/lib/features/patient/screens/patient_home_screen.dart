@@ -189,7 +189,12 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                 CircleAvatar(
                                   radius: 22,
                                   backgroundColor: Colors.white.withOpacity(0.2),
-                                  child: const Icon(Icons.person, color: Colors.white, size: 24),
+                                  backgroundImage: profile?.profilePictureUrl.isNotEmpty == true
+                                      ? NetworkImage(profile!.profilePictureUrl)
+                                      : null,
+                                  child: profile?.profilePictureUrl.isEmpty ?? true
+                                      ? const Icon(Icons.person, color: Colors.white, size: 24)
+                                      : null,
                                 ),
                                 const SizedBox(width: 12),
                                 Column(

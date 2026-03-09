@@ -238,11 +238,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     ),
                   ),
                 ),
-                // Overlapping Consult Doctor card (only ~5% overlaps with hero)
+                // Overlapping Consult Doctor card (97% overlaps with hero, 3% visible below)
                 Positioned(
-                  bottom: -185,
-                  left: 16,
-                  right: 16,
+                  bottom: -194,
+                  left: 8,
+                  right: 8,
                   child: const ConsultDoctorCard(),
                 ),
               ],
@@ -250,7 +250,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           ),
           // Add spacing for the overlapping card
           const SliverToBoxAdapter(
-            child: SizedBox(height: 205),
+            child: SizedBox(height: 206),
           ),
           // Main content
           SliverToBoxAdapter(

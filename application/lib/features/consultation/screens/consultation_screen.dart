@@ -173,15 +173,6 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                               ? null
                               : colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(24),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: colorScheme.primary.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ]
-                              : null,
                         ),
                         child: Text(
                           category,

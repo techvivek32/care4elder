@@ -14,13 +14,15 @@ class PatientBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return BottomAppBar(
       shape: const CircularNotchedRectangle(),
       notchMargin: 8.0,
-      color: Theme.of(context).colorScheme.surface,
+      color: isDark ? const Color(0xFF01080E) : Colors.white,
       elevation: 10,
       shadowColor: Colors.black.withOpacity(0.1),
-      surfaceTintColor: Theme.of(context).colorScheme.surface,
+      surfaceTintColor: Colors.transparent,
       height: 80,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
@@ -32,6 +34,8 @@ class PatientBottomNavBar extends StatelessWidget {
             Icons.home_rounded,
             Icons.home_outlined,
             'Home',
+            currentIndex,
+            isDark,
           ),
           _buildNavItem(
             context,
@@ -39,6 +43,8 @@ class PatientBottomNavBar extends StatelessWidget {
             Icons.monitor_heart,
             Icons.monitor_heart_outlined,
             'Consult',
+            currentIndex,
+            isDark,
           ),
           _buildNavItem(
             context,
@@ -46,6 +52,8 @@ class PatientBottomNavBar extends StatelessWidget {
             Icons.emergency_rounded,
             Icons.emergency_outlined,
             'SOS',
+            currentIndex,
+            isDark,
             activeColor: const Color(0xFFFF3B30),
             isEmergency: true,
           ),
@@ -55,6 +63,8 @@ class PatientBottomNavBar extends StatelessWidget {
             Icons.description,
             Icons.description_outlined,
             'Records',
+            currentIndex,
+            isDark,
           ),
           _buildNavItem(
             context,
@@ -62,6 +72,8 @@ class PatientBottomNavBar extends StatelessWidget {
             Icons.person,
             Icons.person_outline,
             'Profile',
+            currentIndex,
+            isDark,
           ),
         ],
       ),
@@ -73,59 +85,51 @@ class PatientBottomNavBar extends StatelessWidget {
     int index,
     IconData activeIcon,
     IconData inactiveIcon,
-    String label, {
+    String label,
+    int currentIndex,
+    bool isDark, {
     Color? activeColor,
     bool isEmergency = false,
   }) {
     final isSelected = currentIndex == index;
-    final themeColor = activeColor ?? AppColors.primaryBlue;
+    final themeColor = isDark ? const Color(0xFF2196F3) : const Color(0xFF1565C0);
 
-    return Semantics(
-      button: true,
-      label: isEmergency ? 'Emergency SOS' : label,
-      hint: 'Navigate to $label tab',
-      selected: isSelected,
-      child: InkWell(
-        onTap: () => onTap(index),
-        borderRadius: BorderRadius.circular(24),
-        child: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: isSelected
-                ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
-                : const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isSelected ? themeColor : Colors.transparent,
-              borderRadius: BorderRadius.circular(24),
+    return InkWell(
+      onTap: () => onTap(index),
+      borderRadius: BorderRadius.circular(24),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: isSelected
+            ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+            : const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? (isEmergency ? activeColor : themeColor)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? activeIcon : inactiveIcon,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.white38 : const Color(0xFF757575)),
+              size: 24,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isSelected ? activeIcon : inactiveIcon,
-                  color: isSelected
-                      ? Colors.white
-                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                  size: 24,
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: GoogleFonts.roboto(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
                 ),
-                if (isSelected) ...[
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      label,
-                      style: GoogleFonts.roboto(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+              ),
+            ],
+          ],
         ),
       ),
     );

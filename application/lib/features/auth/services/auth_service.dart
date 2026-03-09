@@ -33,6 +33,7 @@ class AuthService {
 
   static const String _userKey = 'user_session';
   static const String _patientIdKey = 'patient_id';
+  static const String _refreshTokenKey = 'refresh_token';
 
   // OTP Storage: phone -> {code, expiresAt, attempts}
   final Map<String, Map<String, dynamic>> _otpStore = {};
@@ -41,9 +42,54 @@ class AuthService {
 
   bool enableDevOtpBypass = true;
 
-  /// Get stored auth token
+  /// Get stored auth token with automatic refresh
   Future<String?> getToken() async {
-    return await _storage.read(key: 'auth_token');
+    String? token = await _storage.read(key: 'auth_token');
+    
+    // If token exists, try to use it (backend will validate)
+    // If it fails, the API call will handle the error
+    if (token != null) {
+      return token;
+    }
+    
+    // If no token, try to refresh
+    return await _refreshTokenIfNeeded();
+  }
+
+  /// Refresh token if needed
+  Future<String?> _refreshTokenIfNeeded() async {
+    try {
+      final refreshToken = await _storage.read(key: _refreshTokenKey);
+      if (refreshToken == null) {
+        return null;
+      }
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final newToken = data['token'];
+        
+        if (newToken != null) {
+          await _storage.write(key: 'auth_token', value: newToken);
+          if (kDebugMode) print('Token refreshed successfully');
+          return newToken;
+        }
+      } else {
+        if (kDebugMode) print('Token refresh failed: ${response.body}');
+        // Clear invalid tokens
+        await _storage.delete(key: 'auth_token');
+        await _storage.delete(key: _refreshTokenKey);
+      }
+    } catch (e) {
+      if (kDebugMode) print('Token refresh error: $e');
+    }
+    
+    return null;
   }
 
   /// Register Patient
@@ -100,6 +146,9 @@ class AuthService {
         // Save tokens
         if (data['token'] != null) {
           await _storage.write(key: 'auth_token', value: data['token']);
+        }
+        if (data['refreshToken'] != null) {
+          await _storage.write(key: _refreshTokenKey, value: data['refreshToken']);
         }
         return data;
       } else {
@@ -208,6 +257,9 @@ class AuthService {
         // Save tokens
         if (data['token'] != null) {
           await _storage.write(key: 'auth_token', value: data['token']);
+        }
+        if (data['refreshToken'] != null) {
+          await _storage.write(key: _refreshTokenKey, value: data['refreshToken']);
         }
         // Save user info
         if (data['user'] != null) {
@@ -391,6 +443,9 @@ class AuthService {
         if (data['token'] != null) {
           await _storage.write(key: 'auth_token', value: data['token']);
         }
+        if (data['refreshToken'] != null) {
+          await _storage.write(key: _refreshTokenKey, value: data['refreshToken']);
+        }
         // Save user info
         if (data['user'] != null) {
             await _storage.write(key: _userKey, value: jsonEncode(data['user']));
@@ -530,6 +585,7 @@ class AuthService {
     await _googleSignIn.signOut();
     await _storage.delete(key: _userKey);
     await _storage.delete(key: 'auth_token');
+    await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _patientIdKey);
   }
 }

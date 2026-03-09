@@ -95,7 +95,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               children: [
                 // Full screen hero section (no margins)
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.45,
+                  height: MediaQuery.of(context).size.height * 0.38,
                   child: _isLoadingHeroes
                       ? Center(
                           child: CircularProgressIndicator(

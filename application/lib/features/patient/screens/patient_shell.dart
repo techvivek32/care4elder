@@ -62,16 +62,15 @@ class _PatientShellState extends State<PatientShell> {
   }
 
   Future<void> _handleBack() async {
-    final router = GoRouter.of(context);
-    if (router.canPop()) {
-      router.pop();
-      return;
-    }
     final currentIndex = _currentIndexFromLocation();
+    
+    // If not on home page (index 0), always go to home
     if (currentIndex != 0) {
       context.go('/patient/dashboard');
       return;
     }
+    
+    // If on home page, show exit dialog
     final shouldExit = await _showExitDialog();
     if (shouldExit == true) {
       _exitApp();

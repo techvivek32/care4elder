@@ -132,51 +132,6 @@ class BackNavigationHandler extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) {
-          return;
-        }
-        final router = GoRouter.of(context);
-        if (router.canPop()) {
-          router.pop();
-          return;
-        }
-        final shouldExit = await _showExitDialog(context);
-        if (shouldExit == true) {
-          _exitApp();
-        }
-      },
-      child: child,
-    );
-  }
-
-  Future<bool?> _showExitDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Exit App'),
-          content: const Text('Do you want to exit the app?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Exit'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _exitApp() {
-    if (Platform.isAndroid || Platform.isIOS) {
-      SystemNavigator.pop();
-    }
+    return child; // Remove PopScope wrapper - let individual shells handle their own back navigation
   }
 }

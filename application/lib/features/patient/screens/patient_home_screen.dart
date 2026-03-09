@@ -86,187 +86,169 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
     return Scaffold(
       backgroundColor: surfaceColor,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Simple header with profile and notifications
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () => context.go('/patient/profile'),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: AppColors.primaryBlue.withOpacity(0.1),
-                            child: Icon(Icons.person, color: AppColors.primaryBlue, size: 24),
+      body: CustomScrollView(
+        slivers: [
+          // Full screen hero section with transparent header inside
+          SliverToBoxAdapter(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Full screen hero section (no margins)
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.45,
+                  child: _isLoadingHeroes
+                      ? Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primaryBlue,
                           ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                displayName,
-                                style: GoogleFonts.roboto(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : AppColors.textDark,
-                                ),
+                        )
+                      : PageView.builder(
+                          controller: _heroController,
+                          itemCount: _heroSections.isNotEmpty ? _heroSections.length : 1,
+                          itemBuilder: (context, index) {
+                            final hero = _heroSections.isNotEmpty ? _heroSections[index] : null;
+                            return Container(
+                              decoration: BoxDecoration(
+                                gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
+                                image: hero?.imageUrl.isNotEmpty == true
+                                    ? DecorationImage(
+                                        image: NetworkImage(hero!.imageUrl),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
                               ),
-                              Text(
-                                'Premium Member',
-                                style: GoogleFonts.roboto(
-                                  fontSize: 12,
-                                  color: AppColors.textGrey,
-                                ),
+                              child: Stack(
+                                children: [
+                                  // Gradient overlay
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.black.withOpacity(0.3),
+                                          Colors.transparent,
+                                          Colors.black.withOpacity(0.5),
+                                        ],
+                                        stops: const [0.0, 0.5, 1.0],
+                                      ),
+                                    ),
+                                  ),
+                                  // Hero content (centered)
+                                  Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            hero?.title.isNotEmpty == true ? hero!.title : 'Care4Elder',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 40,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                              height: 1.2,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            hero?.subtitle.isNotEmpty == true ? hero!.subtitle : 'Stay healthy, stay safe',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 16,
+                                              color: Colors.white.withOpacity(0.95),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            );
+                          },
+                        ),
+                ),
+                // Transparent header INSIDE hero section
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () => context.go('/patient/profile'),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor: Colors.white.withOpacity(0.2),
+                                  child: const Icon(Icons.person, color: Colors.white, size: 24),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      displayName,
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      profile?.email ?? '',
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 12,
+                                        color: Colors.white.withOpacity(0.9),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.white,
+                              ),
+                              onPressed: () => context.push('/patient/notifications'),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.notifications_outlined,
-                        color: isDark ? Colors.white : AppColors.textDark,
-                      ),
-                      onPressed: () => context.push('/patient/notifications'),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                // Overlapping Consult Doctor card (only ~10% overlaps with hero)
+                Positioned(
+                  bottom: -175,
+                  left: 16,
+                  right: 16,
+                  child: const ConsultDoctorCard(),
+                ),
+              ],
             ),
-            // Featured hero section with overlapping Consult Doctor card
-            SliverToBoxAdapter(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Hero section (no button, just image and text)
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    height: 280,
-                    child: _isLoadingHeroes
-                        ? Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.primaryBlue,
-                            ),
-                          )
-                        : PageView.builder(
-                            controller: _heroController,
-                            itemCount: _heroSections.isNotEmpty ? _heroSections.length : 1,
-                            itemBuilder: (context, index) {
-                              final hero = _heroSections.isNotEmpty ? _heroSections[index] : null;
-                              return Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
-                                  image: hero?.imageUrl.isNotEmpty == true
-                                      ? DecorationImage(
-                                          image: NetworkImage(hero!.imageUrl),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : null,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Stack(
-                                  children: [
-                                    // Gradient overlay
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            Colors.transparent,
-                                            Colors.black.withOpacity(0.4),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    // Featured badge
-                                    Positioned(
-                                      top: 16,
-                                      right: 16,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.9),
-                                          borderRadius: BorderRadius.circular(20),
-                                        ),
-                                        child: Text(
-                                          'FEATURED',
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.primaryBlue,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // Hero content (centered)
-                                    Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              hero?.title.isNotEmpty == true ? hero!.title : 'Care4Elder',
-                                              textAlign: TextAlign.center,
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 36,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            Text(
-                                              hero?.subtitle.isNotEmpty == true ? hero!.subtitle : 'Stay healthy, stay safe',
-                                              textAlign: TextAlign.center,
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 16,
-                                                color: Colors.white.withOpacity(0.9),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                  // Overlapping Consult Doctor card
-                  Positioned(
-                    bottom: -40,
-                    left: 16,
-                    right: 16,
-                    child: const ConsultDoctorCard(),
-                  ),
-                ],
-              ),
-            ),
-            // Add spacing for the overlapping card
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 60),
-            ),
-            // Main content
-            SliverToBoxAdapter(
+          ),
+          // Add spacing for the overlapping card
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 195),
+          ),
+          // Main content
+          SliverToBoxAdapter(
               child: Column(
                 children: [
                   const PremiumBanner(),
@@ -336,8 +318,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 ],
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

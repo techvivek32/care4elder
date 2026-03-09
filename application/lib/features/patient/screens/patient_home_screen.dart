@@ -86,193 +86,267 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
     return Scaffold(
       backgroundColor: surfaceColor,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            backgroundColor: isDark ? AppColors.darkBackground : AppColors.primaryBlue,
-            expandedHeight: 220.0,
-            floating: false,
-            pinned: true,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.person, color: Colors.white),
-              onPressed: () => context.go('/patient/profile'),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                onPressed: () => context.push('/patient/notifications'),
-              ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        displayName,
-                        style: GoogleFonts.roboto(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
-                    ],
-                  ),
-                  Text(
-                    'Premium Member',
-                    style: GoogleFonts.roboto(
-                      fontSize: 11,
-                      color: Colors.white.withOpacity(0.85),
-                    ),
-                  ),
-                ],
-              ),
-              background: PageView.builder(
-                controller: _heroController,
-                itemCount: _heroSections.isNotEmpty ? _heroSections.length : 1,
-                itemBuilder: (context, index) {
-                  final hero = _heroSections.isNotEmpty ? _heroSections[index] : null;
-                  return Container(
-                    decoration: BoxDecoration(
-                      gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
-                      image: hero?.imageUrl.isNotEmpty == true
-                          ? DecorationImage(
-                              image: NetworkImage(hero!.imageUrl),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16, top: 100, right: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_isLoadingHeroes)
-                            const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            ),
-                          if (_isLoadingHeroes) const SizedBox(height: 12),
-                          Text(
-                            hero?.title.isNotEmpty == true ? hero!.title : 'Care4Elder',
-                            style: GoogleFonts.roboto(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            hero?.subtitle.isNotEmpty == true ? hero!.subtitle : 'Stay healthy, stay safe',
-                            style: GoogleFonts.roboto(
-                              fontSize: 16,
-                              color: Colors.white.withOpacity(0.8),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: const Offset(0, -24),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            // Simple header with profile and notifications
+            SliverToBoxAdapter(
               child: Container(
-                padding: const EdgeInsets.only(top: 24, bottom: 24),
-                decoration: BoxDecoration(
-                  color: surfaceColor,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                child: Column(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const ConsultDoctorCard(),
-                    const PremiumBanner(),
-                    _buildSectionHeader(context, 'Services', () {}),
-                    _buildServicesGrid(context),
-                    _buildSectionHeader(context, 'Health Tips', () {}),
-                    _buildHealthTipsList(),
-                    const SizedBox(height: 40),
-                    // Footer Tagline (same style as doctor home)
-                    Container(
-                      width: double.infinity,
-                      height: 220,
-                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage(
-                            Theme.of(context).brightness == Brightness.dark
-                              ? 'assets/images/footer app c4e.png'
-                              : 'assets/images/footer_black_on_white.png',
-                          ),
-                          fit: BoxFit.cover,
-                          opacity: 0.12,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    GestureDetector(
+                      onTap: () => context.go('/patient/profile'),
+                      child: Row(
                         children: [
-                          Text(
-                            '#Care4Elder',
-                            style: GoogleFonts.roboto(
-                              fontSize: 36,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.textDark.withOpacity(0.15),
-                              letterSpacing: 1,
-                              fontStyle: FontStyle.italic,
-                            ),
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor: AppColors.primaryBlue.withOpacity(0.1),
+                            child: Icon(Icons.person, color: AppColors.primaryBlue, size: 24),
                           ),
-                          const SizedBox(height: 12),
-                          Row(
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('🇮🇳', style: TextStyle(fontSize: 20)),
-                              const SizedBox(width: 8),
                               Text(
-                                'Made for India',
+                                displayName,
                                 style: GoogleFonts.roboto(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : AppColors.textDark,
+                                ),
+                              ),
+                              Text(
+                                'Premium Member',
+                                style: GoogleFonts.roboto(
+                                  fontSize: 12,
                                   color: AppColors.textGrey,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Smart Care with Human Touch',
-                            style: GoogleFonts.roboto(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textGrey,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
                         ],
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.notifications_outlined,
+                        color: isDark ? Colors.white : AppColors.textDark,
+                      ),
+                      onPressed: () => context.push('/patient/notifications'),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
-        ],
+            // Featured hero section with overlapping Consult Doctor card
+            SliverToBoxAdapter(
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Hero section (no button, just image and text)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    height: 280,
+                    child: _isLoadingHeroes
+                        ? Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primaryBlue,
+                            ),
+                          )
+                        : PageView.builder(
+                            controller: _heroController,
+                            itemCount: _heroSections.isNotEmpty ? _heroSections.length : 1,
+                            itemBuilder: (context, index) {
+                              final hero = _heroSections.isNotEmpty ? _heroSections[index] : null;
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
+                                  image: hero?.imageUrl.isNotEmpty == true
+                                      ? DecorationImage(
+                                          image: NetworkImage(hero!.imageUrl),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Stack(
+                                  children: [
+                                    // Gradient overlay
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withOpacity(0.4),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    // Featured badge
+                                    Positioned(
+                                      top: 16,
+                                      right: 16,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.9),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          'FEATURED',
+                                          style: GoogleFonts.roboto(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primaryBlue,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Hero content (centered)
+                                    Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              hero?.title.isNotEmpty == true ? hero!.title : 'Care4Elder',
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 36,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            Text(
+                                              hero?.subtitle.isNotEmpty == true ? hero!.subtitle : 'Stay healthy, stay safe',
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 16,
+                                                color: Colors.white.withOpacity(0.9),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                  // Overlapping Consult Doctor card
+                  Positioned(
+                    bottom: -40,
+                    left: 16,
+                    right: 16,
+                    child: const ConsultDoctorCard(),
+                  ),
+                ],
+              ),
+            ),
+            // Add spacing for the overlapping card
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 60),
+            ),
+            // Main content
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  const PremiumBanner(),
+                  _buildSectionHeader(context, 'Services', () {}),
+                  _buildServicesGrid(context),
+                  _buildSectionHeader(context, 'Health Tips', () {}),
+                  _buildHealthTipsList(),
+                  const SizedBox(height: 40),
+                  // Footer Tagline
+                  Container(
+                    width: double.infinity,
+                    height: 220,
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(
+                          Theme.of(context).brightness == Brightness.dark
+                            ? 'assets/images/footer app c4e.png'
+                            : 'assets/images/footer_black_on_white.png',
+                        ),
+                        fit: BoxFit.cover,
+                        opacity: 0.12,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '#Care4Elder',
+                          style: GoogleFonts.roboto(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textDark.withOpacity(0.15),
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Text('🇮🇳', style: TextStyle(fontSize: 20)),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Made for India',
+                              style: GoogleFonts.roboto(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Smart Care with Human Touch',
+                          style: GoogleFonts.roboto(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textGrey,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Morning';
+    if (hour < 17) return 'Afternoon';
+    return 'Evening';
   }
 
   Widget _buildSectionHeader(BuildContext context, String title, VoidCallback onViewAll) {

@@ -329,7 +329,10 @@ final router = GoRouter(
         ),
         GoRoute(
           path: '/patient/records',
-          builder: (context, state) => const MedicalRecordsScreen(),
+          builder: (context, state) {
+            final open = state.uri.queryParameters['open'];
+            return MedicalRecordsScreen(initialCategory: open);
+          },
         ),
         GoRoute(
           path: '/patient/profile',

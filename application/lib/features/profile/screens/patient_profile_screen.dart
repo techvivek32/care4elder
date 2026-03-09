@@ -41,82 +41,94 @@ class PatientProfileScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: Theme.of(context).brightness == Brightness.light
-                ? AppColors.premiumGradient
-                : AppColors.darkPremiumGradient,
+      backgroundColor: colorScheme.surface,
+      body: Column(
+        children: [
+          // Rounded Header
+          Container(
+            decoration: BoxDecoration(
+              gradient: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.premiumGradient
+                  : AppColors.darkPremiumGradient,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Profile',
+                      style: GoogleFonts.roboto(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-        centerTitle: true,
-        title: Text(
-          'Profile',
-          style: GoogleFonts.roboto(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+
+          // Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.settings_outlined,
+                    title: 'Profile Settings',
+                    onTap: () => context.push('/patient/profile/personal-info'),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: 'My Wallet',
+                    onTap: () => context.push('/patient/profile/wallet'),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.medical_services_outlined,
+                    title: 'Patient Medical Information',
+                    onTap: () => context.push('/patient/profile/medical-info'),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.people_outline,
+                    title: 'Emergency Contacts',
+                    onTap: () => context.push('/patient/contacts'),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.settings_applications_outlined,
+                    title: 'App Settings',
+                    onTap: () => context.push('/patient/profile/settings'),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.logout,
+                    title: 'Logout',
+                    onTap: () => _handleLogout(context),
+                  ),
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildMenuItem(
-              context,
-              icon: Icons.settings_outlined,
-              title: 'Profile Settings',
-              onTap: () => context.push('/patient/profile/personal-info'),
-            ),
-            const SizedBox(height: 16),
-            _buildMenuItem(
-              context,
-              icon: Icons.account_balance_wallet_outlined,
-              title: 'My Wallet',
-              onTap: () => context.push('/patient/profile/wallet'),
-            ),
-            const SizedBox(height: 16),
-            _buildMenuItem(
-              context,
-              icon: Icons.medical_services_outlined,
-              title: 'Patient Medical Information',
-              onTap: () => context.push('/patient/profile/medical-info'),
-            ),
-            const SizedBox(height: 16),
-            _buildMenuItem(
-              context,
-              icon: Icons.people_outline,
-              title: 'Emergency Contacts',
-              onTap: () => context.push('/patient/contacts'),
-            ),
-            const SizedBox(height: 16),
-            /*
-            _buildMenuItem(
-              context,
-              icon: Icons.notifications_none,
-              title: 'Notifications',
-              onTap: () => context.push('/patient/notifications'),
-            ),
-            const SizedBox(height: 16),
-            */
-            _buildMenuItem(
-              context,
-              icon: Icons.settings_applications_outlined,
-              title: 'App Settings',
-              onTap: () => context.push('/patient/profile/settings'),
-            ),
-            const SizedBox(height: 16),
-            _buildMenuItem(
-              context,
-              icon: Icons.logout,
-              title: 'Logout',
-              onTap: () => _handleLogout(context),
-            ),
-            const SizedBox(height: 80),
-          ],
-        ),
+        ],
       ),
     );
   }

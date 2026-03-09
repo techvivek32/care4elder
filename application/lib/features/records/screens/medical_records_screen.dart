@@ -10,7 +10,8 @@ import 'patient_record_detail_screen.dart';
 import 'dart:ui';
 
 class MedicalRecordsScreen extends StatefulWidget {
-  const MedicalRecordsScreen({super.key});
+  final String? initialCategory;
+  const MedicalRecordsScreen({super.key, this.initialCategory});
 
   @override
   State<MedicalRecordsScreen> createState() => _MedicalRecordsScreenState();
@@ -37,6 +38,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             _records = records;
             _isLoading = false;
           });
+          _openInitialCategoryIfNeeded();
         }
       }
     } catch (e) {
@@ -45,6 +47,28 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       }
       debugPrint('Error fetching records: $e');
     }
+  }
+
+  void _openInitialCategoryIfNeeded() {
+    if (widget.initialCategory == null || _records.isEmpty) return;
+    final open = widget.initialCategory!.toLowerCase();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (open == 'prescriptions') {
+        final allPrescriptions = _records.expand((r) => r.prescriptions).toList();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PatientCategoryFilesScreen(
+              title: 'Prescriptions',
+              files: allPrescriptions,
+              icon: Icons.description_outlined,
+              color: const Color(0xFF041E34),
+            ),
+          ),
+        );
+      }
+    });
   }
 
   Future<void> _downloadFile(String url) async {
@@ -80,6 +104,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     // Calculate counts
     int prescriptionsCount = 0;
     int labReportsCount = 0;
@@ -92,45 +118,56 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: Theme.of(context).brightness == Brightness.light
-                ? AppColors.premiumGradient
-                : AppColors.darkPremiumGradient,
+      backgroundColor: colorScheme.surface,
+      body: Column(
+        children: [
+          // Rounded Header
+          Container(
+            decoration: BoxDecoration(
+              gradient: Theme.of(context).brightness == Brightness.light
+                  ? AppColors.premiumGradient
+                  : AppColors.darkPremiumGradient,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Medical Records',
+                          style: GoogleFonts.roboto(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Medical Records',
-              style: GoogleFonts.roboto(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            Text(
-              'Your health documents',
-              style: GoogleFonts.roboto(
-                fontSize: 12,
-                color: Colors.white.withOpacity(0.8),
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: _isLoading 
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-        onRefresh: _fetchRecords,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Column(
+
+          // Content
+          Expanded(
+            child: _isLoading 
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                  onRefresh: _fetchRecords,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildCategoryCard(
@@ -218,9 +255,12 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               else
                 ..._buildRecentRecordsList(),
               const SizedBox(height: 32),
-            ],
+                    ],
+                  ),
+                ),
+              ),
           ),
-        ),
+        ],
       ),
     );
   }

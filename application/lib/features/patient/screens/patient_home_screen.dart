@@ -92,16 +92,16 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
             backgroundColor: isDark ? AppColors.darkBackground : AppColors.primaryBlue,
             expandedHeight: 220.0,
             floating: false,
-            pinned: false,
+            pinned: true,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white),
-              onPressed: () {},
+              icon: const Icon(Icons.person, color: Colors.white),
+              onPressed: () => context.go('/patient/profile'),
             ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                onPressed: () => context.go('/notifications'),
+                onPressed: () => context.push('/patient/notifications'),
               ),
               const SizedBox(width: 8),
             ],
@@ -206,6 +206,65 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     _buildServicesGrid(context),
                     _buildSectionHeader(context, 'Health Tips', () {}),
                     _buildHealthTipsList(),
+                    const SizedBox(height: 40),
+                    // Footer Tagline (same style as doctor home)
+                    Container(
+                      width: double.infinity,
+                      height: 220,
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(
+                            Theme.of(context).brightness == Brightness.dark
+                              ? 'assets/images/footer app c4e.png'
+                              : 'assets/images/footer_black_on_white.png',
+                          ),
+                          fit: BoxFit.cover,
+                          opacity: 0.12,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '#Care4Elder',
+                            style: GoogleFonts.roboto(
+                              fontSize: 36,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textDark.withOpacity(0.15),
+                              letterSpacing: 1,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Text('🇮🇳', style: TextStyle(fontSize: 20)),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Made for India',
+                                style: GoogleFonts.roboto(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Smart Care with Human Touch',
+                            style: GoogleFonts.roboto(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textGrey,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -271,18 +330,18 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           route: '/patient/sos',
         ),
         ServiceCard(
-          title: 'Vitals Monitor',
-          subtitle: 'Check heart & oxygen',
-          icon: Icons.monitor_heart_outlined,
+          title: 'Manage Records',
+          subtitle: 'Medical records',
+          icon: Icons.folder_open,
           iconColor: Colors.orange,
-          route: '/vitals', // Placeholder route
+          route: '/patient/records',
         ),
         ServiceCard(
           title: 'Medicines',
           subtitle: 'Manage prescriptions',
           icon: Icons.medication_outlined,
           iconColor: Colors.green,
-          route: '/patient/profile/medicines',
+          route: '/patient/records?open=prescriptions',
         ),
       ],
     );

@@ -81,9 +81,22 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+          String errorMessage = e.toString().replaceAll("Exception: ", "");
+          
+          // Check if it's a user not found error
+          if (errorMessage.toLowerCase().contains('not found') || 
+              errorMessage.toLowerCase().contains('not registered') ||
+              errorMessage.toLowerCase().contains('does not exist')) {
+            errorMessage = 'Phone number not registered. Please sign up first.';
+          }
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 4),
+            ),
+          );
         }
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -137,9 +150,23 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+          String errorMessage = e.toString().replaceAll("Exception: ", "");
+          
+          // Check if it's a user not found error
+          if (errorMessage.toLowerCase().contains('not found') || 
+              errorMessage.toLowerCase().contains('not registered') ||
+              errorMessage.toLowerCase().contains('does not exist') ||
+              errorMessage.toLowerCase().contains('invalid credentials')) {
+            errorMessage = 'Email not registered or invalid password. Please check your credentials or sign up.';
+          }
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 4),
+            ),
+          );
         }
       } finally {
         if (mounted) setState(() => _isLoading = false);

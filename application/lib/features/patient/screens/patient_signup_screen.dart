@@ -134,12 +134,19 @@ class _PatientSignupScreenState extends State<PatientSignupScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = e.toString().replaceAll("Exception: ", "");
+        
+        // Check if it's a duplicate user error
+        if (errorMessage.toLowerCase().contains('already exists') || 
+            errorMessage.toLowerCase().contains('already registered')) {
+          errorMessage = 'Email or phone number already registered. Please try to login instead.';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Registration failed: ${e.toString().replaceAll("Exception: ", "")}',
-            ),
+            content: Text(errorMessage),
             backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

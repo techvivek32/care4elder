@@ -80,10 +80,21 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = e.toString().replaceAll("Exception: ", "");
+        
+        // Check if it's a user not found error
+        if (errorMessage.toLowerCase().contains('not found') || 
+            errorMessage.toLowerCase().contains('not registered') ||
+            errorMessage.toLowerCase().contains('does not exist') ||
+            errorMessage.toLowerCase().contains('invalid credentials')) {
+          errorMessage = 'Email or phone not registered. Please sign up first.';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll("Exception: ", "")),
+            content: Text(errorMessage),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

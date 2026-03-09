@@ -100,7 +100,9 @@ class DoctorAuthService extends ChangeNotifier {
           return true;
         } else {
           debugPrint('Failed to send OTP: ${response.body}');
-          return false;
+          final errorData = jsonDecode(response.body);
+          final errorMessage = errorData['error'] ?? 'Failed to send OTP';
+          throw Exception(errorMessage);
         }
       } else {
         // Phone OTP (Real implementation)
@@ -116,12 +118,14 @@ class DoctorAuthService extends ChangeNotifier {
           return true;
         } else {
           debugPrint('Failed to send Phone OTP: ${response.body}');
-          return false;
+          final errorData = jsonDecode(response.body);
+          final errorMessage = errorData['error'] ?? 'Failed to send OTP';
+          throw Exception(errorMessage);
         }
       }
     } catch (e) {
       debugPrint('Error sending OTP: $e');
-      return false;
+      rethrow;
     }
   }
 
@@ -261,11 +265,13 @@ class DoctorAuthService extends ChangeNotifier {
         return true;
       } else {
         debugPrint('Failed to send Login OTP: ${response.body}');
-        return false;
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['error'] ?? 'Failed to send OTP';
+        throw Exception(errorMessage);
       }
     } catch (e) {
       debugPrint('Error sending Login OTP: $e');
-      return false;
+      rethrow;
     }
   }
 

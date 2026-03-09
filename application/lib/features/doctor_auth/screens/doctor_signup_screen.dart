@@ -118,8 +118,21 @@ class _DoctorSignupScreenState extends State<DoctorSignupScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isPhoneLoading = false);
+        
+        String errorMessage = e.toString().replaceAll("Exception: ", "");
+        
+        // Check if it's a duplicate user error
+        if (errorMessage.toLowerCase().contains('already exists') || 
+            errorMessage.toLowerCase().contains('already registered')) {
+          errorMessage = 'Phone number already registered. Please try to login instead.';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }
@@ -240,8 +253,21 @@ class _DoctorSignupScreenState extends State<DoctorSignupScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isEmailLoading = false);
+        
+        String errorMessage = e.toString().replaceAll("Exception: ", "");
+        
+        // Check if it's a duplicate user error
+        if (errorMessage.toLowerCase().contains('already exists') || 
+            errorMessage.toLowerCase().contains('already registered')) {
+          errorMessage = 'Email already registered. Please try to login instead.';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }

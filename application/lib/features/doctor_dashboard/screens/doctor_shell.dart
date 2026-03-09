@@ -86,6 +86,57 @@ class _DoctorShellState extends State<DoctorShell> {
     }
   }
 
+  Widget _buildNavItem(
+    BuildContext context,
+    int index,
+    IconData activeIcon,
+    IconData inactiveIcon,
+    String label,
+    int currentIndex,
+    bool isDark,
+  ) {
+    final isSelected = currentIndex == index;
+    final themeColor = isDark ? const Color(0xFF2196F3) : const Color(0xFF1565C0);
+
+    return InkWell(
+      onTap: () => _onItemTapped(index),
+      borderRadius: BorderRadius.circular(24),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: isSelected
+            ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+            : const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isSelected ? themeColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? activeIcon : inactiveIcon,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.white38 : AppColors.textGrey),
+              size: 24,
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: GoogleFonts.roboto(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentIndex = _currentIndexFromLocation();
@@ -112,49 +163,15 @@ class _DoctorShellState extends State<DoctorShell> {
               ),
             ],
           ),
-          child: BottomNavigationBar(
-            currentIndex: currentIndex,
-            onTap: _onItemTapped,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
-            selectedItemColor: isDark ? const Color(0xFF2196F3) : const Color(0xFF1565C0),
-            unselectedItemColor: isDark ? Colors.white38 : AppColors.textGrey,
-            selectedLabelStyle: GoogleFonts.roboto(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-            unselectedLabelStyle: GoogleFonts.roboto(
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-            selectedIconTheme: IconThemeData(
-              size: 26,
-              color: isDark ? const Color(0xFF2196F3) : const Color(0xFF1565C0),
-            ),
-            unselectedIconTheme: const IconThemeData(
-              size: 24,
-            ),
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.description_outlined),
-                activeIcon: Icon(Icons.description),
-                label: 'Records',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.history),
-                activeIcon: Icon(Icons.history),
-                label: 'History',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
+          height: 80,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildNavItem(context, 0, Icons.home, Icons.home_outlined, 'Home', currentIndex, isDark),
+              _buildNavItem(context, 1, Icons.description, Icons.description_outlined, 'Records', currentIndex, isDark),
+              _buildNavItem(context, 2, Icons.history, Icons.history, 'History', currentIndex, isDark),
+              _buildNavItem(context, 3, Icons.person, Icons.person_outline, 'Profile', currentIndex, isDark),
             ],
           ),
         ),

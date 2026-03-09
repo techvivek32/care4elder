@@ -22,56 +22,46 @@ class PatientBottomNavBar extends StatelessWidget {
       shadowColor: Colors.black.withOpacity(0.1),
       surfaceTintColor: Theme.of(context).colorScheme.surface,
       height: 80,
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: _buildNavItem(
-              context,
-              0,
-              Icons.home_rounded,
-              Icons.home_outlined,
-              'Home',
-            ),
+          _buildNavItem(
+            context,
+            0,
+            Icons.home_rounded,
+            Icons.home_outlined,
+            'Home',
           ),
-          Expanded(
-            child: _buildNavItem(
-              context,
-              1,
-              Icons.monitor_heart,
-              Icons.monitor_heart_outlined,
-              'Consult',
-            ),
+          _buildNavItem(
+            context,
+            1,
+            Icons.monitor_heart,
+            Icons.monitor_heart_outlined,
+            'Consult',
           ),
-          Expanded(
-            child: _buildNavItem(
-              context,
-              2,
-              Icons.emergency_rounded,
-              Icons.emergency_outlined,
-              'SOS',
-              activeColor: const Color(0xFFFF3B30),
-              isEmergency: true,
-            ),
+          _buildNavItem(
+            context,
+            2,
+            Icons.emergency_rounded,
+            Icons.emergency_outlined,
+            'SOS',
+            activeColor: const Color(0xFFFF3B30),
+            isEmergency: true,
           ),
-          Expanded(
-            child: _buildNavItem(
-              context,
-              3,
-              Icons.description,
-              Icons.description_outlined,
-              'Records',
-            ),
+          _buildNavItem(
+            context,
+            3,
+            Icons.description,
+            Icons.description_outlined,
+            'Records',
           ),
-          Expanded(
-            child: _buildNavItem(
-              context,
-              4,
-              Icons.person,
-              Icons.person_outline,
-              'Profile',
-            ),
+          _buildNavItem(
+            context,
+            4,
+            Icons.person,
+            Icons.person_outline,
+            'Profile',
           ),
         ],
       ),
@@ -97,64 +87,44 @@ class PatientBottomNavBar extends StatelessWidget {
       selected: isSelected,
       child: InkWell(
         onTap: () => onTap(index),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: isSelected
-                    ? const EdgeInsets.all(10)
-                    : EdgeInsets.zero,
-                decoration: BoxDecoration(
-                  gradient: (isSelected && !isEmergency)
-                      ? (Theme.of(context).brightness == Brightness.light
-                          ? AppColors.premiumGradient
-                          : AppColors.darkPremiumGradient)
-                      : null,
-                  color: (isSelected && !isEmergency)
-                      ? null
-                      : (isSelected
-                          ? themeColor.withOpacity(0.2)
-                          : Colors.transparent),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
+        borderRadius: BorderRadius.circular(24),
+        child: Center(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: isSelected
+                ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+                : const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isSelected ? themeColor : Colors.transparent,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
                   isSelected ? activeIcon : inactiveIcon,
                   color: isSelected
-                      ? ((!isEmergency) ? Colors.white : themeColor)
-                      : (isEmergency
-                            ? themeColor.withOpacity(0.7)
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withOpacity(0.6)),
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                   size: 24,
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: GoogleFonts.roboto(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected
-                      ? (isEmergency
-                          ? themeColor
-                          : (Theme.of(context).brightness == Brightness.light
-                              ? themeColor
-                              : Colors.white))
-                      : (isEmergency
-                            ? themeColor.withOpacity(0.7)
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withOpacity(0.6)),
-                ),
-              ),
-            ],
+                if (isSelected) ...[
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),

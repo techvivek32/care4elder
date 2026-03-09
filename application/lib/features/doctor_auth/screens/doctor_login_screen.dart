@@ -180,7 +180,7 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen>
                             ),
                             const SizedBox(height: 24),
                             Text(
-                              'CareSOS Doctor',
+                              'Care4Elder Doctor',
                               style: GoogleFonts.roboto(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,

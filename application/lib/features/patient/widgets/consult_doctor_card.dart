@@ -10,21 +10,26 @@ class ConsultDoctorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCardBackground : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Column(
+    return GestureDetector(
+      onTap: () {
+        print('Card tapped - navigating to consultation');
+        context.go('/patient/consultation');
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCardBackground : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -75,40 +80,41 @@ class ConsultDoctorCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => context.go('/patient/consultation'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                print('Button pressed - navigating to consultation');
+                context.go('/patient/consultation');
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16), // Increased padding for larger touch area
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.medical_services, size: 20, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Book Appointment', 
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold, 
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
                     ),
-                    elevation: 2,
-                  ),
-                  child: Text('Book Appointment', style: GoogleFonts.roboto(fontWeight: FontWeight.bold, fontSize: 14)),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.calendar_today_outlined),
-                iconSize: 24,
-                color: isDark ? Colors.white70 : AppColors.textGrey,
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade100,
-                  padding: const EdgeInsets.all(14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
+      ),
       ),
     );
   }

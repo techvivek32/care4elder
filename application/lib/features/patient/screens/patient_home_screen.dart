@@ -238,25 +238,40 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     ),
                   ),
                 ),
-                // Overlapping Consult Doctor card (97% overlaps with hero, 3% visible below)
+                // Overlapping Consult Doctor card (99% overlaps with hero, 1% visible below)
                 Positioned(
-                  bottom: -194,
+                  bottom: -198,
                   left: 8,
                   right: 8,
                   child: const ConsultDoctorCard(),
+                ),
+                // Invisible button overlay for the visible part of the card
+                Positioned(
+                  bottom: -10, // Position over the visible part
+                  left: 8,
+                  right: 8,
+                  height: 50, // Cover the visible button area
+                  child: GestureDetector(
+                    onTap: () {
+                      print('Overlay button pressed - navigating to consultation');
+                      context.go('/patient/consultation');
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
           // Add spacing for the overlapping card
           const SliverToBoxAdapter(
-            child: SizedBox(height: 206),
+            child: SizedBox(height: 202),
           ),
           // Main content
           SliverToBoxAdapter(
               child: Column(
                 children: [
-                  const PremiumBanner(),
                   _buildSectionHeader(context, 'Services', () {}),
                   _buildServicesGrid(context),
                   _buildSectionHeader(context, 'Health Tips', () {}),

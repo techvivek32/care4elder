@@ -247,15 +247,16 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 ),
                 // Invisible button overlay for the visible part of the card
                 Positioned(
-                  bottom: -10, // Position over the visible part
+                  bottom: 0, // Position at the bottom edge of hero section
                   left: 8,
                   right: 8,
-                  height: 50, // Cover the visible button area
+                  height: 60, // Cover more area to ensure button is clickable
                   child: GestureDetector(
                     onTap: () {
                       print('Overlay button pressed - navigating to consultation');
                       context.go('/patient/consultation');
                     },
+                    behavior: HitTestBehavior.opaque, // Ensure it captures all taps
                     child: Container(
                       color: Colors.transparent,
                     ),

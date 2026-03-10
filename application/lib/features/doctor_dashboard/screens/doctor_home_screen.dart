@@ -6,6 +6,7 @@ import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/call_request_service.dart';
 import '../../../core/services/hero_service.dart';
+import '../../consultation/screens/doctor_reviews_screen.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
 import '../services/doctor_profile_service.dart';
 
@@ -694,8 +695,9 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               child: _buildStatCard(
                 icon: Icons.people_outline,
                 value: profile.totalConsultations.toString(),
-                label: 'Total Consults',
+                label: 'Consults',
                 iconColor: AppColors.primaryBlue,
+                onTap: () => context.push('/doctor/history'),
               ),
             ),
             const SizedBox(width: 12),
@@ -705,6 +707,17 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 value: profile.rating.toStringAsFixed(1),
                 label: 'Rating',
                 iconColor: Colors.green,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DoctorReviewsScreen(
+                        doctorId: profile.id,
+                        doctorName: profile.name,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -714,6 +727,17 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 value: profile.reviews.toString(),
                 label: 'Reviews',
                 iconColor: Colors.orange,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DoctorReviewsScreen(
+                        doctorId: profile.id,
+                        doctorName: profile.name,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -727,38 +751,42 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     required String value,
     required String label,
     required Color iconColor,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: iconColor, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: GoogleFonts.roboto(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.roboto(fontSize: 12, color: AppColors.textGrey),
-          ),
-        ],
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: iconColor, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: GoogleFonts.roboto(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: GoogleFonts.roboto(fontSize: 12, color: AppColors.textGrey),
+            ),
+          ],
+        ),
       ),
     );
   }

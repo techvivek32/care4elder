@@ -110,6 +110,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                             return Container(
                               decoration: BoxDecoration(
                                 gradient: isDark ? AppColors.darkPremiumGradient : AppColors.premiumGradient,
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(16),
+                                  bottomRight: Radius.circular(16),
+                                ),
                                 image: hero?.imageUrl.isNotEmpty == true
                                     ? DecorationImage(
                                         image: NetworkImage(hero!.imageUrl),
@@ -122,6 +126,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                   // Gradient overlay
                                   Container(
                                     decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.only(
+                                        bottomLeft: Radius.circular(16),
+                                        bottomRight: Radius.circular(16),
+                                      ),
                                       gradient: LinearGradient(
                                         begin: Alignment.topCenter,
                                         end: Alignment.bottomCenter,
@@ -238,27 +246,115 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     ),
                   ),
                 ),
-                // Overlapping Consult Doctor card (99% overlaps with hero, 1% visible below)
+                // Consult Doctor Card - overlapping with hero section
                 Positioned(
-                  bottom: -198,
-                  left: 8,
-                  right: 8,
-                  child: const ConsultDoctorCard(),
-                ),
-                // Invisible button overlay for the visible part of the card
-                Positioned(
-                  bottom: 0, // Position at the bottom edge of hero section
-                  left: 8,
-                  right: 8,
-                  height: 60, // Cover more area to ensure button is clickable
-                  child: GestureDetector(
-                    onTap: () {
-                      print('Overlay button pressed - navigating to consultation');
-                      context.go('/patient/consultation');
-                    },
-                    behavior: HitTestBehavior.opaque, // Ensure it captures all taps
+                  top: MediaQuery.of(context).size.height * 0.30, // Starts overlapping with hero
+                  left: 16,
+                  right: 16,
+                  child: Material(
+                    elevation: 8,
+                    borderRadius: BorderRadius.circular(24),
+                    shadowColor: Colors.black.withOpacity(0.1),
                     child: Container(
-                      color: Colors.transparent,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkCardBackground : Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.primaryBlue.withOpacity(0.15),
+                                      AppColors.primaryBlue.withOpacity(0.05),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.medical_services_rounded,
+                                  color: AppColors.primaryBlue,
+                                  size: 32,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryBlue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  'FEATURED',
+                                  style: GoogleFonts.roboto(
+                                    color: AppColors.primaryBlue,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Consult a Doctor',
+                            style: GoogleFonts.roboto(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : AppColors.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Get instant medical advice from certified doctors via video or audio call.',
+                            style: GoogleFonts.roboto(
+                              fontSize: 15,
+                              color: isDark ? Colors.white70 : AppColors.textGrey,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                print('Book Appointment pressed - navigating to consultation');
+                                context.go('/patient/consultation');
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.error,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.calendar_today_rounded, size: 20),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Book Appointment',
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -267,7 +363,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           ),
           // Add spacing for the overlapping card
           const SliverToBoxAdapter(
-            child: SizedBox(height: 202),
+            child: SizedBox(height: 220),
           ),
           // Main content
           SliverToBoxAdapter(

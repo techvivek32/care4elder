@@ -410,14 +410,6 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.7),
-                      ],
-                    ),
                   ),
                   padding: const EdgeInsets.all(24.0),
                   child: Column(

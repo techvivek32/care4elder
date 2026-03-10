@@ -7,8 +7,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/services/health_tip_service.dart';
 import '../../../core/services/hero_service.dart';
 import '../../../core/services/profile_service.dart';
-import '../widgets/consult_doctor_card.dart';
-import '../widgets/premium_banner.dart';
 import '../widgets/service_card.dart';
 import '../widgets/health_tip_card.dart';
 import '../widgets/show_health_tip_detail.dart';
@@ -88,12 +86,12 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       backgroundColor: surfaceColor,
       body: CustomScrollView(
         slivers: [
-          // Full screen hero section with transparent header inside
+          // Full screen hero section with overlapping card
           SliverToBoxAdapter(
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Full screen hero section (no margins)
+                // Full screen hero section
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.38,
                   child: _isLoadingHeroes
@@ -246,9 +244,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     ),
                   ),
                 ),
-                // Consult Doctor Card - overlapping with hero section
+                // Consult Doctor Card - 95% overlapped with hero
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.30, // Starts overlapping with hero
+                  bottom: -180,
                   left: 16,
                   right: 16,
                   child: Material(
@@ -320,39 +318,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                               height: 1.5,
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                print('Book Appointment pressed - navigating to consultation');
-                                context.go('/patient/consultation');
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.error,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.calendar_today_rounded, size: 20),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    'Book Appointment',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -361,90 +326,122 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               ],
             ),
           ),
-          // Add spacing for the overlapping card
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 220),
-          ),
-          // Main content
+          // Book Appointment Button - below the card
           SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 200, 16, 0),
               child: Column(
                 children: [
-                  _buildSectionHeader(context, 'Services', () {}),
-                  _buildServicesGrid(context),
-                  _buildSectionHeader(context, 'Health Tips', () {}),
-                  _buildHealthTipsList(),
-                  const SizedBox(height: 40),
-                  // Footer Tagline
-                  Container(
+                  SizedBox(
                     width: double.infinity,
-                    height: 220,
-                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(
-                          Theme.of(context).brightness == Brightness.dark
-                            ? 'assets/images/footer app c4e.png'
-                            : 'assets/images/footer_black_on_white.png',
+                    child: ElevatedButton(
+                      onPressed: () {
+                        print('Book Appointment pressed - navigating to consultation');
+                        context.go('/patient/consultation');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        fit: BoxFit.cover,
-                        opacity: 0.12,
+                        elevation: 4,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.calendar_today_rounded, size: 20),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Book Appointment',
+                            style: GoogleFonts.roboto(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '#Care4Elder',
-                          style: GoogleFonts.roboto(
-                            fontSize: 36,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textDark.withOpacity(0.15),
-                            letterSpacing: 1,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            const Text('🇮🇳', style: TextStyle(fontSize: 20)),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Made for India',
-                              style: GoogleFonts.roboto(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textGrey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Smart Care with Human Touch',
-                          style: GoogleFonts.roboto(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textGrey,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
+          ),
+          // Main content
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _buildSectionHeader(context, 'Services', () {}),
+                _buildServicesGrid(context),
+                _buildSectionHeader(context, 'Health Tips', () {}),
+                _buildHealthTipsList(),
+                const SizedBox(height: 40),
+                // Footer Tagline
+                Container(
+                  width: double.infinity,
+                  height: 220,
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(
+                        Theme.of(context).brightness == Brightness.dark
+                          ? 'assets/images/footer app c4e.png'
+                          : 'assets/images/footer_black_on_white.png',
+                      ),
+                      fit: BoxFit.cover,
+                      opacity: 0.12,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '#Care4Elder',
+                        style: GoogleFonts.roboto(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textDark.withOpacity(0.15),
+                          letterSpacing: 1,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Text('🇮🇳', style: TextStyle(fontSize: 20)),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Made for India',
+                            style: GoogleFonts.roboto(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Smart Care with Human Touch',
+                        style: GoogleFonts.roboto(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textGrey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
-  }
-
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Morning';
-    if (hour < 17) return 'Afternoon';
-    return 'Evening';
   }
 
   Widget _buildSectionHeader(BuildContext context, String title, VoidCallback onViewAll) {

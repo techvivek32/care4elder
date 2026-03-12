@@ -60,24 +60,6 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader('PREFERENCES'),
-                Container(
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkCardBackground : Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [],
-                  ),
-                ),
-                const SizedBox(height: 24),
                 _buildSectionHeader('PRACTICE'),
                 Container(
                   decoration: BoxDecoration(

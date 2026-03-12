@@ -179,7 +179,68 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                           Icons.chevron_right,
                           color: isDark ? Colors.white38 : Colors.grey,
                         ),
-                        onTap: () {},
+                        onTap: () {
+                          // Show Terms of Service dialog
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor: isDark ? AppColors.darkCardBackground : Colors.white,
+                              title: Text(
+                                'Terms of Service',
+                                style: GoogleFonts.roboto(
+                                  color: isDark ? Colors.white : AppColors.textDark,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              content: SingleChildScrollView(
+                                child: Text(
+                                  'Last updated: 12 March 2026\n\n'
+                                  '1. Acceptance of Terms\n'
+                                  'By accessing and using the Care4Elder website and services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.\n\n'
+                                  '2. Description of Services\n'
+                                  'Care4Elder provides technology-enabled elder care services including but not limited to emergency response, nursing care, physiotherapy, doctor visits, hospital-at-home care, caregiver services, and medical equipment rental. Service availability may vary by location.\n\n'
+                                  '3. User Responsibilities\n'
+                                  'You agree to:\n'
+                                  '• Provide accurate and complete information when using our services\n'
+                                  '• Use our services only for lawful purposes\n'
+                                  '• Not interfere with the proper functioning of our website\n'
+                                  '• Keep your account credentials secure, if applicable\n\n'
+                                  '4. Service Availability\n'
+                                  'While we strive to provide uninterrupted services, Care4Elder does not guarantee that our website or services will be available at all times. We reserve the right to modify, suspend, or discontinue any part of our services at any time.\n\n'
+                                  '5. Payment & Subscriptions\n'
+                                  'Certain services require payment through our subscription plans. All fees are as listed on our pricing page and are subject to change with prior notice. Refund policies apply as per the specific plan terms.\n\n'
+                                  '6. Limitation of Liability\n'
+                                  'Care4Elder shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with the use of our services. Our total liability shall not exceed the amount paid by you for the specific service in question.\n\n'
+                                  '7. Intellectual Property\n'
+                                  'All content on the Care4Elder website, including text, graphics, logos, and software, is the property of Care4Elder and is protected by applicable intellectual property laws. Unauthorized use is prohibited.\n\n'
+                                  '8. Governing Law\n'
+                                  'These Terms shall be governed by and construed in accordance with the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts in Asansol, West Bengal.\n\n'
+                                  '9. Contact Us\n'
+                                  'For questions regarding these Terms of Service, please contact us at:\n\n'
+                                  'Care4Elder\n'
+                                  'Email: connect.us@care4elder.com\n'
+                                  'Phone: 0341-3543415',
+                                  style: GoogleFonts.roboto(
+                                    color: isDark ? Colors.white70 : AppColors.textGrey,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(
+                                    'Close',
+                                    style: GoogleFonts.roboto(
+                                      color: AppColors.primaryBlue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                       Divider(
                         height: 1,
@@ -194,7 +255,52 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
                           Icons.chevron_right,
                           color: isDark ? Colors.white38 : Colors.grey,
                         ),
-                        onTap: () {},
+                        onTap: () {
+                          // Show Help & Support dialog
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor: isDark ? AppColors.darkCardBackground : Colors.white,
+                              title: Text(
+                                'Help & Support',
+                                style: GoogleFonts.roboto(
+                                  color: isDark ? Colors.white : AppColors.textDark,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              content: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'For questions regarding these Terms of Service, please contact us at:\n\n'
+                                      'Care4Elder\n'
+                                      'Email: connect.us@care4elder.com\n'
+                                      'Phone: 0341-3543415',
+                                      style: GoogleFonts.roboto(
+                                        color: isDark ? Colors.white70 : AppColors.textGrey,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(
+                                    'Close',
+                                    style: GoogleFonts.roboto(
+                                      color: AppColors.primaryBlue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

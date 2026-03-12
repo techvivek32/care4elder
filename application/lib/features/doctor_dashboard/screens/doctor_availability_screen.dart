@@ -18,30 +18,30 @@ class _DoctorAvailabilityScreenState extends State<DoctorAvailabilityScreen> {
   // Mock data structure for availability
   final Map<String, DaySchedule> _schedule = {
     'Monday': DaySchedule(
-      isOpen: true,
+      isOpen: false,
       slots: [
         TimeSlot(start: '09:00 AM', end: '05:00 PM'),
         TimeSlot(start: '02:00 PM', end: '06:00 PM'),
       ],
     ),
     'Tuesday': DaySchedule(
-      isOpen: true,
+      isOpen: false,
       slots: [TimeSlot(start: '09:00 AM', end: '05:00 PM')],
     ),
     'Wednesday': DaySchedule(
-      isOpen: true,
+      isOpen: false,
       slots: [TimeSlot(start: '09:00 AM', end: '05:00 PM')],
     ),
     'Thursday': DaySchedule(
-      isOpen: true,
+      isOpen: false,
       slots: [TimeSlot(start: '09:00 AM', end: '05:00 PM')],
     ),
     'Friday': DaySchedule(
-      isOpen: true,
+      isOpen: false,
       slots: [TimeSlot(start: '09:00 AM', end: '05:00 PM')],
     ),
     'Saturday': DaySchedule(
-      isOpen: true,
+      isOpen: false,
       slots: [TimeSlot(start: '09:00 AM', end: '05:00 PM')],
     ),
     'Sunday': DaySchedule(isOpen: false, slots: []),

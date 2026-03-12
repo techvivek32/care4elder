@@ -15,6 +15,33 @@ class DoctorPatientMedicalInfoScreen extends StatelessWidget {
     await FileDownloadService.downloadAndOpenFile(context, url);
   }
 
+  Future<void> _viewDocument(BuildContext context, String url) async {
+    String finalUrl = url;
+    if (!url.startsWith('http')) {
+      final baseUrl = ApiConstants.baseUrl;
+      final rootUrl = baseUrl.endsWith('/api') 
+          ? baseUrl.substring(0, baseUrl.length - 4) 
+          : baseUrl;
+      
+      if (!url.startsWith('/')) {
+        finalUrl = '$rootUrl/$url';
+      } else {
+        finalUrl = '$rootUrl$url';
+      }
+    }
+
+    final uri = Uri.parse(finalUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.inAppWebView);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open document: $finalUrl')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -99,13 +126,59 @@ class DoctorPatientMedicalInfoScreen extends StatelessWidget {
               content: patient.pastSurgeries.isEmpty
                   ? const Text('No past surgeries.')
                   : Column(
-                      children: patient.pastSurgeries.map((s) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(s.procedure, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                        subtitle: s.date != null ? Text('${s.date!.day}/${s.date!.month}/${s.date!.year}') : null,
-                        trailing: s.documentUrl != null 
-                          ? IconButton(icon: const Icon(Icons.download, color: AppColors.primaryBlue), onPressed: () => _downloadDocument(context, s.documentUrl!))
-                          : null,
+                      children: patient.pastSurgeries.map((s) => Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.darkBackground.withOpacity(0.3) : Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.medical_services, color: AppColors.primaryBlue, size: 24),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(s.procedure, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  if (s.date != null) 
+                                    Text('${s.date!.day}/${s.date!.month}/${s.date!.year}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                ],
+                              ),
+                            ),
+                            if (s.documentUrl != null) ...[
+                              Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _viewDocument(context, s.documentUrl!),
+                                  icon: const Icon(Icons.visibility, size: 16),
+                                  label: const Text('View'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryBlue,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    minimumSize: const Size(0, 32),
+                                    textStyle: const TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () => _downloadDocument(context, s.documentUrl!),
+                                icon: const Icon(Icons.download, size: 16),
+                                label: const Text('Download'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  minimumSize: const Size(0, 32),
+                                  textStyle: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       )).toList(),
                     ),
             ),
@@ -165,12 +238,55 @@ class DoctorPatientMedicalInfoScreen extends StatelessWidget {
       content: urls.isEmpty
           ? const Text('No documents found.', style: TextStyle(fontSize: 13, color: Colors.grey))
           : Column(
-              children: urls.asMap().entries.map((e) => ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
-                title: Text('$label ${e.key + 1}', style: const TextStyle(fontSize: 14)),
-                trailing: const Icon(Icons.download, color: AppColors.primaryBlue),
-                onTap: () => _downloadDocument(context, e.value),
+              children: urls.asMap().entries.map((e) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkBackground.withOpacity(0.3) : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '$label ${e.key + 1}',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                    // View Document Button
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      child: ElevatedButton.icon(
+                        onPressed: () => _viewDocument(context, e.value),
+                        icon: const Icon(Icons.visibility, size: 16),
+                        label: const Text('View'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          minimumSize: const Size(0, 32),
+                          textStyle: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ),
+                    // Download Button
+                    ElevatedButton.icon(
+                      onPressed: () => _downloadDocument(context, e.value),
+                      icon: const Icon(Icons.download, size: 16),
+                      label: const Text('Download'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        minimumSize: const Size(0, 32),
+                        textStyle: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
               )).toList(),
             ),
     );

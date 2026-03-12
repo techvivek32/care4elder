@@ -239,6 +239,7 @@ class WalletTransaction {
   final double amount;
   final String description;
   final DateTime timestamp;
+  final Map<String, dynamic>? metadata; // Additional info like doctor name
 
   WalletTransaction({
     required this.id,
@@ -246,6 +247,7 @@ class WalletTransaction {
     required this.amount,
     required this.description,
     required this.timestamp,
+    this.metadata,
   });
 
   factory WalletTransaction.fromJson(Map<String, dynamic> json) {
@@ -255,6 +257,7 @@ class WalletTransaction {
       amount: (json['amount'] as num).toDouble(),
       description: json['description'] ?? '',
       timestamp: DateTime.parse(json['createdAt']),
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
 }

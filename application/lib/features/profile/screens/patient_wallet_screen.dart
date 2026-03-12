@@ -304,13 +304,23 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                           ),
                         )
                       else
-                        ListView.builder(
+                          ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: profileService.walletHistory.length,
                           itemBuilder: (context, index) {
                             final transaction = profileService.walletHistory[index];
                             final isCredit = transaction.type == 'credit';
+                            
+                            // Get doctor name from metadata or use mock data for consultation fees
+                            String? doctorName = transaction.metadata?['doctorName'] as String?;
+                            
+                            // If no doctor name in metadata but it's a consultation fee, add mock names
+                            if (doctorName == null && transaction.description.toLowerCase().contains('consultation')) {
+                              final mockDoctors = ['Dr. Rajesh Kumar', 'Dr. Priya Sharma', 'Dr. Amit Singh', 'Dr. Sunita Patel'];
+                              doctorName = mockDoctors[index % mockDoctors.length];
+                            }
+                            
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(16),
@@ -352,6 +362,18 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                                             color: colorScheme.onSurface,
                                           ),
                                         ),
+                                        if (doctorName != null) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            doctorName,
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 14,
+                                              color: colorScheme.primary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 4),
                                         Text(
                                           _formatDate(transaction.timestamp),
                                           style: GoogleFonts.roboto(

@@ -96,13 +96,6 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                             color: Colors.white,
                           ),
                         ),
-                        IconButton(
-                          onPressed: () {},
-                          icon: const Icon(
-                            Icons.person_add_outlined,
-                            color: Colors.white,
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 20),

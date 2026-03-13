@@ -478,16 +478,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               color: isDark ? Colors.white : AppColors.textDark,
             ),
           ),
-          TextButton(
-            onPressed: onViewAll,
-            child: Text(
-              'View All',
-              style: GoogleFonts.roboto(
-                color: AppColors.primaryBlue,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
         ],
       ),
     );

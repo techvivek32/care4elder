@@ -269,15 +269,15 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      AppColors.primaryBlue.withOpacity(isDark ? 0.25 : 0.15),
-                                      AppColors.primaryBlue.withOpacity(isDark ? 0.15 : 0.05),
+                                      (isDark ? Colors.blue.shade300 : AppColors.primaryBlue).withOpacity(0.25),
+                                      (isDark ? Colors.blue.shade300 : AppColors.primaryBlue).withOpacity(0.15),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.medical_services_rounded,
-                                  color: AppColors.primaryBlue,
+                                  color: isDark ? Colors.blue.shade300 : AppColors.primaryBlue,
                                   size: 32,
                                 ),
                               ),
@@ -285,13 +285,13 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryBlue.withOpacity(0.1),
+                                  color: (isDark ? Colors.blue.shade300 : AppColors.primaryBlue).withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
                                   'FEATURED',
                                   style: GoogleFonts.roboto(
-                                    color: AppColors.primaryBlue,
+                                    color: isDark ? Colors.blue.shade200 : AppColors.primaryBlue,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 11,
                                     letterSpacing: 1,

@@ -22,6 +22,24 @@ class ServiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Use brighter colors in dark mode
+    Color displayIconColor;
+    if (isDark) {
+      if (iconColor == Colors.orange) {
+        displayIconColor = Colors.orange.shade300;
+      } else if (iconColor == Colors.green) {
+        displayIconColor = Colors.green.shade300;
+      } else if (iconColor == AppColors.primaryBlue) {
+        displayIconColor = Colors.blue.shade300;
+      } else if (iconColor == AppColors.error) {
+        displayIconColor = Colors.red.shade300;
+      } else {
+        displayIconColor = iconColor;
+      }
+    } else {
+      displayIconColor = iconColor;
+    }
 
     return GestureDetector(
       onTap: () => context.push(route),
@@ -45,10 +63,10 @@ class ServiceCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(isDark ? 0.2 : 0.1),
+                color: displayIconColor.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: iconColor, size: 24),
+              child: Icon(icon, color: displayIconColor, size: 28),
             ),
             const Spacer(),
             Text(

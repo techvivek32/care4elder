@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../services/emergency_audit_service.dart';
@@ -400,6 +401,19 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   Future<void> _activateSos() async {
+    // Check if location services are enabled
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Show dialog to turn on location
+      final shouldOpenSettings = await _showLocationServiceDialog();
+      if (shouldOpenSettings && mounted) {
+        await Geolocator.openLocationSettings();
+        return; // Exit without activating SOS
+      } else {
+        return; // User cancelled, don't activate SOS
+      }
+    }
+
     setState(() {
       _isActivating = true;
       _activationError = null;
@@ -425,6 +439,60 @@ class _SosScreenState extends State<SosScreen> {
       });
       _logEvent('activation_failed: $error');
     }
+  }
+
+  Future<bool> _showLocationServiceDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Row(
+          children: [
+            const Icon(
+              Icons.location_off,
+              color: AppColors.error,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Location Required',
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.error,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Please turn on location services to activate SOS. Emergency services need your location to help you.',
+          style: GoogleFonts.roboto(
+            fontSize: 16,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Turn On Location'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
   }
 
   void _startEtaTimer() {

@@ -3,7 +3,7 @@ import dbConnect from '@/lib/db';
 import Doctor from '@/models/Doctor';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 
 export async function GET() {
   try {
@@ -34,7 +34,16 @@ export async function POST(request: Request) {
 
     await dbConnect();
     
+    console.log('Processing doctor creation request...');
+    
     const formData = await request.formData();
+    
+    console.log('Form data received:', {
+      fullName: formData.get('fullName'),
+      email: formData.get('email'),
+      phone: formData.get('phone'),
+      specialization: formData.get('specialization')
+    });
     
     // Extract form fields
     const fullName = formData.get('fullName') as string;
@@ -50,6 +59,12 @@ export async function POST(request: Request) {
     // Validate required fields
     if (!fullName || !email || !phone || !idNumber || !password || !licenseNumber || !specialization || !experience || !hospitalAddress) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+    }
+    
+    // Validate experience is a valid number
+    const experienceNum = parseInt(experience);
+    if (isNaN(experienceNum) || experienceNum < 0) {
+      return NextResponse.json({ error: 'Experience must be a valid positive number' }, { status: 400 });
     }
     
     // Check if doctor already exists
@@ -69,20 +84,14 @@ export async function POST(request: Request) {
     const idProof = formData.get('idProof') as File;
     
     const documents = [];
-    if (medicalCertificate) {
-      documents.push({
-        type: 'medical_certificate',
-        filename: medicalCertificate.name,
-        uploadedAt: new Date()
-      });
+    if (medicalCertificate && medicalCertificate.name) {
+      documents.push(medicalCertificate.name);
     }
-    if (idProof) {
-      documents.push({
-        type: 'id_proof',
-        filename: idProof.name,
-        uploadedAt: new Date()
-      });
+    if (idProof && idProof.name) {
+      documents.push(idProof.name);
     }
+    
+    console.log('Documents array:', documents);
     
     // Create new doctor
     const newDoctor = new Doctor({
@@ -93,11 +102,17 @@ export async function POST(request: Request) {
       idNumber,
       licenseNumber,
       specialization,
-      experienceYears: parseInt(experience),
+      experienceYears: experienceNum,
       hospitalAffiliation: hospitalAddress,
       documents,
       verificationStatus: 'approved', // Admin-added doctors are auto-approved
-      isActive: true,
+      isAvailable: true,
+      isEmailVerified: true,
+      consultationFee: 500, // Default consultation fee
+      consultationFees: {
+        standard: 500,
+        emergency: 800
+      },
       createdAt: new Date(),
       updatedAt: new Date()
     });
@@ -111,8 +126,23 @@ export async function POST(request: Request) {
     return NextResponse.json(doctorResponse, { status: 201 });
   } catch (error) {
     console.error('Error adding doctor:', error);
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    
+    // Handle specific MongoDB errors
+    if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
+      return NextResponse.json(
+        { error: 'Doctor with this email, phone, or license number already exists' },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to add doctor' },
+      { error: 'Failed to add doctor', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

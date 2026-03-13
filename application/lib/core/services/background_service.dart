@@ -275,36 +275,15 @@ void onStart(ServiceInstance service) async {
     }
   });
 
-  // Periodic update to notification or state
-  Timer.periodic(const Duration(seconds: 10), (timer) async {
+  // Periodic update to notification or state - every 2 hours to avoid spam
+  Timer.periodic(const Duration(hours: 2), (timer) async {
     try {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
-          // Re-assert foreground status to keep notification visible
-          await service.setAsForegroundService();
-          
+          // Only update title/content if they changed, don't re-assert foreground status
           service.setForegroundNotificationInfo(
             title: currentTitle,
             content: currentContent,
-          );
-
-          // Periodically refresh local notification to ensure it stays in drawer
-          await flutterLocalNotificationsPlugin.show(
-            888,
-            currentTitle,
-            currentContent,
-            NotificationDetails(
-              android: AndroidNotificationDetails(
-                'sos_background_channel',
-                'SOS Background Protection',
-                importance: Importance.max,
-                priority: Priority.max,
-                ongoing: true,
-                autoCancel: false,
-                silent: true, // Don't buzz every 10 seconds
-                icon: '@mipmap/ic_launcher',
-              ),
-            ),
           );
         }
       }

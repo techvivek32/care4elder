@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,6 +25,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   // Filter State
   String _currentFilter = 'All'; // 'All', 'Unread', 'Read'
   final ScrollController _scrollController = ScrollController();
+  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -32,6 +34,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
     // Fetch notifications on init
     NotificationService().fetchNotifications();
     _loadPreferences();
+    // Auto-refresh every 10 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      NotificationService().fetchNotifications(page: 1);
+    });
   }
 
   Future<void> _loadPreferences() async {
@@ -55,6 +61,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 

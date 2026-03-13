@@ -25,10 +25,13 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
   }
 
   Future<void> _loadBackgroundServiceState() async {
-    final isRunning = await BackgroundServiceHelper.isServiceRunning();
+    // Always start with background protection OFF by default
     setState(() {
-      _backgroundServiceEnabled = isRunning;
+      _backgroundServiceEnabled = false;
     });
+    
+    // Stop any running background service to ensure it's OFF
+    await BackgroundServiceHelper.stopService();
   }
 
   @override

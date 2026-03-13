@@ -54,19 +54,30 @@ class NotificationService {
   Future<void> fetchNotifications({int page = 1, String filter = 'all'}) async {
     try {
       final token = await AuthService().getToken();
-      if (token == null) return;
+      if (token == null) {
+        debugPrint('No token found');
+        return;
+      }
+
+      final url = '${ApiConstants.baseUrl}/notifications?page=$page&limit=$_itemsPerPage&filter=$filter';
+      debugPrint('Fetching notifications from: $url');
 
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/notifications?page=$page&limit=$_itemsPerPage&filter=$filter'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
 
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> notificationsJson = data['notifications'] ?? [];
+        
+        debugPrint('Found ${notificationsJson.length} notifications');
         
         final notifications = notificationsJson
             .map((json) => AppNotification.fromJson(json))
@@ -84,6 +95,8 @@ class NotificationService {
         unreadCountNotifier.value = data['unreadCount'] ?? 0;
         hasMoreNotifier.value = data['pagination']?['hasMore'] ?? false;
         _currentPage = page;
+      } else {
+        debugPrint('Error response: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       debugPrint('Error fetching notifications: $e');

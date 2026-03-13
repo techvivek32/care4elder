@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import SOSAlert from '@/models/SOSAlert';
-import Patient from '@/models/Patient'; // Ensure Patient model is registered
+import Patient from '@/models/Patient';
+import Notification from '@/models/Notification';
 
 export async function GET(request: Request) {
   try {
@@ -35,6 +36,15 @@ export async function POST(request: Request) {
       location: body.location,
       status: 'active',
       timestamp: new Date()
+    });
+    
+    // Create emergency notification for the patient
+    await Notification.create({
+      userId: body.patientId,
+      title: 'SOS Alert Activated',
+      body: 'Your emergency alert has been triggered. Help is on the way.',
+      type: 'emergency',
+      isRead: false,
     });
     
     return NextResponse.json(alert, { status: 201 });

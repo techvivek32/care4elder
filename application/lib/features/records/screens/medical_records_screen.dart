@@ -238,7 +238,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 style: GoogleFonts.roboto(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 16),

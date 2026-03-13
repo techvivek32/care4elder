@@ -269,8 +269,8 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      AppColors.primaryBlue.withOpacity(0.15),
-                                      AppColors.primaryBlue.withOpacity(0.05),
+                                      AppColors.primaryBlue.withOpacity(isDark ? 0.25 : 0.15),
+                                      AppColors.primaryBlue.withOpacity(isDark ? 0.15 : 0.05),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(16),

@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "CareSafe Admin",
   description: "Admin Dashboard for CareSafe",
+  icons: {
+    icon: '/next.svg', // Use existing next.svg as favicon temporarily
+  },
 };
 
 export default function RootLayout({

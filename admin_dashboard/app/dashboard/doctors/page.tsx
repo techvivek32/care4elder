@@ -82,6 +82,7 @@ export default function DoctorsPage() {
     confirmPassword: '',
     licenseNumber: '',
     specialization: '',
+    qualifications: '',
     experience: '',
     hospitalAddress: '',
     medicalCertificate: null as File | null,
@@ -168,6 +169,7 @@ export default function DoctorsPage() {
       confirmPassword: '',
       licenseNumber: '',
       specialization: '',
+      qualifications: '',
       experience: '',
       hospitalAddress: '',
       medicalCertificate: null,
@@ -191,6 +193,7 @@ export default function DoctorsPage() {
     if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
     if (!formData.licenseNumber.trim()) errors.licenseNumber = 'Medical license number is required';
     if (!formData.specialization) errors.specialization = 'Specialization is required';
+    if (!formData.qualifications.trim()) errors.qualifications = 'Qualifications are required';
     if (!formData.experience.trim()) errors.experience = 'Years of experience is required';
     else if (isNaN(Number(formData.experience))) errors.experience = 'Experience must be a number';
     if (!formData.hospitalAddress.trim()) errors.hospitalAddress = 'Hospital/Clinic address is required';
@@ -395,6 +398,18 @@ export default function DoctorsPage() {
                       ))}
                     </select>
                     {formErrors.specialization && <p className="text-red-500 text-xs mt-1">{formErrors.specialization}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Qualifications *</label>
+                    <input
+                      type="text"
+                      value={formData.qualifications}
+                      onChange={(e) => setFormData(prev => ({ ...prev, qualifications: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:bg-white"
+                      placeholder="MBBS, MD, etc."
+                    />
+                    {formErrors.qualifications && <p className="text-red-500 text-xs mt-1">{formErrors.qualifications}</p>}
                   </div>
                   
                   <div>

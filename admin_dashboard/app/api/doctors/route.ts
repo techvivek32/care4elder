@@ -42,7 +42,8 @@ export async function POST(request: Request) {
       fullName: formData.get('fullName'),
       email: formData.get('email'),
       phone: formData.get('phone'),
-      specialization: formData.get('specialization')
+      specialization: formData.get('specialization'),
+      qualifications: formData.get('qualifications')
     });
     
     // Extract form fields
@@ -53,11 +54,12 @@ export async function POST(request: Request) {
     const password = formData.get('password') as string;
     const licenseNumber = formData.get('licenseNumber') as string;
     const specialization = formData.get('specialization') as string;
+    const qualifications = formData.get('qualifications') as string;
     const experience = formData.get('experience') as string;
     const hospitalAddress = formData.get('hospitalAddress') as string;
     
     // Validate required fields
-    if (!fullName || !email || !phone || !idNumber || !password || !licenseNumber || !specialization || !experience || !hospitalAddress) {
+    if (!fullName || !email || !phone || !idNumber || !password || !licenseNumber || !specialization || !qualifications || !experience || !hospitalAddress) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
     
@@ -102,6 +104,7 @@ export async function POST(request: Request) {
       idNumber,
       licenseNumber,
       specialization,
+      qualifications,
       experienceYears: experienceNum,
       hospitalAffiliation: hospitalAddress,
       documents,

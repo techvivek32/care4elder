@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { UserPlus, Phone, CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import { UserPlus, Phone, CheckCircle, XCircle, Trash2, Plus, Eye, EyeOff, Upload, X } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
@@ -34,10 +34,72 @@ async function bulkDelete(ids: string[]) {
   return res.json();
 }
 
+async function addDoctor(doctorData: any) {
+  const formData = new FormData();
+  
+  // Add all text fields
+  Object.keys(doctorData).forEach(key => {
+    if (key !== 'medicalCertificate' && key !== 'idProof') {
+      formData.append(key, doctorData[key]);
+    }
+  });
+  
+  // Add files
+  if (doctorData.medicalCertificate) {
+    formData.append('medicalCertificate', doctorData.medicalCertificate);
+  }
+  if (doctorData.idProof) {
+    formData.append('idProof', doctorData.idProof);
+  }
+  
+  const res = await fetch('/api/doctors', {
+    method: 'POST',
+    body: formData,
+  });
+  
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to add doctor');
+  }
+  return res.json();
+}
+
 export default function DoctorsPage() {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    idNumber: '',
+    password: '',
+    confirmPassword: '',
+    licenseNumber: '',
+    specialization: '',
+    experience: '',
+    hospitalAddress: '',
+    medicalCertificate: null as File | null,
+    idProof: null as File | null,
+  });
+  
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  
+  const specializations = [
+    'General Physician',
+    'Cardiologist',
+    'Dermatologist',
+    'Orthopedist',
+    'Pediatrician',
+    'Neurologist',
+    'Psychiatrist',
+    'Gynecologist',
+  ];
   
   const { data: doctors, isLoading, error } = useQuery({
     queryKey: ['doctors'],
@@ -58,6 +120,16 @@ export default function DoctorsPage() {
     onSuccess: () => {
       setSelected({});
       setSelectAll(false);
+      queryClient.invalidateQueries({ queryKey: ['doctors'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: addDoctor,
+    onSuccess: () => {
+      setShowAddForm(false);
+      resetForm();
       queryClient.invalidateQueries({ queryKey: ['doctors'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
     },
@@ -86,12 +158,374 @@ export default function DoctorsPage() {
     });
   };
 
+  const resetForm = () => {
+    setFormData({
+      fullName: '',
+      email: '',
+      phone: '',
+      idNumber: '',
+      password: '',
+      confirmPassword: '',
+      licenseNumber: '',
+      specialization: '',
+      experience: '',
+      hospitalAddress: '',
+      medicalCertificate: null,
+      idProof: null,
+    });
+    setFormErrors({});
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!formData.fullName.trim()) errors.fullName = 'Full name is required';
+    if (!formData.email.trim()) errors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
+    if (!formData.phone.trim()) errors.phone = 'Phone number is required';
+    if (!formData.idNumber.trim()) errors.idNumber = 'ID number is required';
+    if (!formData.password) errors.password = 'Password is required';
+    else if (formData.password.length < 6) errors.password = 'Password must be at least 6 characters';
+    if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
+    if (!formData.licenseNumber.trim()) errors.licenseNumber = 'Medical license number is required';
+    if (!formData.specialization) errors.specialization = 'Specialization is required';
+    if (!formData.experience.trim()) errors.experience = 'Years of experience is required';
+    else if (isNaN(Number(formData.experience))) errors.experience = 'Experience must be a number';
+    if (!formData.hospitalAddress.trim()) errors.hospitalAddress = 'Hospital/Clinic address is required';
+    if (!formData.medicalCertificate) errors.medicalCertificate = 'Medical certificate is required';
+    if (!formData.idProof) errors.idProof = 'ID proof is required';
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      addMutation.mutate(formData);
+    }
+  };
+
+  const handleFileChange = (field: 'medicalCertificate' | 'idProof', file: File | null) => {
+    if (file) {
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        setFormErrors(prev => ({ ...prev, [field]: 'File size must be less than 5MB' }));
+        return;
+      }
+      
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        setFormErrors(prev => ({ ...prev, [field]: 'Only PDF, JPG, and PNG files are allowed' }));
+        return;
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, [field]: file }));
+    setFormErrors(prev => ({ ...prev, [field]: '' }));
+  };
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading doctors</div>;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Doctor Management</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">Doctor Management</h1>
+        <button
+          onClick={() => setShowAddForm(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+        >
+          <Plus className="h-4 w-4 mr-2" /> Add Doctor
+        </button>
+      </div>
+
+      {/* Add Doctor Modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Add New Doctor</h3>
+              <button
+                onClick={() => {
+                  setShowAddForm(false);
+                  resetForm();
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Personal Information */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-800 mb-3">Personal Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Full Name *</label>
+                    <input
+                      type="text"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Dr. John Doe"
+                    />
+                    {formErrors.fullName && <p className="text-red-500 text-xs mt-1">{formErrors.fullName}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email Address *</label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="doctor@example.com"
+                    />
+                    {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Phone Number *</label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="+919876543210"
+                    />
+                    {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">ID Number *</label>
+                    <input
+                      type="text"
+                      value={formData.idNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, idNumber: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="1234567890"
+                    />
+                    {formErrors.idNumber && <p className="text-red-500 text-xs mt-1">{formErrors.idNumber}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Security */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-800 mb-3">Account Security</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Password *</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                      </button>
+                    </div>
+                    {formErrors.password && <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Confirm Password *</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Confirm password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                      </button>
+                    </div>
+                    {formErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{formErrors.confirmPassword}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Professional Credentials */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-800 mb-3">Professional Credentials</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Medical License Number *</label>
+                    <input
+                      type="text"
+                      value={formData.licenseNumber}
+                      onChange={(e) => setFormData(prev => ({ ...prev, licenseNumber: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="MCI-12345"
+                    />
+                    {formErrors.licenseNumber && <p className="text-red-500 text-xs mt-1">{formErrors.licenseNumber}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Specialization *</label>
+                    <select
+                      value={formData.specialization}
+                      onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Select Specialization</option>
+                      {specializations.map(spec => (
+                        <option key={spec} value={spec}>{spec}</option>
+                      ))}
+                    </select>
+                    {formErrors.specialization && <p className="text-red-500 text-xs mt-1">{formErrors.specialization}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Years of Experience *</label>
+                    <input
+                      type="number"
+                      value={formData.experience}
+                      onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="5"
+                      min="0"
+                    />
+                    {formErrors.experience && <p className="text-red-500 text-xs mt-1">{formErrors.experience}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Hospital/Clinic Address *</label>
+                    <input
+                      type="text"
+                      value={formData.hospitalAddress}
+                      onChange={(e) => setFormData(prev => ({ ...prev, hospitalAddress: e.target.value }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="City General Hospital"
+                    />
+                    {formErrors.hospitalAddress && <p className="text-red-500 text-xs mt-1">{formErrors.hospitalAddress}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Documents */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-800 mb-3">Documents</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Medical Certificate *</label>
+                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                      <div className="space-y-1 text-center">
+                        {formData.medicalCertificate ? (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-600">{formData.medicalCertificate.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleFileChange('medicalCertificate', null)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                            <div className="flex text-sm text-gray-600">
+                              <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500">
+                                <span>Upload a file</span>
+                                <input
+                                  type="file"
+                                  className="sr-only"
+                                  accept=".pdf,.jpg,.jpeg,.png"
+                                  onChange={(e) => handleFileChange('medicalCertificate', e.target.files?.[0] || null)}
+                                />
+                              </label>
+                            </div>
+                            <p className="text-xs text-gray-500">PDF, JPG, PNG up to 5MB</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {formErrors.medicalCertificate && <p className="text-red-500 text-xs mt-1">{formErrors.medicalCertificate}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">ID Proof *</label>
+                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                      <div className="space-y-1 text-center">
+                        {formData.idProof ? (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-600">{formData.idProof.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleFileChange('idProof', null)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                            <div className="flex text-sm text-gray-600">
+                              <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500">
+                                <span>Upload a file</span>
+                                <input
+                                  type="file"
+                                  className="sr-only"
+                                  accept=".pdf,.jpg,.jpeg,.png"
+                                  onChange={(e) => handleFileChange('idProof', e.target.files?.[0] || null)}
+                                />
+                              </label>
+                            </div>
+                            <p className="text-xs text-gray-500">PDF, JPG, PNG up to 5MB</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {formErrors.idProof && <p className="text-red-500 text-xs mt-1">{formErrors.idProof}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddForm(false);
+                    resetForm();
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addMutation.isPending}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {addMutation.isPending ? 'Adding...' : 'Add Doctor'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <div className="px-6 py-3 flex items-center justify-between border-b border-gray-200">
           <label className="inline-flex items-center space-x-2">

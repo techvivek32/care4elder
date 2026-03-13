@@ -525,6 +525,7 @@ export default function DoctorsPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

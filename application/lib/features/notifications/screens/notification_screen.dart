@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -28,6 +29,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    // Fetch notifications on init
+    NotificationService().fetchNotifications();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    // Load preferences from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _preferences['emergency'] = prefs.getBool('notif_emergency') ?? true;
+      _preferences['appointment'] = prefs.getBool('notif_appointment') ?? true;
+      _preferences['tips'] = prefs.getBool('notif_tips') ?? true;
+    });
+  }
+
+  Future<void> _savePreference(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notif_$key', value);
+    setState(() {
+      _preferences[key] = value;
+    });
   }
 
   @override
@@ -86,8 +108,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // Simulate refresh delay
-          await Future.delayed(const Duration(seconds: 1));
+          await NotificationService().fetchNotifications(page: 1);
         },
         child: SingleChildScrollView(
           controller: _scrollController,
@@ -264,9 +285,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return SwitchListTile(
       value: _preferences[key] ?? true,
       onChanged: (val) {
-        setState(() {
-          _preferences[key] = val;
-        });
+        _savePreference(key, val);
       },
       activeTrackColor: colorScheme.primary,
       thumbColor: WidgetStateProperty.resolveWith<Color>((states) {

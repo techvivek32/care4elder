@@ -1,10 +1,14 @@
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../constants/api_constants.dart';
+import '../../features/auth/services/auth_service.dart';
 
 class AppNotification {
   final String id;
   final String title;
   final String body;
-  final String type; // 'emergency', 'appointment', 'tip'
+  final String type; // 'emergency', 'appointment', 'tip', 'general'
   final DateTime timestamp;
   bool isRead;
 
@@ -16,6 +20,17 @@ class AppNotification {
     required this.timestamp,
     this.isRead = false,
   });
+
+  factory AppNotification.fromJson(Map<String, dynamic> json) {
+    return AppNotification(
+      id: json['_id'] ?? json['id'] ?? '',
+      title: json['title'] ?? '',
+      body: json['body'] ?? '',
+      type: json['type'] ?? 'general',
+      timestamp: DateTime.parse(json['createdAt'] ?? json['timestamp'] ?? DateTime.now().toIso8601String()),
+      isRead: json['isRead'] ?? false,
+    );
+  }
 }
 
 class NotificationService {
@@ -25,9 +40,7 @@ class NotificationService {
     return _instance;
   }
 
-  NotificationService._internal() {
-    Future.microtask(() => _initMockData());
-  }
+  NotificationService._internal();
 
   final ValueNotifier<List<AppNotification>> notificationsNotifier =
       ValueNotifier([]);
@@ -35,91 +48,161 @@ class NotificationService {
   final ValueNotifier<bool> isLoadingMoreNotifier = ValueNotifier(false);
   final ValueNotifier<bool> hasMoreNotifier = ValueNotifier(true);
 
-  // Simulated pagination
   int _currentPage = 1;
-  static const int _itemsPerPage = 10;
+  static const int _itemsPerPage = 20;
 
-  void _initMockData() {
-    _loadPage(1);
+  Future<void> fetchNotifications({int page = 1, String filter = 'all'}) async {
+    try {
+      final token = await AuthService().getToken();
+      if (token == null) return;
+
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/notifications?page=$page&limit=$_itemsPerPage&filter=$filter'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> notificationsJson = data['notifications'] ?? [];
+        
+        final notifications = notificationsJson
+            .map((json) => AppNotification.fromJson(json))
+            .toList();
+
+        if (page == 1) {
+          notificationsNotifier.value = notifications;
+        } else {
+          notificationsNotifier.value = [
+            ...notificationsNotifier.value,
+            ...notifications,
+          ];
+        }
+
+        unreadCountNotifier.value = data['unreadCount'] ?? 0;
+        hasMoreNotifier.value = data['pagination']?['hasMore'] ?? false;
+        _currentPage = page;
+      }
+    } catch (e) {
+      debugPrint('Error fetching notifications: $e');
+    }
   }
 
   Future<void> loadMore() async {
     if (isLoadingMoreNotifier.value || !hasMoreNotifier.value) return;
 
     isLoadingMoreNotifier.value = true;
-
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    _currentPage++;
-    _loadPage(_currentPage);
-
+    await fetchNotifications(page: _currentPage + 1);
     isLoadingMoreNotifier.value = false;
   }
 
-  void _loadPage(int page) {
-    final now = DateTime.now();
-    // Generate mock data for the requested page
-    final newNotifications = List.generate(_itemsPerPage, (index) {
-      final globalIndex = (page - 1) * _itemsPerPage + index;
-      final timeOffset = Duration(
-        hours: globalIndex * 2,
-      ); // Spread out over time
+  Future<void> markAsRead(String id) async {
+    try {
+      final token = await AuthService().getToken();
+      if (token == null) return;
 
-      // Rotate types
-      final types = ['emergency', 'appointment', 'tip'];
-      final type = types[globalIndex % 3];
-
-      return AppNotification(
-        id: 'notification_$globalIndex',
-        title: _getMockTitle(type, globalIndex),
-        body: _getMockBody(type, globalIndex),
-        type: type,
-        timestamp: now.subtract(timeOffset),
-        isRead: globalIndex > 2, // First few are unread
+      final response = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/notifications/$id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'isRead': true}),
       );
-    });
 
-    if (page == 1) {
-      notificationsNotifier.value = newNotifications;
-    } else {
-      notificationsNotifier.value = [
-        ...notificationsNotifier.value,
-        ...newNotifications,
-      ];
-    }
-
-    // Stop after 5 pages for demo
-    if (page >= 5) {
-      hasMoreNotifier.value = false;
-    }
-
-    _updateUnreadCount();
-  }
-
-  String _getMockTitle(String type, int index) {
-    switch (type) {
-      case 'emergency':
-        return 'Emergency Alert #$index';
-      case 'appointment':
-        return 'Appointment Reminder #$index';
-      case 'tip':
-        return 'Health Tip #$index';
-      default:
-        return 'Notification #$index';
+      if (response.statusCode == 200) {
+        final list = List<AppNotification>.from(notificationsNotifier.value);
+        final index = list.indexWhere((n) => n.id == id);
+        if (index != -1) {
+          list[index].isRead = true;
+          notificationsNotifier.value = list;
+          _updateUnreadCount();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error marking as read: $e');
     }
   }
 
-  String _getMockBody(String type, int index) {
-    switch (type) {
-      case 'emergency':
-        return 'Your SOS signal was received. Help is on the way.';
-      case 'appointment':
-        return 'You have an appointment with Dr. Smith tomorrow at 10:00 AM.';
-      case 'tip':
-        return 'Remember to drink water and stay hydrated throughout the day.';
-      default:
-        return 'This is a notification body text for item #$index.';
+  Future<void> toggleReadStatus(String id) async {
+    try {
+      final list = List<AppNotification>.from(notificationsNotifier.value);
+      final index = list.indexWhere((n) => n.id == id);
+      if (index == -1) return;
+
+      final newStatus = !list[index].isRead;
+      
+      final token = await AuthService().getToken();
+      if (token == null) return;
+
+      final response = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/notifications/$id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'isRead': newStatus}),
+      );
+
+      if (response.statusCode == 200) {
+        list[index].isRead = newStatus;
+        notificationsNotifier.value = list;
+        _updateUnreadCount();
+      }
+    } catch (e) {
+      debugPrint('Error toggling read status: $e');
+    }
+  }
+
+  Future<void> markAllAsRead() async {
+    try {
+      final token = await AuthService().getToken();
+      if (token == null) return;
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/notifications/mark-all-read'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final list = List<AppNotification>.from(notificationsNotifier.value);
+        for (var n in list) {
+          n.isRead = true;
+        }
+        notificationsNotifier.value = list;
+        unreadCountNotifier.value = 0;
+      }
+    } catch (e) {
+      debugPrint('Error marking all as read: $e');
+    }
+  }
+
+  Future<void> deleteNotification(String id) async {
+    try {
+      final token = await AuthService().getToken();
+      if (token == null) return;
+
+      final response = await http.delete(
+        Uri.parse('${ApiConstants.baseUrl}/notifications/$id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final list = List<AppNotification>.from(notificationsNotifier.value);
+        list.removeWhere((n) => n.id == id);
+        notificationsNotifier.value = list;
+        _updateUnreadCount();
+      }
+    } catch (e) {
+      debugPrint('Error deleting notification: $e');
     }
   }
 
@@ -129,39 +212,32 @@ class NotificationService {
         .length;
   }
 
-  void markAsRead(String id) {
-    final list = List<AppNotification>.from(notificationsNotifier.value);
-    final index = list.indexWhere((n) => n.id == id);
-    if (index != -1 && !list[index].isRead) {
-      list[index].isRead = true;
-      notificationsNotifier.value = list;
-      _updateUnreadCount();
-    }
-  }
+  // Helper method to create notification (for testing or system use)
+  Future<void> createNotification({
+    required String title,
+    required String body,
+    required String type,
+    String? userId,
+  }) async {
+    try {
+      final token = await AuthService().getToken();
+      if (token == null) return;
 
-  void toggleReadStatus(String id) {
-    final list = List<AppNotification>.from(notificationsNotifier.value);
-    final index = list.indexWhere((n) => n.id == id);
-    if (index != -1) {
-      list[index].isRead = !list[index].isRead;
-      notificationsNotifier.value = list;
-      _updateUnreadCount();
+      await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/notifications'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'title': title,
+          'body': body,
+          'type': type,
+          if (userId != null) 'userId': userId,
+        }),
+      );
+    } catch (e) {
+      debugPrint('Error creating notification: $e');
     }
-  }
-
-  void markAllAsRead() {
-    final list = List<AppNotification>.from(notificationsNotifier.value);
-    for (var n in list) {
-      n.isRead = true;
-    }
-    notificationsNotifier.value = list;
-    _updateUnreadCount();
-  }
-
-  void deleteNotification(String id) {
-    final list = List<AppNotification>.from(notificationsNotifier.value);
-    list.removeWhere((n) => n.id == id);
-    notificationsNotifier.value = list;
-    _updateUnreadCount();
   }
 }

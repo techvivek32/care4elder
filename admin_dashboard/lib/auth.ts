@@ -58,3 +58,38 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+import jwt from 'jsonwebtoken';
+
+export function verifyToken(token: string): { userId: string; role?: string } | null {
+  try {
+    const secret = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET;
+    if (!secret) {
+      console.error('No secret found for JWT verification');
+      return null;
+    }
+
+    const decoded = jwt.verify(token, secret) as any;
+    
+    // Handle NextAuth JWT format
+    if (decoded.sub) {
+      return {
+        userId: decoded.sub,
+        role: decoded.role,
+      };
+    }
+    
+    // Handle custom JWT format
+    if (decoded.userId || decoded.id) {
+      return {
+        userId: decoded.userId || decoded.id,
+        role: decoded.role,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Token verification failed:', error);
+    return null;
+  }
+}

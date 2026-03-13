@@ -24,7 +24,7 @@ class ServiceCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      onTap: () => context.go(route),
+      onTap: () => context.push(route),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

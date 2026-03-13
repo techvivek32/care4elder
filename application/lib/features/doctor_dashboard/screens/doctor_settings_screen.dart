@@ -370,7 +370,7 @@ class _DoctorSettingsScreenState extends State<DoctorSettingsScreen> {
     if (confirmed == true && mounted) {
       await DoctorAuthService().logout();
       if (mounted) {
-        context.go('/doctor/login');
+        context.go('/selection');
       }
     }
   }

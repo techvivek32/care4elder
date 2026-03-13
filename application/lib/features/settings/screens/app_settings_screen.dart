@@ -89,6 +89,19 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                     final status = await Permission.notification.request();
                     if (status.isGranted) {
                       await BackgroundServiceHelper.startService();
+                      setState(() {
+                        _backgroundServiceEnabled = value;
+                      });
+                      // Show success message
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Background protection activated! Check your notification drawer.'),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
                     } else {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -102,10 +115,18 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                     }
                   } else {
                     await BackgroundServiceHelper.stopService();
+                    setState(() {
+                      _backgroundServiceEnabled = value;
+                    });
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Background protection deactivated'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
                   }
-                  setState(() {
-                    _backgroundServiceEnabled = value;
-                  });
                 },
               ),
               const SizedBox(height: 24),

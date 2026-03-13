@@ -32,7 +32,7 @@ class DoctorPatientMedicalInfoScreen extends StatelessWidget {
 
     final uri = Uri.parse(finalUrl);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.inAppWebView);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

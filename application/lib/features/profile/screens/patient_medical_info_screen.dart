@@ -107,7 +107,7 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
 
     final uri = Uri.parse(finalUrl);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.inAppWebView);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -153,7 +153,7 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
       if (token == null) {
         // Reset notification if failed
         FlutterBackgroundService().invoke('updateNotification', {
-          'title': 'CareSafe Protection Active',
+          'title': 'Care4Elder Protection Active',
           'content': 'Voice SOS is listening for "Help"',
         });
         return;
@@ -191,7 +191,7 @@ class _DoctorHistoryDetailScreenState extends State<DoctorHistoryDetailScreen> {
     } finally {
       // Reset background service notification
       FlutterBackgroundService().invoke('updateNotification', {
-        'title': 'CareSafe Protection Active',
+        'title': 'Care4Elder Protection Active',
         'content': 'Voice SOS is listening for "Help"',
       });
       if (mounted) setState(() => _isSaving = false);
@@ -489,7 +489,7 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
       if (token == null) {
         // Reset notification if failed
         FlutterBackgroundService().invoke('updateNotification', {
-          'title': 'CareSafe Protection Active',
+          'title': 'Care4Elder Protection Active',
           'content': 'Voice SOS is listening for "Help"',
         });
         return;
@@ -546,7 +546,7 @@ class _DoctorCategoryFilesScreenState extends State<DoctorCategoryFilesScreen> {
     } finally {
       // Reset background service notification
       FlutterBackgroundService().invoke('updateNotification', {
-        'title': 'CareSafe Protection Active',
+        'title': 'Care4Elder Protection Active',
         'content': 'Voice SOS is listening for "Help"',
       });
       if (mounted) setState(() => _isUploading = false);

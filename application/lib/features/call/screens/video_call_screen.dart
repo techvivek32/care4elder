@@ -254,7 +254,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
     
     // Reset background service notification
     FlutterBackgroundService().invoke('updateNotification', {
-      'title': 'CareSafe Protection Active',
+      'title': 'Care4Elder Protection Active',
       'content': 'Voice SOS is listening for "Help"',
     });
   }

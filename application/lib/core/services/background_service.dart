@@ -77,7 +77,7 @@ class BackgroundServiceHelper {
         autoStart: false,
         isForegroundMode: true,
         notificationChannelId: 'sos_background_channel',
-        initialNotificationTitle: 'CareSafe Protection Active',
+        initialNotificationTitle: 'Care4Elder Protection Active',
         initialNotificationContent: 'Background protection active',
         foregroundServiceNotificationId: 888,
       ),
@@ -141,7 +141,7 @@ void onStart(ServiceInstance service) async {
   if (service is AndroidServiceInstance) {
     service.setAsForegroundService();
     service.setForegroundNotificationInfo(
-      title: 'CareSafe Protection Active',
+      title: 'Care4Elder Protection Active',
       content: 'Background protection active',
     );
   }
@@ -170,7 +170,7 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
-  String currentTitle = "CareSafe Protection Active";
+  String currentTitle = "Care4Elder Protection Active";
   String currentContent = "Background protection active";
 
   // Handle updates to the foreground notification
@@ -221,7 +221,7 @@ void onStart(ServiceInstance service) async {
       );
       // Reset notification
       service.invoke('updateNotification', {
-        'title': 'CareSafe Protection Active',
+        'title': 'Care4Elder Protection Active',
         'content': 'Background protection active',
       });
       // Notify main app to redirect if open

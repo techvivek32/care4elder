@@ -16,7 +16,7 @@ export const sendOTP = async (email: string, otp: string, role: 'Doctor' | 'Pati
     const title = `${role} Registration Verification`;
     
     const mailOptions = {
-      from: process.env.SMTP_FROM || '"CareSafe Admin" <noreply@caresafe.com>',
+      from: process.env.SMTP_FROM || '"Care4Elder Admin" <noreply@care4elder.com>',
       to: email,
       subject: subject,
       text: `Your OTP for ${role.toLowerCase()} registration is: ${otp}. It is valid for 10 minutes.`,

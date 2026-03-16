@@ -444,7 +444,7 @@ export default function DoctorsPage() {
                 <h4 className="text-md font-semibold text-gray-800 mb-3">Documents</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Medical Certificate *</label>
+                    <label className="block text-sm font-medium text-gray-700">Medical Registration Certificate *</label>
                     <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                       <div className="space-y-1 text-center">
                         {formData.medicalCertificate ? (

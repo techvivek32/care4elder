@@ -26,7 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r">
         <div className="flex items-center justify-center h-16 border-b">
-          <h1 className="text-xl font-bold text-blue-600">CareSafe Admin</h1>
+          <h1 className="text-xl font-bold text-blue-600">Care4Elder Admin</h1>
         </div>
         <nav className="p-4 space-y-1">
           {navItems.map((item) => {

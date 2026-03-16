@@ -6,8 +6,8 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CareSafe Admin",
-  description: "Admin Dashboard for CareSafe",
+  title: "Care4Elder Admin",
+  description: "Admin Dashboard for Care4Elder",
   icons: {
     icon: '/next.svg', // Use existing next.svg as favicon temporarily
   },

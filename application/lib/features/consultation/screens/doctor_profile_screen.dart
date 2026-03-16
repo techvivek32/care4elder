@@ -868,7 +868,7 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('You need ₹$required for this consultation, but your wallet balance is ₹$available.'),
+            Text('You need ₹${required.toStringAsFixed(2)} for this consultation, but your wallet balance is ₹${available.toStringAsFixed(2)}.'),
             const SizedBox(height: 16),
             Text('Please recharge your wallet to proceed.'),
           ],

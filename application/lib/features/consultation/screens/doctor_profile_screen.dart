@@ -807,7 +807,7 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
         return;
       }
 
-      final success = await profileService.deductFromWallet(fee);
+      final success = await profileService.deductFromWallet(fee, doctorName: widget.doctor.name);
       
       if (mounted) {
         if (success) {

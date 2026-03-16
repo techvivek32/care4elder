@@ -312,14 +312,8 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                             final transaction = profileService.walletHistory[index];
                             final isCredit = transaction.type == 'credit';
                             
-                            // Get doctor name from metadata or use mock data for consultation fees
+                            // Get doctor name from metadata only - no mock names
                             String? doctorName = transaction.metadata?['doctorName'] as String?;
-                            
-                            // If no doctor name in metadata but it's a consultation fee, add mock names
-                            if (doctorName == null && transaction.description.toLowerCase().contains('consultation')) {
-                              final mockDoctors = ['Dr. Rajesh Kumar', 'Dr. Priya Sharma', 'Dr. Amit Singh', 'Dr. Sunita Patel'];
-                              doctorName = mockDoctors[index % mockDoctors.length];
-                            }
                             
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),

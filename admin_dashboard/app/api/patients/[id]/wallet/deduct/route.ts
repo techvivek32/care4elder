@@ -10,7 +10,7 @@ export async function POST(
   try {
     await dbConnect();
     const { id } = await props.params;
-    const { amount } = await request.json();
+    const { amount, doctorName } = await request.json();
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -46,7 +46,8 @@ export async function POST(
       type: 'debit',
       amount: amount,
       description: 'Consultation Fee',
-      balanceAfter: patient.walletBalance
+      balanceAfter: patient.walletBalance,
+      metadata: doctorName ? { doctorName } : undefined
     });
 
     return NextResponse.json({

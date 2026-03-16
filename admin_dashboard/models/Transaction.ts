@@ -5,9 +5,10 @@ export interface ITransaction extends Document {
   type: 'credit' | 'debit';
   amount: number;
   description: string;
-  paymentId?: string; // Razorpay payment ID
+  paymentId?: string;
   balanceAfter: number;
   timestamp: Date;
+  metadata?: Record<string, unknown>;
 }
 
 const TransactionSchema: Schema = new Schema({
@@ -17,7 +18,8 @@ const TransactionSchema: Schema = new Schema({
   description: { type: String, required: true },
   paymentId: { type: String },
   balanceAfter: { type: Number, required: true },
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
+  metadata: { type: Schema.Types.Mixed }
 }, { timestamps: true });
 
 // Check if model exists before compiling

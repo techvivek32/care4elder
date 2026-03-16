@@ -504,7 +504,7 @@ class ProfileService extends ChangeNotifier {
     }
   }
 
-  Future<bool> deductFromWallet(double amount) async {
+  Future<bool> deductFromWallet(double amount, {String? doctorName}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -527,6 +527,7 @@ class ProfileService extends ChangeNotifier {
         },
         body: jsonEncode({
           'amount': amount,
+          if (doctorName != null) 'doctorName': doctorName,
         }),
       );
 

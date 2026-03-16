@@ -506,6 +506,32 @@ class DoctorAuthService extends ChangeNotifier {
     return token != null;
   }
 
+  // Poll verification status from backend
+  Future<String?> checkVerificationStatus() async {
+    try {
+      final token = await getDoctorToken();
+      final doctorId = await getDoctorId();
+      if (token == null || doctorId == null) return null;
+
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/doctors/$doctorId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['verificationStatus'] as String?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error checking verification status: $e');
+      return null;
+    }
+  }
+
   // Update Registration Data
   void updateRegistrationData({
     String? phoneNumber,

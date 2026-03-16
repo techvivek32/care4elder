@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,6 +16,35 @@ class DoctorVerificationPendingScreen extends StatefulWidget {
 
 class _DoctorVerificationPendingScreenState
     extends State<DoctorVerificationPendingScreen> {
+  Timer? _pollingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Poll every 10 seconds
+    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      _checkStatus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkStatus() async {
+    final status = await DoctorAuthService().checkVerificationStatus();
+    if (!mounted) return;
+    if (status == 'approved') {
+      _pollingTimer?.cancel();
+      context.go('/doctor/home');
+    } else if (status == 'rejected') {
+      _pollingTimer?.cancel();
+      context.go('/doctor/rejected');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

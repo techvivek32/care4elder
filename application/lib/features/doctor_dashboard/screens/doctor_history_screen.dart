@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/call_request_service.dart';
 import '../../doctor_auth/services/doctor_auth_service.dart';
+import '../../consultation/screens/doctor_reviews_screen.dart';
+import '../services/doctor_profile_service.dart';
 import 'doctor_history_detail_screen.dart';
 
 class DoctorHistoryScreen extends StatefulWidget {
@@ -153,7 +155,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
       item.originalData!.rating! > 0
     ).toList();
     
-    double averageRating = 4.9; // Default if no ratings
+    double averageRating = 0.0; // No ratings yet
     if (ratedItems.isNotEmpty) {
       final totalRating = ratedItems.fold<double>(
         0,
@@ -448,9 +450,23 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                     ),
                     _buildStatCard(
                       label: 'Rating',
-                      value: stats.rating.toStringAsFixed(1),
+                      value: stats.rating > 0
+                          ? stats.rating.toStringAsFixed(1)
+                          : '0.0',
                       valueColor: const Color(0xFFFFAB00),
                       showStar: true,
+                      onTap: () {
+                        final profile = DoctorProfileService().currentProfile;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DoctorReviewsScreen(
+                              doctorId: profile.id,
+                              doctorName: profile.name,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -578,10 +594,13 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
     required String value,
     required Color valueColor,
     bool showStar = false,
+    VoidCallback? onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
-      child: Container(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
@@ -641,6 +660,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

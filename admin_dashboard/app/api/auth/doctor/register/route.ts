@@ -20,6 +20,7 @@ export async function POST(req: Request) {
       experienceYears,
       hospitalAffiliation,
       idNumber,
+      qualifications,
       consultationFee, 
       documents 
     } = body;
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
       experienceYears,
       hospitalAffiliation,
       idNumber,
+      qualifications,
       consultationFee,
       verificationStatus: 'pending',
       walletBalance: 0,

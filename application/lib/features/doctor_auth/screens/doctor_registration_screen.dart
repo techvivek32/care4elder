@@ -19,6 +19,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _licenseController = TextEditingController();
+  final _qualificationsController = TextEditingController();
   final _experienceController = TextEditingController();
   final _hospitalController = TextEditingController();
   final _idNumberController = TextEditingController();
@@ -68,6 +69,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
   void dispose() {
     _fullNameController.dispose();
     _licenseController.dispose();
+    _qualificationsController.dispose();
     _experienceController.dispose();
     _hospitalController.dispose();
     _idNumberController.dispose();
@@ -201,13 +203,10 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
           specialization: _selectedSpecialization,
           experienceYears: _experienceController.text,
           hospitalAffiliation: _hospitalController.text,
+          qualifications: _qualificationsController.text,
           // Also update contact info in case it was modified
-          email: _emailController.text.isNotEmpty
-              ? _emailController.text
-              : null,
-          phoneNumber: _phoneController.text.isNotEmpty
-              ? _phoneController.text
-              : null,
+          email: _emailController.text.isNotEmpty ? _emailController.text : null,
+          phoneNumber: _phoneController.text.isNotEmpty ? _phoneController.text : null,
           documentPaths: paths,
           documents: documents,
         );
@@ -347,6 +346,15 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
                   hint: 'e.g. MCI-12345',
                   validator: (value) => value?.isEmpty ?? true
                       ? 'Please enter license number'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _qualificationsController,
+                  label: 'Qualifications',
+                  hint: 'e.g. MBBS, MD, MS',
+                  validator: (value) => value?.isEmpty ?? true
+                      ? 'Please enter your qualifications'
                       : null,
                 ),
                 const SizedBox(height: 16),

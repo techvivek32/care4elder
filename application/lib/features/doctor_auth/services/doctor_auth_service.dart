@@ -18,6 +18,7 @@ class DoctorRegistrationData {
   String? experienceYears;
   String? hospitalAffiliation;
   String? idNumber;
+  String? qualifications;
   String? consultationFee;
   List<String> documentPaths;
   List<PlatformFile> documents; // Added for Web/Mobile file handling
@@ -32,6 +33,7 @@ class DoctorRegistrationData {
     this.experienceYears,
     this.hospitalAffiliation,
     this.idNumber,
+    this.qualifications,
     this.consultationFee,
     List<String>? documentPaths,
     List<PlatformFile>? documents,
@@ -49,6 +51,7 @@ class DoctorRegistrationData {
       'experienceYears': experienceYears,
       'hospitalAffiliation': hospitalAffiliation,
       'idNumber': idNumber,
+      'qualifications': qualifications,
       'consultationFee': consultationFee,
       'documentPaths': documentPaths,
     };
@@ -396,13 +399,11 @@ class DoctorAuthService extends ChangeNotifier {
         'phone': _registrationData.phoneNumber,
         'specialization': _registrationData.specialization,
         'licenseNumber': _registrationData.medicalRegistrationNumber,
-        'experienceYears': int.tryParse(
-          _registrationData.experienceYears ?? '',
-        ),
+        'experienceYears': int.tryParse(_registrationData.experienceYears ?? ''),
         'hospitalAffiliation': _registrationData.hospitalAffiliation,
         'idNumber': _registrationData.idNumber,
-        'consultationFee':
-            int.tryParse(_registrationData.consultationFee ?? '') ?? 0,
+        'qualifications': _registrationData.qualifications,
+        'consultationFee': int.tryParse(_registrationData.consultationFee ?? '') ?? 0,
         'documents': uploadedUrls, // Send URLs
       };
 
@@ -516,47 +517,24 @@ class DoctorAuthService extends ChangeNotifier {
     String? experienceYears,
     String? hospitalAffiliation,
     String? idNumber,
+    String? qualifications,
     String? consultationFee,
     List<String>? documentPaths,
     List<PlatformFile>? documents,
   }) {
-    if (phoneNumber != null) {
-      _registrationData.phoneNumber = phoneNumber;
-    }
-    if (email != null) {
-      _registrationData.email = email;
-    }
-    if (password != null) {
-      _registrationData.password = password;
-    }
-    if (fullName != null) {
-      _registrationData.fullName = fullName;
-    }
-    if (medicalRegistrationNumber != null) {
-      _registrationData.medicalRegistrationNumber = medicalRegistrationNumber;
-    }
-    if (specialization != null) {
-      _registrationData.specialization = specialization;
-    }
-    if (experienceYears != null) {
-      _registrationData.experienceYears = experienceYears;
-    }
-    if (hospitalAffiliation != null) {
-      _registrationData.hospitalAffiliation = hospitalAffiliation;
-    }
-    if (idNumber != null) {
-      _registrationData.idNumber = idNumber;
-    }
-    if (consultationFee != null) {
-      _registrationData.consultationFee = consultationFee;
-    }
-    if (documentPaths != null) {
-      _registrationData.documentPaths = documentPaths;
-    }
-    if (documents != null) {
-      _registrationData.documents = documents;
-    }
-
+    if (phoneNumber != null) _registrationData.phoneNumber = phoneNumber;
+    if (email != null) _registrationData.email = email;
+    if (password != null) _registrationData.password = password;
+    if (fullName != null) _registrationData.fullName = fullName;
+    if (medicalRegistrationNumber != null) _registrationData.medicalRegistrationNumber = medicalRegistrationNumber;
+    if (specialization != null) _registrationData.specialization = specialization;
+    if (experienceYears != null) _registrationData.experienceYears = experienceYears;
+    if (hospitalAffiliation != null) _registrationData.hospitalAffiliation = hospitalAffiliation;
+    if (idNumber != null) _registrationData.idNumber = idNumber;
+    if (qualifications != null) _registrationData.qualifications = qualifications;
+    if (consultationFee != null) _registrationData.consultationFee = consultationFee;
+    if (documentPaths != null) _registrationData.documentPaths = documentPaths;
+    if (documents != null) _registrationData.documents = documents;
     notifyListeners();
   }
 }

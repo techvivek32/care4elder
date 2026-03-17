@@ -79,3 +79,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await dbConnect();
+    const authUser = await getAuthUser(request);
+    if (!authUser || authUser.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { ids } = await request.json();
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'No ids provided' }, { status: 400 });
+    }
+    await RefundRequest.deleteMany({ _id: { $in: ids } });
+    return NextResponse.json({ success: true, deleted: ids.length });
+  } catch (error) {
+    console.error('DELETE bulk refund-requests error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

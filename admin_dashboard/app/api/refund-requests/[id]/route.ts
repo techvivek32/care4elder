@@ -68,10 +68,15 @@ export async function PATCH(
       }
 
       // 2. Deduct doctor wallet
-      const doctor = await Doctor.findById(refund.doctorId);
+      console.log('Looking up doctor with id:', refund.doctorId);
+      const doctor = await Doctor.findById(refund.doctorId.toString());
+      console.log('Doctor found:', doctor ? doctor._id : 'NOT FOUND');
       if (doctor) {
         doctor.walletBalance = Math.max(0, (doctor.walletBalance || 0) - refund.amount);
         await doctor.save();
+        console.log('Doctor wallet updated to:', doctor.walletBalance);
+      } else {
+        console.error('Doctor not found for doctorId:', refund.doctorId);
       }
     }
 
@@ -82,6 +87,25 @@ export async function PATCH(
     return NextResponse.json({ refund });
   } catch (error) {
     console.error('PATCH refund-requests error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await dbConnect();
+    const authUser = await getAuthUser(request);
+    if (!authUser || authUser.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { id } = await params;
+    await RefundRequest.findByIdAndDelete(id);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('DELETE refund-requests error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

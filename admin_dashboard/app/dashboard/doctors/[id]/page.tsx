@@ -254,7 +254,7 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
               </div>
               <div className="flex justify-between items-center py-2 border-b">
                 <span className="text-gray-500">Wallet Balance</span>
-                <span className="font-semibold text-green-600">₹{doctor.walletBalance}</span>
+                <span className="font-semibold text-green-600">₹{Number(doctor.walletBalance).toFixed(2)}</span>
               </div>
               
               {doctor.bankDetails && (

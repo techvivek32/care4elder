@@ -55,7 +55,7 @@ export default function PayoutsPage() {
                     </p>
                     <div className="mt-1 flex items-center text-sm text-gray-500">
                        <IndianRupee className="h-4 w-4 text-green-500 mr-1" />
-                       <span className="font-bold text-green-600 text-lg">₹{doctor.walletBalance}</span>
+                       <span className="font-bold text-green-600 text-lg">₹{Number(doctor.walletBalance).toFixed(2)}</span>
                     </div>
                   </div>
                   <button

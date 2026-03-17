@@ -504,7 +504,7 @@ class ProfileService extends ChangeNotifier {
     }
   }
 
-  Future<bool> deductFromWallet(double amount, {String? doctorName}) async {
+  Future<String?> deductFromWallet(double amount, {String? doctorName, String? doctorId, String? callRequestId}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -516,7 +516,7 @@ class ProfileService extends ChangeNotifier {
 
       if (patientId == null || token == null) {
         _error = 'User not authenticated';
-        return false;
+        return null;
       }
 
       final response = await http.post(
@@ -528,31 +528,52 @@ class ProfileService extends ChangeNotifier {
         body: jsonEncode({
           'amount': amount,
           if (doctorName != null) 'doctorName': doctorName,
+          if (doctorId != null) 'doctorId': doctorId,
+          if (callRequestId != null) 'callRequestId': callRequestId,
         }),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          // Update local balance
           if (_currentUser != null) {
             _currentUser = _currentUser!.copyWith(
               walletBalance: (data['newBalance'] as num).toDouble(),
             );
           }
-          return true;
+          return data['transactionId'] as String?;
         }
       }
 
       final errorData = jsonDecode(response.body);
       _error = errorData['error'] ?? 'Failed to deduct from wallet';
-      return false;
+      return null;
     } catch (e) {
       _error = 'Failed to deduct from wallet: $e';
-      return false;
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> updateTransactionCallRequest(String transactionId, String callRequestId) async {
+    try {
+      final authService = AuthService();
+      final patientId = await authService.getPatientId();
+      final token = await authService.getToken();
+      if (patientId == null || token == null) return;
+
+      await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/patients/$patientId/wallet/transaction/$transactionId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'callRequestId': callRequestId}),
+      );
+    } catch (e) {
+      debugPrint('updateTransactionCallRequest error: $e');
     }
   }
 

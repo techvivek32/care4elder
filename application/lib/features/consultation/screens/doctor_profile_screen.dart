@@ -807,7 +807,12 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
         return;
       }
 
-      final success = await profileService.deductFromWallet(fee, doctorName: widget.doctor.name);
+      final transactionId = await profileService.deductFromWallet(
+        fee,
+        doctorName: widget.doctor.name,
+        doctorId: widget.doctor.id,
+      );
+      final success = transactionId != null;
       
       if (mounted) {
         if (success) {
@@ -833,6 +838,11 @@ class _ConsultationTypeSheetState extends State<_ConsultationTypeSheet> {
               const SnackBar(content: Text('Doctor is offline or call failed')),
             );
             return;
+          }
+
+          // Link callRequestId to the wallet transaction
+          if (transactionId != null) {
+            profileService.updateTransactionCallRequest(transactionId, callRequest.id);
           }
 
           if (mounted) {

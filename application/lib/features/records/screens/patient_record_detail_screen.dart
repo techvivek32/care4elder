@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/services/call_request_service.dart';
+import '../../../core/services/refund_service.dart';
+import '../../auth/services/auth_service.dart';
 
 class PatientRecordDetailScreen extends StatefulWidget {
   final CallRequestData callRequest;
@@ -223,6 +225,117 @@ class _PatientRecordDetailScreenState extends State<PatientRecordDetailScreen> {
               Icons.folder,
               const Color(0xFF041E34),
               () => _openCategoryFiles('Medical Documents', _medicalDocuments),
+            ),
+            const SizedBox(height: 32),
+
+            // Refund Request Button (only for completed consultations)
+            if (widget.callRequest.status == 'completed' && widget.callRequest.fee > 0)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _showRefundDialog(),
+                  icon: const Icon(Icons.undo, color: Colors.orange),
+                  label: Text(
+                    'Request Refund',
+                    style: GoogleFonts.roboto(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: Colors.orange),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRefundDialog() {
+    final reasonController = TextEditingController();
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(
+            'Request Refund',
+            style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Amount: ₹${widget.callRequest.fee.toStringAsFixed(2)}',
+                style: GoogleFonts.roboto(fontWeight: FontWeight.w600),
+              ),
+              Text(
+                'Doctor: ${widget.callRequest.doctorName}',
+                style: GoogleFonts.roboto(color: Colors.grey),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Reason for refund...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      if (reasonController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter a reason')),
+                        );
+                        return;
+                      }
+                      setDialogState(() => isSubmitting = true);
+                      final token = await AuthService().getToken();
+                      if (token == null) return;
+                      final result = await RefundService().submitRefundRequest(
+                        token: token,
+                        callRequestId: widget.callRequest.id,
+                        doctorId: widget.callRequest.doctorId,
+                        amount: widget.callRequest.fee,
+                        reason: reasonController.text.trim(),
+                        patientName: widget.callRequest.patientName,
+                        doctorName: widget.callRequest.doctorName,
+                      );
+                      if (!ctx.mounted) return;
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(result['success'] == true
+                              ? 'Refund request submitted successfully'
+                              : result['error'] ?? 'Failed to submit'),
+                          backgroundColor: result['success'] == true ? Colors.green : Colors.red,
+                        ),
+                      );
+                    },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: isSubmitting
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Submit', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

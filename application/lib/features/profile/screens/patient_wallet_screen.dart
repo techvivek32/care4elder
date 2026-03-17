@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../core/services/profile_service.dart';
+import '../../../core/services/refund_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../auth/services/auth_service.dart';
 
 class PatientWalletScreen extends StatefulWidget {
   const PatientWalletScreen({super.key});
@@ -314,6 +316,8 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                             
                             // Get doctor name from metadata only - no mock names
                             String? doctorName = transaction.metadata?['doctorName'] as String?;
+                            String? callRequestId = transaction.metadata?['callRequestId'] as String?;
+                            String? doctorId = transaction.metadata?['doctorId'] as String?;
                             
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
@@ -323,69 +327,107 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: colorScheme.outlineVariant),
                               ),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: isCredit 
-                                          ? Colors.green.withOpacity(0.1) 
-                                          : Colors.red.withOpacity(0.1),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      isCredit 
-                                          ? Icons.add_rounded 
-                                          : Icons.remove_rounded,
-                                      color: isCredit 
-                                          ? Colors.green 
-                                          : Colors.red,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          transaction.description,
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: colorScheme.onSurface,
-                                          ),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: isCredit 
+                                              ? Colors.green.withOpacity(0.1) 
+                                              : Colors.red.withOpacity(0.1),
+                                          shape: BoxShape.circle,
                                         ),
-                                        if (doctorName != null) ...[
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            doctorName,
-                                            style: GoogleFonts.roboto(
-                                              fontSize: 14,
-                                              color: colorScheme.primary,
-                                              fontWeight: FontWeight.w500,
+                                        child: Icon(
+                                          isCredit 
+                                              ? Icons.add_rounded 
+                                              : Icons.remove_rounded,
+                                          color: isCredit 
+                                              ? Colors.green 
+                                              : Colors.red,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              transaction.description,
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                                color: colorScheme.onSurface,
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _formatDate(transaction.timestamp),
+                                            if (doctorName != null) ...[
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                doctorName,
+                                                style: GoogleFonts.roboto(
+                                                  fontSize: 14,
+                                                  color: colorScheme.primary,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _formatDate(transaction.timestamp),
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 12,
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(
+                                        '${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(0)}',
+                                        style: GoogleFonts.roboto(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: isCredit ? Colors.green : Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  // Refund button for debit consultation transactions
+                                  if (!isCredit && callRequestId != null && doctorId != null) ...[
+                                    const SizedBox(height: 10),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: OutlinedButton.icon(
+                                        onPressed: () => _showRefundDialog(
+                                          transaction: transaction,
+                                          callRequestId: callRequestId,
+                                          doctorId: doctorId,
+                                          doctorName: doctorName ?? '',
+                                        ),
+                                        icon: const Icon(Icons.undo, size: 16, color: Colors.orange),
+                                        label: Text(
+                                          'Request Refund',
                                           style: GoogleFonts.roboto(
-                                            fontSize: 12,
-                                            color: colorScheme.onSurfaceVariant,
+                                            fontSize: 13,
+                                            color: Colors.orange,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                      ],
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          side: const BorderSide(color: Colors.orange),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(0)}',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: isCredit ? Colors.green : Colors.red,
-                                    ),
-                                  ),
+                                  ],
                                 ],
                               ),
                             );
@@ -449,5 +491,91 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
     // Add 5 hours and 30 minutes to the UTC time to get IST
     final istDate = date.toUtc().add(const Duration(hours: 5, minutes: 30));
     return DateFormat('dd/MM/yyyy hh:mm a').format(istDate);
+  }
+
+  void _showRefundDialog({
+    required WalletTransaction transaction,
+    required String callRequestId,
+    required String doctorId,
+    required String doctorName,
+  }) {
+    final reasonController = TextEditingController();
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('Request Refund', style: GoogleFonts.roboto(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Amount: ₹${transaction.amount.toStringAsFixed(2)}',
+                  style: GoogleFonts.roboto(fontWeight: FontWeight.w600)),
+              if (doctorName.isNotEmpty)
+                Text('Doctor: $doctorName',
+                    style: GoogleFonts.roboto(color: Colors.grey)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Reason for refund...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      if (reasonController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter a reason')),
+                        );
+                        return;
+                      }
+                      setDialogState(() => isSubmitting = true);
+                      final token = await AuthService().getToken();
+                      final profileService = Provider.of<ProfileService>(context, listen: false);
+                      final patientName = profileService.currentUser?.fullName ?? '';
+                      if (token == null) return;
+                      final result = await RefundService().submitRefundRequest(
+                        token: token,
+                        callRequestId: callRequestId,
+                        doctorId: doctorId,
+                        amount: transaction.amount,
+                        reason: reasonController.text.trim(),
+                        patientName: patientName,
+                        doctorName: doctorName,
+                      );
+                      if (!ctx.mounted) return;
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(result['success'] == true
+                              ? 'Refund request submitted successfully'
+                              : result['error'] ?? 'Failed to submit'),
+                          backgroundColor: result['success'] == true ? Colors.green : Colors.red,
+                        ),
+                      );
+                    },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: isSubmitting
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Submit', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

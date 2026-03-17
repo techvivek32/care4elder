@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, UserCheck, AlertTriangle, CreditCard, LogOut, Users, Inbox, Settings, Image as ImageIcon, HeartPulse } from 'lucide-react';
+import { LayoutDashboard, UserCheck, AlertTriangle, CreditCard, LogOut, Users, Inbox, Settings, Image as ImageIcon, HeartPulse, RotateCcw } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import clsx from 'clsx';
 
@@ -13,6 +13,7 @@ const navItems = [
   { name: 'Patients', href: '/dashboard/patients', icon: Users },
   { name: 'SOS Alerts', href: '/dashboard/sos', icon: AlertTriangle },
   { name: 'Payouts', href: '/dashboard/doctors/payouts', icon: CreditCard },
+  { name: 'Refund Requests', href: '/dashboard/refund-requests', icon: RotateCcw },
   { name: 'Hero Section', href: '/dashboard/hero-section', icon: ImageIcon },
   { name: 'Health Tips', href: '/dashboard/health-tips', icon: HeartPulse },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },

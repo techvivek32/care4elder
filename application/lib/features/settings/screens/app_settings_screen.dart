@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../auth/services/auth_service.dart';
 import '../../../core/services/settings_service.dart';
 import '../../../core/services/background_service.dart';
@@ -24,14 +25,19 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     _loadBackgroundServiceState();
   }
 
+  static const _kBgProtectionKey = 'background_protection_enabled';
+
   Future<void> _loadBackgroundServiceState() async {
-    // Always start with background protection OFF by default
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool(_kBgProtectionKey) ?? false;
     setState(() {
-      _backgroundServiceEnabled = false;
+      _backgroundServiceEnabled = saved;
     });
-    
-    // Stop any running background service to ensure it's OFF
-    await BackgroundServiceHelper.stopService();
+    if (saved) {
+      await BackgroundServiceHelper.startService();
+    } else {
+      await BackgroundServiceHelper.stopService();
+    }
   }
 
   @override
@@ -89,6 +95,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                     final status = await Permission.notification.request();
                     if (status.isGranted) {
                       await BackgroundServiceHelper.startService();
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool(_kBgProtectionKey, true);
                       setState(() {
                         _backgroundServiceEnabled = value;
                       });
@@ -115,6 +123,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                     }
                   } else {
                     await BackgroundServiceHelper.stopService();
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool(_kBgProtectionKey, false);
                     setState(() {
                       _backgroundServiceEnabled = value;
                     });

@@ -215,7 +215,7 @@ export default function DoctorsPage() {
     if (file) {
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        setFormErrors(prev => ({ ...prev, [field]: 'File size must be less than 5MB' }));
+        setFormErrors(prev => ({ ...prev, [field]: `Image size is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Please upload a file below 5MB.` }));
         return;
       }
       
@@ -477,7 +477,12 @@ export default function DoctorsPage() {
                         )}
                       </div>
                     </div>
-                    {formErrors.medicalCertificate && <p className="text-red-500 text-xs mt-1">{formErrors.medicalCertificate}</p>}
+                    {formErrors.medicalCertificate && (
+                      <div className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                        <span className="text-red-500 text-lg leading-none">⚠️</span>
+                        <p className="text-red-600 text-xs font-medium">{formErrors.medicalCertificate}</p>
+                      </div>
+                    )}
                   </div>
                   
                   <div>
@@ -514,7 +519,12 @@ export default function DoctorsPage() {
                         )}
                       </div>
                     </div>
-                    {formErrors.idProof && <p className="text-red-500 text-xs mt-1">{formErrors.idProof}</p>}
+                    {formErrors.idProof && (
+                      <div className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                        <span className="text-red-500 text-lg leading-none">⚠️</span>
+                        <p className="text-red-600 text-xs font-medium">{formErrors.idProof}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

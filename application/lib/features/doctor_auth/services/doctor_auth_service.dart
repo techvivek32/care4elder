@@ -17,7 +17,6 @@ class DoctorRegistrationData {
   String? specialization;
   String? experienceYears;
   String? hospitalAffiliation;
-  String? idNumber;
   String? qualifications;
   String? consultationFee;
   List<String> documentPaths;
@@ -32,7 +31,6 @@ class DoctorRegistrationData {
     this.specialization,
     this.experienceYears,
     this.hospitalAffiliation,
-    this.idNumber,
     this.qualifications,
     this.consultationFee,
     List<String>? documentPaths,
@@ -50,7 +48,6 @@ class DoctorRegistrationData {
       'specialization': specialization,
       'experienceYears': experienceYears,
       'hospitalAffiliation': hospitalAffiliation,
-      'idNumber': idNumber,
       'qualifications': qualifications,
       'consultationFee': consultationFee,
       'documentPaths': documentPaths,
@@ -401,7 +398,6 @@ class DoctorAuthService extends ChangeNotifier {
         'licenseNumber': _registrationData.medicalRegistrationNumber,
         'experienceYears': int.tryParse(_registrationData.experienceYears ?? ''),
         'hospitalAffiliation': _registrationData.hospitalAffiliation,
-        'idNumber': _registrationData.idNumber,
         'qualifications': _registrationData.qualifications,
         'consultationFee': int.tryParse(_registrationData.consultationFee ?? '') ?? 0,
         'documents': uploadedUrls, // Send URLs
@@ -542,7 +538,6 @@ class DoctorAuthService extends ChangeNotifier {
     String? specialization,
     String? experienceYears,
     String? hospitalAffiliation,
-    String? idNumber,
     String? qualifications,
     String? consultationFee,
     List<String>? documentPaths,
@@ -556,7 +551,6 @@ class DoctorAuthService extends ChangeNotifier {
     if (specialization != null) _registrationData.specialization = specialization;
     if (experienceYears != null) _registrationData.experienceYears = experienceYears;
     if (hospitalAffiliation != null) _registrationData.hospitalAffiliation = hospitalAffiliation;
-    if (idNumber != null) _registrationData.idNumber = idNumber;
     if (qualifications != null) _registrationData.qualifications = qualifications;
     if (consultationFee != null) _registrationData.consultationFee = consultationFee;
     if (documentPaths != null) _registrationData.documentPaths = documentPaths;

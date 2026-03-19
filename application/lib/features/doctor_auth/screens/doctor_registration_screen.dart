@@ -22,7 +22,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
   final _qualificationsController = TextEditingController();
   final _experienceController = TextEditingController();
   final _hospitalController = TextEditingController();
-  final _idNumberController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _emailController = TextEditingController();
@@ -72,7 +71,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
     _qualificationsController.dispose();
     _experienceController.dispose();
     _hospitalController.dispose();
-    _idNumberController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _emailController.dispose();
@@ -199,7 +197,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
           fullName: _fullNameController.text,
           password: _passwordController.text,
           medicalRegistrationNumber: _licenseController.text,
-          idNumber: _idNumberController.text,
           specialization: _selectedSpecialization,
           experienceYears: _experienceController.text,
           hospitalAffiliation: _hospitalController.text,
@@ -293,15 +290,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
                   readOnly: _lockPhone,
                   validator: (value) => value?.isEmpty ?? true
                       ? 'Please enter your phone number'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _idNumberController,
-                  label: 'ID Number',
-                  hint: 'e.g. 1234567890',
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Please enter your ID number'
                       : null,
                 ),
                 const SizedBox(height: 24),

@@ -77,7 +77,6 @@ export default function DoctorsPage() {
     fullName: '',
     email: '',
     phone: '',
-    idNumber: '',
     password: '',
     confirmPassword: '',
     licenseNumber: '',
@@ -164,7 +163,6 @@ export default function DoctorsPage() {
       fullName: '',
       email: '',
       phone: '',
-      idNumber: '',
       password: '',
       confirmPassword: '',
       licenseNumber: '',
@@ -187,7 +185,6 @@ export default function DoctorsPage() {
     if (!formData.email.trim()) errors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
     if (!formData.phone.trim()) errors.phone = 'Phone number is required';
-    if (!formData.idNumber.trim()) errors.idNumber = 'ID number is required';
     if (!formData.password) errors.password = 'Password is required';
     else if (formData.password.length < 6) errors.password = 'Password must be at least 6 characters';
     if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
@@ -305,18 +302,6 @@ export default function DoctorsPage() {
                       placeholder="+919876543210"
                     />
                     {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">ID Number *</label>
-                    <input
-                      type="text"
-                      value={formData.idNumber}
-                      onChange={(e) => setFormData(prev => ({ ...prev, idNumber: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:bg-white"
-                      placeholder="1234567890"
-                    />
-                    {formErrors.idNumber && <p className="text-red-500 text-xs mt-1">{formErrors.idNumber}</p>}
                   </div>
                 </div>
               </div>

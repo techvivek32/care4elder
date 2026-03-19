@@ -80,7 +80,6 @@ class _DoctorRegistrationSummaryScreenState
               const SizedBox(height: 24),
               _buildSectionHeader('Personal Information'),
               _buildInfoRow('Full Name', data.fullName ?? 'Not provided'),
-              _buildInfoRow('ID Number', data.idNumber ?? 'Not provided'),
 
               const SizedBox(height: 24),
               _buildSectionHeader('Professional Details'),

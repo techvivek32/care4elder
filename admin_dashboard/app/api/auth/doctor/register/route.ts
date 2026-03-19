@@ -19,7 +19,6 @@ export async function POST(req: Request) {
       licenseNumber, 
       experienceYears,
       hospitalAffiliation,
-      idNumber,
       qualifications,
       consultationFee, 
       documents 
@@ -56,7 +55,6 @@ export async function POST(req: Request) {
       licenseNumber,
       experienceYears,
       hospitalAffiliation,
-      idNumber,
       qualifications,
       consultationFee,
       verificationStatus: 'pending',

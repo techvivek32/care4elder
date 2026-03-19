@@ -9,7 +9,6 @@ export interface IDoctor extends Document {
   licenseNumber: string;
   experienceYears?: number;
   hospitalAffiliation?: string;
-  idNumber?: string;
   qualifications?: string;
   experience?: string;
   about?: string;
@@ -46,7 +45,6 @@ const DoctorSchema: Schema = new Schema({
   licenseNumber: { type: String, required: true },
   experienceYears: { type: Number },
   hospitalAffiliation: { type: String },
-  idNumber: { type: String },
   qualifications: { type: String },
   experience: { type: String },
   about: { type: String },

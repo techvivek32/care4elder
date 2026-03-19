@@ -50,7 +50,6 @@ export async function POST(request: Request) {
     const fullName = formData.get('fullName') as string;
     const email = formData.get('email') as string;
     const phone = formData.get('phone') as string;
-    const idNumber = formData.get('idNumber') as string;
     const password = formData.get('password') as string;
     const licenseNumber = formData.get('licenseNumber') as string;
     const specialization = formData.get('specialization') as string;
@@ -59,7 +58,7 @@ export async function POST(request: Request) {
     const hospitalAddress = formData.get('hospitalAddress') as string;
     
     // Validate required fields
-    if (!fullName || !email || !phone || !idNumber || !password || !licenseNumber || !specialization || !qualifications || !experience || !hospitalAddress) {
+    if (!fullName || !email || !phone || !password || !licenseNumber || !specialization || !qualifications || !experience || !hospitalAddress) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
     
@@ -101,7 +100,6 @@ export async function POST(request: Request) {
       email,
       phone,
       password: hashedPassword,
-      idNumber,
       licenseNumber,
       specialization,
       qualifications,

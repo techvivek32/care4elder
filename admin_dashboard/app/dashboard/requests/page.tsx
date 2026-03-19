@@ -148,10 +148,6 @@ export default function RequestsPage() {
                   <div>{selectedDoctor.hospitalAffiliation ?? 'Not provided'}</div>
                 </div>
                 <div className="text-sm text-gray-700">
-                  <div className="text-xs text-gray-500">ID Number</div>
-                  <div>{selectedDoctor.idNumber ?? 'Not provided'}</div>
-                </div>
-                <div className="text-sm text-gray-700">
                   <div className="text-xs text-gray-500">Consultation Fee</div>
                   <div>{selectedDoctor.consultationFee ?? 'Not provided'}</div>
                 </div>

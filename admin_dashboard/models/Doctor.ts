@@ -30,6 +30,7 @@ export interface IDoctor extends Document {
   otp?: string;
   otpExpiry?: Date;
   bankDetails?: {
+    bankName: string;
     accountHolderName: string;
     accountNumber: string;
     ifscCode: string;
@@ -74,6 +75,7 @@ const DoctorSchema: Schema = new Schema({
   otp: { type: String, select: false },
   otpExpiry: { type: Date, select: false },
   bankDetails: {
+    bankName: String,
     accountHolderName: String,
     accountNumber: String,
     ifscCode: String,

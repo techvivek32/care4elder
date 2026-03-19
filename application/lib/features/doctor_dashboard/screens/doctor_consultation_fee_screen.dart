@@ -19,6 +19,7 @@ class _DoctorConsultationFeeScreenState
   final _holderNameController = TextEditingController();
   final _accountNumberController = TextEditingController();
   final _ifscController = TextEditingController();
+  final _bankNameController = TextEditingController();
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -36,6 +37,7 @@ class _DoctorConsultationFeeScreenState
     _holderNameController.dispose();
     _accountNumberController.dispose();
     _ifscController.dispose();
+    _bankNameController.dispose();
     super.dispose();
   }
 
@@ -57,6 +59,7 @@ class _DoctorConsultationFeeScreenState
           _holderNameController.text = bank['accountHolderName'] ?? '';
           _accountNumberController.text = bank['accountNumber'] ?? '';
           _ifscController.text = bank['ifscCode'] ?? '';
+          _bankNameController.text = bank['bankName'] ?? '';
 
           _isLoading = false;
         });
@@ -81,6 +84,7 @@ class _DoctorConsultationFeeScreenState
           'emergency': int.tryParse(_emergencyFeeController.text) ?? 0,
         },
         bankDetails: {
+          'bankName': _bankNameController.text.trim(),
           'accountHolderName': _holderNameController.text.trim(),
           'accountNumber': _accountNumberController.text.trim(),
           'ifscCode': _ifscController.text.trim(),
@@ -202,6 +206,12 @@ class _DoctorConsultationFeeScreenState
               child: Column(
                 children: [
                   _buildTextField(
+                    controller: _bankNameController,
+                    label: 'Bank Name',
+                    icon: Icons.account_balance_outlined,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
                     controller: _holderNameController,
                     label: 'Account Holder Name',
                     icon: Icons.person_outline,
@@ -216,7 +226,7 @@ class _DoctorConsultationFeeScreenState
                   _buildTextField(
                     controller: _ifscController,
                     label: 'IFSC Code',
-                    icon: Icons.account_balance_outlined,
+                    icon: Icons.tag_outlined,
                   ),
                 ],
               ),

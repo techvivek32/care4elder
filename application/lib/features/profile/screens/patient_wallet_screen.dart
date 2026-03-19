@@ -19,6 +19,8 @@ class PatientWalletScreen extends StatefulWidget {
 class _PatientWalletScreenState extends State<PatientWalletScreen> {
   late Razorpay _razorpay;
   final TextEditingController _amountController = TextEditingController();
+  // callRequestId -> refund status ('pending' | 'approved' | 'rejected')
+  Map<String, String> _refundStatusMap = {};
 
   @override
   void initState() {
@@ -28,10 +30,25 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
 
-    // Fetch history
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ProfileService>(context, listen: false).fetchWalletHistory();
+      _loadRefundStatuses();
     });
+  }
+
+  Future<void> _loadRefundStatuses() async {
+    final token = await AuthService().getToken();
+    if (token == null) return;
+    final refunds = await RefundService().fetchMyRefundRequests(token);
+    final map = <String, String>{};
+    for (final r in refunds) {
+      final callRequestId = r['callRequestId']?.toString();
+      final status = r['status']?.toString();
+      if (callRequestId != null && status != null) {
+        map[callRequestId] = status;
+      }
+    }
+    if (mounted) setState(() => _refundStatusMap = map);
   }
 
   @override
@@ -400,31 +417,11 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                                     const SizedBox(height: 10),
                                     Align(
                                       alignment: Alignment.centerRight,
-                                      child: OutlinedButton.icon(
-                                        onPressed: () => _showRefundDialog(
-                                          transaction: transaction,
-                                          callRequestId: callRequestId,
-                                          doctorId: doctorId,
-                                          doctorName: doctorName ?? '',
-                                        ),
-                                        icon: const Icon(Icons.undo, size: 16, color: Colors.orange),
-                                        label: Text(
-                                          'Request Refund',
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 13,
-                                            color: Colors.orange,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                          side: const BorderSide(color: Colors.orange),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                          minimumSize: Size.zero,
-                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        ),
+                                      child: _buildRefundWidget(
+                                        transaction: transaction,
+                                        callRequestId: callRequestId,
+                                        doctorId: doctorId,
+                                        doctorName: doctorName ?? '',
                                       ),
                                     ),
                                   ],
@@ -493,6 +490,64 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
     return DateFormat('dd/MM/yyyy hh:mm a').format(istDate);
   }
 
+  Widget _buildRefundWidget({
+    required WalletTransaction transaction,
+    required String callRequestId,
+    required String doctorId,
+    required String doctorName,
+  }) {
+    final status = _refundStatusMap[callRequestId];
+
+    if (status == 'pending') {
+      return _refundBadge(Icons.hourglass_top_rounded, 'Refund Request Sent', Colors.orange);
+    } else if (status == 'approved') {
+      return _refundBadge(Icons.check_circle_outline, 'Refund Approved', Colors.green);
+    } else if (status == 'rejected') {
+      return _refundBadge(Icons.cancel_outlined, 'Refund Rejected', Colors.red);
+    }
+
+    // No refund yet — show button
+    return OutlinedButton.icon(
+      onPressed: () => _showRefundDialog(
+        transaction: transaction,
+        callRequestId: callRequestId,
+        doctorId: doctorId,
+        doctorName: doctorName,
+      ),
+      icon: const Icon(Icons.undo, size: 16, color: Colors.orange),
+      label: Text(
+        'Request Refund',
+        style: GoogleFonts.roboto(fontSize: 13, color: Colors.orange, fontWeight: FontWeight.w600),
+      ),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        side: const BorderSide(color: Colors.orange),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    );
+  }
+
+  Widget _refundBadge(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(label, style: GoogleFonts.roboto(fontSize: 12, color: color, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
   void _showRefundDialog({
     required WalletTransaction transaction,
     required String callRequestId,
@@ -559,6 +614,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                       );
                       if (!ctx.mounted) return;
                       Navigator.pop(ctx);
+                      if (result['success'] == true) _loadRefundStatuses();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(result['success'] == true

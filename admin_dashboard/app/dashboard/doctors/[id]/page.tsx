@@ -261,6 +261,12 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
                 <div className="mt-4 pt-4 border-t bg-gray-50 p-3 rounded-lg">
                   <h4 className="text-sm font-bold text-black mb-3 border-b pb-1">Bank Information</h4>
                   <div className="space-y-3 text-sm">
+                    {doctor.bankDetails.bankName && (
+                      <div className="flex justify-between border-b border-gray-200 pb-1">
+                        <span className="text-gray-700 font-semibold">Bank Name</span>
+                        <span className="text-black font-bold">{doctor.bankDetails.bankName}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between border-b border-gray-200 pb-1">
                       <span className="text-gray-700 font-semibold">Holder Name</span>
                       <span className="text-black font-bold">{doctor.bankDetails.accountHolderName || '-'}</span>

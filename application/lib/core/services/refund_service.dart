@@ -4,6 +4,22 @@ import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
 
 class RefundService {
+  Future<List<Map<String, dynamic>>> fetchMyRefundRequests(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/refund-requests'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['refunds'] ?? []);
+      }
+    } catch (e) {
+      debugPrint('fetchMyRefundRequests error: $e');
+    }
+    return [];
+  }
+
   Future<Map<String, dynamic>> submitRefundRequest({
     required String token,
     required String callRequestId,

@@ -43,6 +43,9 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
   EarningsRange _selectedRange = EarningsRange.month;
   EarningsStatus _selectedStatus = EarningsStatus.all;
   bool _isSubmitting = false;
+  bool _showWithdrawals = false;
+  bool _showTransactions = false;
+  bool _showConsultations = false;
 
   @override
   void initState() {
@@ -255,126 +258,133 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
                   ),
                   const SizedBox(height: 32),
                   
-                  Text(
-                    'Withdrawal Requests',
-                    style: GoogleFonts.roboto(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                  _buildDropdownSection(
+                    title: 'Withdrawal Requests',
+                    isOpen: _showWithdrawals,
+                    onToggle: () => setState(() => _showWithdrawals = !_showWithdrawals),
+                    child: FutureBuilder<List<WithdrawalRequestModel>>(
+                      future: _withdrawalsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+                        }
+                        if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+                        final withdrawals = snapshot.data ?? [];
+                        if (withdrawals.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text('No withdrawal requests yet.', textAlign: TextAlign.center, style: GoogleFonts.roboto(color: AppColors.textGrey)),
+                          );
+                        }
+                        return ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: withdrawals.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (_, i) => _buildWithdrawalCard(withdrawals[i]),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 12),
-                  FutureBuilder<List<WithdrawalRequestModel>>(
-                    future: _withdrawalsFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: CircularProgressIndicator(),
-                        ));
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error loading requests: ${snapshot.error}'));
-                      }
-                      final withdrawals = snapshot.data ?? [];
-                      if (withdrawals.isEmpty) {
-                        return Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text('No withdrawal requests yet.', 
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.roboto(color: AppColors.textGrey)),
-                        );
-                      }
-                      return ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: withdrawals.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final req = withdrawals[index];
-                          return _buildWithdrawalCard(req);
-                        },
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  
-                  Text(
-                    'Wallet Transactions',
-                    style: GoogleFonts.roboto(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  FutureBuilder<List<DoctorTransactionModel>>(
-                    future: _transactionsFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: Padding(
-                          padding: EdgeInsets.all(20),
-                          child: CircularProgressIndicator(),
-                        ));
-                      }
-                      final txns = snapshot.data ?? [];
-                      if (txns.isEmpty) {
-                        return Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text('No wallet transactions yet.',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.roboto(color: AppColors.textGrey)),
-                        );
-                      }
-                      return ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: txns.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) => _buildTransactionCard(txns[index]),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 32),
 
-                  Text(
-                    'Recent Consultations',
-                    style: GoogleFonts.roboto(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                  _buildDropdownSection(
+                    title: 'Wallet Transactions',
+                    isOpen: _showTransactions,
+                    onToggle: () => setState(() => _showTransactions = !_showTransactions),
+                    child: FutureBuilder<List<DoctorTransactionModel>>(
+                      future: _transactionsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+                        }
+                        final txns = snapshot.data ?? [];
+                        if (txns.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text('No wallet transactions yet.', textAlign: TextAlign.center, style: GoogleFonts.roboto(color: AppColors.textGrey)),
+                          );
+                        }
+                        return ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: txns.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (_, i) => _buildTransactionCard(txns[i]),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Mock consultation earnings list
-                  FutureBuilder<List<EarningsEntry>>(
-                    future: _earningsFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      final entries = snapshot.data ?? [];
-                      return Column(
-                        children: entries.map((e) => _buildEarningCard(e)).toList(),
-                      );
-                    },
+
+                  _buildDropdownSection(
+                    title: 'Recent Consultations',
+                    isOpen: _showConsultations,
+                    onToggle: () => setState(() => _showConsultations = !_showConsultations),
+                    child: FutureBuilder<List<EarningsEntry>>(
+                      future: _earningsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+                        }
+                        final entries = snapshot.data ?? [];
+                        if (entries.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text('No consultations yet.', textAlign: TextAlign.center, style: GoogleFonts.roboto(color: AppColors.textGrey)),
+                          );
+                        }
+                        return Column(children: entries.map((e) => _buildEarningCard(e)).toList());
+                      },
+                    ),
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
         );
       }
+    );
+  }
+
+  Widget _buildDropdownSection({
+    required String title,
+    required bool isOpen,
+    required VoidCallback onToggle,
+    required Widget child,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: onToggle,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(title, style: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                  Icon(isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: AppColors.textGrey),
+                ],
+              ),
+            ),
+          ),
+          if (isOpen)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: child,
+            ),
+        ],
+      ),
     );
   }
 

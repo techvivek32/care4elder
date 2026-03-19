@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import { 
   CheckCircle, XCircle, Clock, CreditCard, AlertCircle, 
   ChevronDown, ChevronUp, ExternalLink 
@@ -153,6 +154,12 @@ export default function WithdrawalRequestsManager({ doctorId }: { doctorId: stri
                       <div className="text-sm text-gray-500">
                         Requested on {new Date(request.createdAt).toLocaleDateString()} at {new Date(request.createdAt).toLocaleTimeString()}
                       </div>
+                      <Link
+                        href={`/dashboard/doctors/${doctorId}`}
+                        className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium mt-1"
+                      >
+                        <ExternalLink className="w-3 h-3" /> View Doctor Profile
+                      </Link>
                     </div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyle(request.status)}`}>
                       {getStatusIcon(request.status)}

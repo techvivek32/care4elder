@@ -1,7 +1,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { IndianRupee, Check } from 'lucide-react';
+import { IndianRupee, Check, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 async function fetchPayouts() {
   const res = await fetch('/api/doctors/payouts');
@@ -49,7 +50,15 @@ export default function PayoutsPage() {
               <li key={doctor._id} className="px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">{doctor.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-medium text-gray-900">{doctor.name}</h3>
+                      <Link
+                        href={`/dashboard/doctors/${doctor._id}`}
+                        className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        <ExternalLink className="h-3 w-3" /> View Profile
+                      </Link>
+                    </div>
                     <p className="text-sm text-gray-500">
                       Bank: {doctor.bankDetails?.bankName || 'N/A'} • {doctor.bankDetails?.accountNumber || 'N/A'}
                     </p>

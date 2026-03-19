@@ -4,6 +4,7 @@ import RefundRequest from '@/models/RefundRequest';
 import Patient from '@/models/Patient';
 import Doctor from '@/models/Doctor';
 import Transaction from '@/models/Transaction';
+import DoctorTransaction from '@/models/DoctorTransaction';
 import { verifyToken } from '@/lib/auth-utils';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
@@ -75,6 +76,18 @@ export async function PATCH(
         doctor.walletBalance = Math.max(0, (doctor.walletBalance || 0) - refund.amount);
         await doctor.save();
         console.log('Doctor wallet updated to:', doctor.walletBalance);
+        await DoctorTransaction.create({
+          doctorId: doctor._id,
+          type: 'debit',
+          amount: refund.amount,
+          description: `Refund approved for ${refund.patientName || 'patient'}`,
+          balanceAfter: doctor.walletBalance,
+          metadata: {
+            patientName: refund.patientName,
+            patientId: refund.patientId,
+            refundRequestId: refund._id,
+          },
+        });
       } else {
         console.error('Doctor not found for doctorId:', refund.doctorId);
       }

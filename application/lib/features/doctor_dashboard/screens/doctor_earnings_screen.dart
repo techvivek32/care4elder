@@ -39,6 +39,7 @@ class DoctorEarningsScreen extends StatefulWidget {
 class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
   late Future<List<EarningsEntry>> _earningsFuture;
   late Future<List<WithdrawalRequestModel>> _withdrawalsFuture;
+  late Future<List<DoctorTransactionModel>> _transactionsFuture;
   EarningsRange _selectedRange = EarningsRange.month;
   EarningsStatus _selectedStatus = EarningsStatus.all;
   bool _isSubmitting = false;
@@ -48,6 +49,7 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
     super.initState();
     _earningsFuture = _loadEarnings();
     _withdrawalsFuture = WithdrawalService().getWithdrawalRequests();
+    _transactionsFuture = WithdrawalService().getDoctorTransactions();
     // Refresh profile to get latest wallet balance
     DoctorProfileService().getProfile(force: true);
   }
@@ -56,6 +58,7 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
     setState(() {
       _earningsFuture = _loadEarnings();
       _withdrawalsFuture = WithdrawalService().getWithdrawalRequests();
+      _transactionsFuture = WithdrawalService().getDoctorTransactions();
     });
     await DoctorProfileService().getProfile(force: true);
   }
@@ -302,6 +305,49 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
                   const SizedBox(height: 32),
                   
                   Text(
+                    'Wallet Transactions',
+                    style: GoogleFonts.roboto(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  FutureBuilder<List<DoctorTransactionModel>>(
+                    future: _transactionsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: CircularProgressIndicator(),
+                        ));
+                      }
+                      final txns = snapshot.data ?? [];
+                      if (txns.isEmpty) {
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text('No wallet transactions yet.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.roboto(color: AppColors.textGrey)),
+                        );
+                      }
+                      return ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: txns.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) => _buildTransactionCard(txns[index]),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 32),
+
+                  Text(
                     'Recent Consultations',
                     style: GoogleFonts.roboto(
                       fontSize: 18,
@@ -411,8 +457,67 @@ class _DoctorEarningsScreenState extends State<DoctorEarningsScreen> {
     );
   }
 
-  Widget _buildEarningCard(EarningsEntry entry) {
+  Widget _buildTransactionCard(DoctorTransactionModel txn) {
+    final isDebit = txn.type == 'debit';
+    final color = isDebit ? Colors.red : Colors.green;
     return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isDebit ? Icons.remove_circle_outline : Icons.add_circle_outline,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  txn.description,
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  DateFormat('dd MMM yyyy, hh:mm a').format(txn.createdAt),
+                  style: GoogleFonts.roboto(color: AppColors.textGrey, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '${isDebit ? '-' : '+'}₹${txn.amount.toStringAsFixed(2)}',
+            style: GoogleFonts.roboto(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEarningCard(EarningsEntry entry) {    return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

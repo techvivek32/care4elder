@@ -7,17 +7,42 @@ import Notification from '@/models/Notification';
 export async function GET(request: Request) {
   try {
     await dbConnect();
-    
-    // Ensure models are registered
-    if (!Patient) {
-      throw new Error('Patient model not loaded');
+    if (!Patient) throw new Error('Patient model not loaded');
+
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status') || '';
+    const dateFrom = searchParams.get('dateFrom') || '';
+    const dateTo = searchParams.get('dateTo') || '';
+
+    const query: any = {};
+
+    if (status === 'active' || status === 'resolved') {
+      query.status = status;
     }
 
-    // Fetch all alerts (active and resolved), sorted by status (active first) then timestamp
-    const alerts = await SOSAlert.find({})
+    if (dateFrom || dateTo) {
+      query.timestamp = {};
+      if (dateFrom) query.timestamp.$gte = new Date(dateFrom);
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        query.timestamp.$lte = end;
+      }
+    }
+
+    let alerts = await SOSAlert.find(query)
       .populate('patientId', 'name phone emergencyContacts')
-      .sort({ status: 1, timestamp: -1 }); // 'active' comes before 'resolved' alphabetically? No, 'a' < 'r'. So 1 is ascending.
-      
+      .sort({ status: 1, timestamp: -1 });
+
+    if (search) {
+      const s = search.toLowerCase();
+      alerts = alerts.filter((a: any) =>
+        a.patientId?.name?.toLowerCase().includes(s) ||
+        a.patientId?.phone?.toLowerCase().includes(s)
+      );
+    }
+
     return NextResponse.json(alerts);
   } catch (error) {
     console.error(error);
@@ -149,4 +174,19 @@ export async function PATCH(request: Request) {
         console.error('Failed to update alert:', error);
         return NextResponse.json({ error: 'Failed to update alert', details: error.message }, { status: 500 });
     }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await dbConnect();
+    const { ids } = await request.json();
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'No IDs provided' }, { status: 400 });
+    }
+    await SOSAlert.deleteMany({ _id: { $in: ids } });
+    return NextResponse.json({ message: 'Deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Failed to delete alerts' }, { status: 500 });
+  }
 }

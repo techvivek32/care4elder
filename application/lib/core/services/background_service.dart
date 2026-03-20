@@ -9,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart';
 import 'hotword_service.dart';
-import '../../features/emergency/services/fall_detection_service.dart';
 import '../../features/emergency/services/sos_service.dart';
 
 const bool kEnableVoiceSos = false;
@@ -39,9 +38,9 @@ class BackgroundServiceHelper {
       'sos_background_channel',
       'SOS Background Protection',
       description: 'Keeps you safe even when the app is closed',
-      importance: Importance.max, // Max importance for maximum visibility
-      enableVibration: true,
-      playSound: true,
+      importance: Importance.low, // Low so it stays in drawer without sound
+      enableVibration: false,
+      playSound: false,
       showBadge: true,
     );
 
@@ -55,11 +54,12 @@ class BackgroundServiceHelper {
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        final service = FlutterBackgroundService();
         if (response.actionId == 'cancel_sos') {
-          // Handle cancellation in the main isolate if app is running
-          // or via the service if it's not
-          final service = FlutterBackgroundService();
           service.invoke('cancelSosAction');
+        } else if (response.actionId == 'open_sos' || response.actionId == null) {
+          // Tapped notification body or Open SOS button — open app to SOS page
+          service.invoke('openSos', {'trigger': 'notification'});
         }
       },
     );
@@ -100,6 +100,13 @@ class BackgroundServiceHelper {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(backgroundServiceEnabledKey, true);
     }
+    // Also start the native fall detection service directly
+    try {
+      const channel = MethodChannel('com.care4elder.app/fall_service_control');
+      await channel.invokeMethod('startFallService');
+    } catch (e) {
+      if (kDebugMode) print('BackgroundServiceHelper: startFallService error: $e');
+    }
   }
 
   static Future<void> stopService() async {
@@ -108,6 +115,13 @@ class BackgroundServiceHelper {
       service.invoke('stopService');
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(backgroundServiceEnabledKey, false);
+    }
+    // Stop native fall detection service
+    try {
+      const channel = MethodChannel('com.care4elder.app/fall_service_control');
+      await channel.invokeMethod('stopFallService');
+    } catch (e) {
+      if (kDebugMode) print('BackgroundServiceHelper: stopFallService error: $e');
     }
   }
 }
@@ -256,25 +270,12 @@ void onStart(ServiceInstance service) async {
     }
   }
 
-  // Start Fall Detection in Background
-  final fallDetectionService = FallDetectionService();
-  fallDetectionService.startMonitoring(() async {
-    print('Background: Fall Detected!');
-    _showSosNotification('Fall Detected', 'A fall was detected. SOS alert sent to emergency contacts.');
-    try {
-      await SOSService().startSOS();
-      service.invoke('openSos', {'trigger': 'fall'});
-      
-      // Update background notification to show location sharing
-      service.invoke('updateNotification', {
-        'title': 'SOS Alert Active',
-        'content': 'Sharing live location with emergency contacts...',
-      });
-    } catch (e) {
-      print('Background Fall SOS failed: $e');
-    }
+  // Fall detection is started natively by Care4ElderBackgroundService.
+  // Just listen for the fallDetected event from Kotlin BackgroundFallService.
+  service.on('fallDetected').listen((event) async {
+    print('Background: fallDetected event from Kotlin!');
+    _triggerFallSOS(service);
   });
-
   // Periodic update to notification or state - every 2 hours to avoid spam
   Timer.periodic(const Duration(hours: 2), (timer) async {
     try {
@@ -300,6 +301,23 @@ void onStart(ServiceInstance service) async {
   });
 }
 
+Future<void> _triggerFallSOS(ServiceInstance service) async {
+  await _showSosNotification(
+    'Fall Detected',
+    'A fall was detected. Tap to open SOS or tap Cancel SOS to stop.',
+  );
+  try {
+    await SOSService().startSOS();
+    service.invoke('openSos', {'trigger': 'fall'});
+    service.invoke('updateNotification', {
+      'title': 'SOS Alert Active',
+      'content': 'Sharing live location with emergency contacts...',
+    });
+  } catch (e) {
+    print('Background Fall SOS failed: $e');
+  }
+}
+
 Future<void> _showSosNotification(String title, String content) async {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -312,13 +330,19 @@ Future<void> _showSosNotification(String title, String content) async {
     importance: Importance.max,
     priority: Priority.high,
     ticker: 'SOS Triggered',
-    ongoing: true, // Keep it ongoing until cancelled
-    autoCancel: false, // Don't cancel when tapped
+    ongoing: true,
+    autoCancel: false,
     playSound: true,
     enableVibration: true,
     color: Colors.red,
     icon: '@mipmap/ic_launcher',
     actions: <AndroidNotificationAction>[
+      AndroidNotificationAction(
+        'open_sos',
+        'Open SOS',
+        showsUserInterface: true,
+        cancelNotification: false,
+      ),
       AndroidNotificationAction(
         'cancel_sos',
         'Cancel SOS',
@@ -332,7 +356,7 @@ Future<void> _showSosNotification(String title, String content) async {
       NotificationDetails(android: androidPlatformChannelSpecifics);
 
   await flutterLocalNotificationsPlugin.show(
-    999, // Unique ID for SOS trigger notification
+    999,
     title,
     content,
     platformChannelSpecifics,

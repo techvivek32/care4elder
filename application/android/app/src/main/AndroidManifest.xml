@@ -18,9 +18,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     
     <!-- Exclude photo/video permissions to comply with Google Play policy -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
@@ -32,7 +34,29 @@
         android:icon="@mipmap/ic_launcher">
         <service
             android:name="id.flutter.flutter_background_service.BackgroundService"
-            android:foregroundServiceType="microphone|camera|location|dataSync" />
+            android:foregroundServiceType="microphone|camera|location|dataSync|health" />
+
+        <!-- Boot receiver: restarts background protection after phone reboot -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".BootRestartService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Standalone fall detection service — survives app close & Samsung battery kill -->
+        <service
+            android:name=".BackgroundFallService"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

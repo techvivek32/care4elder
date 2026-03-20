@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../auth/services/auth_service.dart';
 import '../../../core/services/settings_service.dart';
 import '../../../core/services/background_service.dart';
@@ -100,11 +102,17 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                       setState(() {
                         _backgroundServiceEnabled = value;
                       });
-                      // Show success message
+
+                      // Show one-time notification that protection is ON
+                      await _showProtectionEnabledNotification();
+
+                      // Request battery optimization exemption (Samsung fix)
+                      await _requestBatteryOptimizationExemption();
+
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Background protection activated! Check your notification drawer.'),
+                            content: Text('Background protection activated!'),
                             backgroundColor: Colors.green,
                             duration: Duration(seconds: 3),
                           ),
@@ -286,6 +294,75 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
             .withOpacity(0.3),
       ),
     );
+  }
+
+  Future<void> _showProtectionEnabledNotification() async {
+    final plugin = FlutterLocalNotificationsPlugin();
+    const channelId = 'protection_status_channel';
+
+    // Create channel
+    const channel = AndroidNotificationChannel(
+      channelId,
+      'Protection Status',
+      description: 'Shows when background protection is active',
+      importance: Importance.high,
+    );
+    await plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
+    await plugin.show(
+      777,
+      'Background Protection Active',
+      'Care4Elder is monitoring for falls in the background.',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          channelId,
+          'Protection Status',
+          channelDescription: 'Shows when background protection is active',
+          importance: Importance.high,
+          priority: Priority.high,
+          autoCancel: true,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _requestBatteryOptimizationExemption() async {
+    // Check if already exempted
+    final status = await Permission.ignoreBatteryOptimizations.status;
+    if (status.isGranted) return;
+
+    if (!mounted) return;
+
+    // Show explanation dialog first
+    final shouldRequest = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Important: Battery Setting'),
+        content: const Text(
+          'For fall detection to work reliably (especially on Samsung phones), '
+          'please allow Care4Elder to run without battery restrictions.\n\n'
+          'On the next screen, tap "Allow" to keep background protection always active.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Skip'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Allow'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldRequest == true) {
+      await Permission.ignoreBatteryOptimizations.request();
+    }
   }
 
   Future<void> _handleLogout(BuildContext context) async {

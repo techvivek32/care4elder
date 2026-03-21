@@ -27,7 +27,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     _loadBackgroundServiceState();
   }
 
-  static const _kBgProtectionKey = 'background_protection_enabled';
+  static const _kBgProtectionKey = BackgroundServiceHelper.backgroundServiceEnabledKey;
 
   Future<void> _loadBackgroundServiceState() async {
     final prefs = await SharedPreferences.getInstance();

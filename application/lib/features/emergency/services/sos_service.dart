@@ -56,45 +56,34 @@ class SOSService {
         throw Exception('Location permissions are permanently denied, we cannot request permissions.');
       }
 
-      // 2. Get Location
-      Position position;
-      try {
-        position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 15),
-        );
-      } on TimeoutException catch (e) {
-        if (kDebugMode) print('SOS_ERROR: Location timeout: $e');
-        final lastKnown = await Geolocator.getLastKnownPosition();
-        if (lastKnown != null) {
-          position = lastKnown;
-        } else {
-          position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.medium,
-            timeLimit: const Duration(seconds: 15),
-          );
+      // 2. Get Location + Profile in parallel
+      final locationFuture = Geolocator.getLastKnownPosition().catchError((_) => null);
+      final profileFuture = Future(() async {
+        if (_profileService.currentUser == null) {
+          try { await _profileService.fetchProfile(); } catch (_) {}
         }
-      } catch (e) {
-        final lastKnown = await Geolocator.getLastKnownPosition();
-        if (lastKnown != null) {
-          position = lastKnown;
-        } else {
-          rethrow;
-        }
-      }
-      
-      // 3. Get User ID
-      if (_profileService.currentUser == null) {
-        if (kDebugMode) print('Background: Profile not found, attempting fetch...');
+      });
+      final results = await Future.wait([locationFuture, profileFuture]);
+      Position? position = results[0] as Position?;
+
+      // If no last known, try fresh with short timeout
+      if (position == null) {
         try {
-          await _profileService.fetchProfile();
-        } catch (e) {
-          if (kDebugMode) print('Background fetchProfile failed: $e');
-        }
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.low,
+            timeLimit: const Duration(seconds: 5),
+          );
+        } catch (_) {}
       }
-      
+
+      // SOS must go through regardless of location — use 0,0 as fallback
+      final lat = position?.latitude ?? 0.0;
+      final lng = position?.longitude ?? 0.0;
+      if (kDebugMode) print('SOS_LOG: Using location: $lat, $lng');
+
+      // 3. Get User ID
       final patientId = _profileService.currentUser?.id;
-      if (kDebugMode) print('Background SOS Trigger - Patient ID: $patientId');
+      if (kDebugMode) print('SOS_LOG: Patient ID: $patientId');
 
       if (patientId == null) {
         // Last ditch effort: try to get it directly from storage
@@ -118,8 +107,8 @@ class SOSService {
         body: jsonEncode({
           'patientId': finalPatientId,
           'location': {
-            'lat': position.latitude,
-            'lng': position.longitude,
+            'lat': lat,
+            'lng': lng,
           }
         }),
       );
@@ -172,6 +161,14 @@ class SOSService {
   }
 
   Future<void> stopSOS({String? cancellationReason, String? cancellationComments}) async {
+    // Always clear local state — even if API fails
+    Future<void> clearLocalState() async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_isSosActiveKey);
+      await prefs.remove(_activeSosIdKey);
+      await prefs.remove(_sosStartTimeKey);
+    }
+
     try {
       final sosId = await getActiveSosId();
       if (sosId != null) {
@@ -184,7 +181,7 @@ class SOSService {
           if (cancellationComments != null) 'cancellationComments': cancellationComments,
           if (cancellationComments != null) 'comments': cancellationComments,
         };
-        print('SOS Stop payload: ${jsonEncode(requestBody)}');
+        if (kDebugMode) print('SOS Stop payload: ${jsonEncode(requestBody)}');
         final response = await http.patch(
           Uri.parse('${ApiConstants.baseUrl}/sos'),
           headers: {
@@ -195,22 +192,20 @@ class SOSService {
         );
 
         if (response.statusCode != 200) {
-          print('SOS Stop failed: ${response.statusCode} ${response.body}');
+          if (kDebugMode) print('SOS Stop failed: ${response.statusCode} ${response.body}');
+          // Still clear local state so UI doesn't stay stuck
+          await clearLocalState();
           throw Exception('Failed to update SOS status: ${response.body}');
         }
 
-        print('SOS Stop success: ${response.statusCode} ${response.body}');
-      } else {
-        throw Exception('No active SOS found');
+        if (kDebugMode) print('SOS Stop success: ${response.statusCode} ${response.body}');
       }
-      
-      // Clear Local State
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_isSosActiveKey);
-      await prefs.remove(_activeSosIdKey);
-      await prefs.remove(_sosStartTimeKey);
+      // Clear local state regardless (sosId null or API success)
+      await clearLocalState();
     } catch (e) {
-      print('SOS Stop Error: $e');
+      if (kDebugMode) print('SOS Stop Error: $e');
+      // Ensure local state is always cleared
+      await clearLocalState();
       rethrow;
     }
   }

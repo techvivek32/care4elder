@@ -14,7 +14,7 @@ import '../../features/emergency/services/sos_service.dart';
 const bool kEnableVoiceSos = false;
 
 class BackgroundServiceHelper {
-  static const String backgroundServiceEnabledKey = 'background_service_enabled';
+  static const String backgroundServiceEnabledKey = 'background_protection_enabled';
 
   static Future<void> initializeService() async {
     final service = FlutterBackgroundService();
@@ -97,10 +97,11 @@ class BackgroundServiceHelper {
     final service = FlutterBackgroundService();
     if (!await service.isRunning()) {
       await service.startService();
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(backgroundServiceEnabledKey, true);
     }
-    // Also start the native fall detection service directly
+    // Always persist enabled state
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(backgroundServiceEnabledKey, true);
+    // Start the native fall detection foreground service
     try {
       const channel = MethodChannel('com.care4elder.app/fall_service_control');
       await channel.invokeMethod('startFallService');
@@ -113,9 +114,10 @@ class BackgroundServiceHelper {
     final service = FlutterBackgroundService();
     if (await service.isRunning()) {
       service.invoke('stopService');
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(backgroundServiceEnabledKey, false);
     }
+    // Always persist disabled state
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(backgroundServiceEnabledKey, false);
     // Stop native fall detection service
     try {
       const channel = MethodChannel('com.care4elder.app/fall_service_control');
@@ -137,6 +139,16 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 void onStart(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
+
+  // Register MethodChannel so Kotlin BackgroundFallService can call us directly
+  // This is the RELIABLE path — no polling needed
+  const MethodChannel fallChannel = MethodChannel('com.care4elder.app/fall_callback');
+  fallChannel.setMethodCallHandler((call) async {
+    if (call.method == 'fall_detected') {
+      print('Background: fall_detected via MethodChannel — triggering SOS');
+      _triggerFallSOS(service);
+    }
+  });
 
   // Initialize notifications for the background isolate
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -271,10 +283,28 @@ void onStart(ServiceInstance service) async {
   }
 
   // Fall detection is started natively by Care4ElderBackgroundService.
-  // Just listen for the fallDetected event from Kotlin BackgroundFallService.
+  // Listen for fallDetected event from Kotlin via servicePipe (primary path).
   service.on('fallDetected').listen((event) async {
     print('Background: fallDetected event from Kotlin!');
     _triggerFallSOS(service);
+  });
+
+  // Poll for fall_detected_pending flag every 1 second
+  Timer.periodic(const Duration(seconds: 1), (timer) async {
+    try {
+      // Force reload from disk — bypass in-memory cache
+      await SharedPreferences.getInstance().then((p) => p.reload());
+      final prefs = await SharedPreferences.getInstance();
+      final pending = prefs.getBool('fall_detected_pending') ?? false;
+      if (pending) {
+        await prefs.remove('fall_detected_pending');
+        await prefs.remove('fall_detected_time');
+        print('Background: fall_detected_pending flag found — triggering SOS');
+        _triggerFallSOS(service);
+      }
+    } catch (e) {
+      print('Background: fall pending poll error: $e');
+    }
   });
   // Periodic update to notification or state - every 2 hours to avoid spam
   Timer.periodic(const Duration(hours: 2), (timer) async {
@@ -302,6 +332,13 @@ void onStart(ServiceInstance service) async {
 }
 
 Future<void> _triggerFallSOS(ServiceInstance service) async {
+  // Guard: don't trigger if SOS already active
+  final alreadyActive = await SOSService().isSosActive();
+  if (alreadyActive) {
+    print('Background: SOS already active — skipping duplicate fall trigger');
+    return;
+  }
+
   await _showSosNotification(
     'Fall Detected',
     'A fall was detected. Tap to open SOS or tap Cancel SOS to stop.',

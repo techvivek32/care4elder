@@ -19,7 +19,7 @@ class BootReceiver : BroadcastReceiver() {
         Log.d("BootReceiver", "Boot completed, protection enabled = $enabled")
 
         if (enabled) {
-            // Start native fall detection service directly — no Flutter engine needed
+            // Start native fall detection as foreground service — no Flutter engine needed
             BackgroundFallService.start(context)
             Log.d("BootReceiver", "BackgroundFallService started on boot")
 

@@ -18,7 +18,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -34,7 +33,7 @@
         android:icon="@mipmap/ic_launcher">
         <service
             android:name="id.flutter.flutter_background_service.BackgroundService"
-            android:foregroundServiceType="microphone|camera|location|dataSync|health" />
+            android:foregroundServiceType="microphone|camera|location|dataSync" />
 
         <!-- Boot receiver: restarts background protection after phone reboot -->
         <receiver
@@ -53,10 +52,12 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <!-- Standalone fall detection service — survives app close & Samsung battery kill -->
+        <!-- Standalone fall detection FOREGROUND service — survives Samsung/Xiaomi/Oppo battery killers -->
         <service
             android:name=".BackgroundFallService"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="dataSync"
+            android:stopWithTask="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

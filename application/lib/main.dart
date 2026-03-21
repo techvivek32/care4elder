@@ -62,8 +62,10 @@ Future<void> main() async {
   
   // Listen for background service events
   final service = bg.FlutterBackgroundService();
-  service.on('openSos').listen((event) {
+  service.on('openSos').listen((event) async {
     if (event != null && event['trigger'] != null) {
+      // Always navigate — SosScreen will detect if SOS is already active
+      // and skip re-triggering the API call
       router.go('/patient/sos?autoStart=true&trigger=${event['trigger']}');
     }
   });

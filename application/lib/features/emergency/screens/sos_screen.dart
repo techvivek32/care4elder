@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/services/profile_service.dart';
@@ -49,6 +50,19 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   Future<void> _handleVoiceDetection() async {
+    // If SOS was already triggered in background, just show active state
+    final alreadyActive = await _sosService.isSosActive();
+    if (alreadyActive) {
+      if (mounted) {
+        setState(() {
+          _isActive = true;
+          _isActivating = false;
+        });
+        _startStatusPolling();
+      }
+      return;
+    }
+
     final confirmed = await _showVoiceDetectionDialog();
     if (confirmed && mounted) {
       await _activateSos();
@@ -140,11 +154,38 @@ class _SosScreenState extends State<SosScreen> {
 
   Future<void> _checkActiveState() async {
     final isActive = await _sosService.isSosActive();
-    if (isActive && mounted) {
+    if (!isActive) return;
+
+    // Prefs say active — verify with API to avoid stuck state
+    final sosId = await _sosService.getActiveSosId();
+    if (sosId != null) {
+      try {
+        final statusData = await _sosService.getSOSStatus(sosId);
+        if (statusData != null && statusData['status'] == 'resolved') {
+          // Already resolved on server — clear local state silently
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('is_sos_active');
+          await prefs.remove('active_sos_id');
+          await prefs.remove('sos_start_time');
+          return;
+        }
+      } catch (_) {
+        // API check failed — trust local prefs, show active state
+      }
+    } else {
+      // No sosId but prefs say active — stale state, clear it
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('is_sos_active');
+      await prefs.remove('active_sos_id');
+      await prefs.remove('sos_start_time');
+      return;
+    }
+
+    if (mounted) {
       setState(() {
         _isActive = true;
         _isActivating = false;
-        _etaRemaining = Duration.zero; // Start at zero until admin sets ETA
+        _etaRemaining = Duration.zero;
         _etaActive = false;
       });
       _startStatusPolling();
@@ -286,6 +327,20 @@ class _SosScreenState extends State<SosScreen> {
   }
 
   Future<void> _handleFallDetection() async {
+    // If SOS was already triggered in background (app was closed), just show active state
+    final alreadyActive = await _sosService.isSosActive();
+    if (alreadyActive) {
+      if (mounted) {
+        setState(() {
+          _isActive = true;
+          _isActivating = false;
+        });
+        _startStatusPolling();
+      }
+      return;
+    }
+
+    // App was open when fall detected — show confirmation dialog
     final confirmed = await _showFallDetectionDialog();
     if (confirmed && mounted) {
       await _activateSos();
@@ -551,11 +606,13 @@ class _SosScreenState extends State<SosScreen> {
 
         _logEvent('activation_cancelled');
         if (mounted) {
+          _etaTimer?.cancel();
+          _statusPollingTimer?.cancel();
           setState(() {
             _isActive = false;
             _isActivating = false;
+            _etaRemaining = Duration.zero;
           });
-          _etaTimer?.cancel();
         }
       } catch (e) {
         if (mounted) {

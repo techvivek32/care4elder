@@ -18,9 +18,9 @@ class FallDetectionManager(private val context: Context) {
     private var sensorListener: SensorEventListener? = null
 
     private val impactThreshold = 18.0f
-    private val inactivityThreshold = 1.5f
-    private val inactivityWindowMs = 2000L
-    private val cooldownMs = 10000L
+    private val inactivityThreshold = 2.0f   // slightly higher — easier to detect stillness
+    private val inactivityWindowMs = 1500L   // 1.5s window
+    private val cooldownMs = 30000L
 
     private var lastTriggerTime = 0L
     private var verifying = false
@@ -58,7 +58,7 @@ class FallDetectionManager(private val context: Context) {
                         verifying = false
                         val total = if (verifySamples == 0) 1 else verifySamples
                         val lowRatio = lowMotionSamples.toFloat() / total
-                        if (lowRatio >= 0.6f) {
+                        if (lowRatio >= 0.4f) {  // 40% low motion enough to confirm fall
                             lastTriggerTime = now
                             android.util.Log.d("FallDetectionManager", "Fall confirmed!")
                             onFallDetected?.invoke()

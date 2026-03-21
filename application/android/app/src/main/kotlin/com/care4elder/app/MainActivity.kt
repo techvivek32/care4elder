@@ -25,6 +25,15 @@ class MainActivity : FlutterActivity() {
             }
         }
 
+        // When app is open, also set backgroundEngineCallback to same messenger
+        // so if mainIsolateFallCallback is cleared, bg callback still works
+        BackgroundFallService.backgroundEngineCallback = {
+            runOnUiThread {
+                MethodChannel(messenger, callbackChannel)
+                    .invokeMethod("fall_detected", null)
+            }
+        }
+
         // Dart calls this to start/stop the native BackgroundFallService
         MethodChannel(messenger, controlChannel).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -43,6 +52,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         BackgroundFallService.mainIsolateFallCallback = null
+        BackgroundFallService.backgroundEngineCallback = null
         super.onDestroy()
     }
 }

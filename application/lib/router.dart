@@ -49,6 +49,7 @@ import 'features/doctor_dashboard/screens/doctor_edit_profile_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_earnings_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_consultation_fee_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_change_password_screen.dart';
+import 'core/widgets/patient_safe_back_scope.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -98,11 +99,17 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/patient/permissions',
-      builder: (context, state) => const PatientPermissionsScreen(),
+      builder: (context, state) => const PatientSafeBackScope(
+        fallbackRoute: '/patient',
+        child: PatientPermissionsScreen(),
+      ),
     ),
     GoRoute(
       path: '/patient/contacts',
-      builder: (context, state) => const PatientEmergencyContactsScreen(),
+      builder: (context, state) => const PatientSafeBackScope(
+        fallbackRoute: '/patient/permissions',
+        child: PatientEmergencyContactsScreen(),
+      ),
     ),
     GoRoute(
       path: '/patient/contacts/otp',
@@ -120,9 +127,12 @@ final router = GoRouter(
               .toList();
         }
 
-        return PatientRelativeOtpScreen(
-          phoneNumber: phone,
-          contactsToSave: contactsData,
+        return PatientSafeBackScope(
+          fallbackRoute: '/patient/contacts',
+          child: PatientRelativeOtpScreen(
+            phoneNumber: phone,
+            contactsToSave: contactsData,
+          ),
         );
       },
     ),
@@ -397,7 +407,10 @@ final router = GoRouter(
       path: '/patient/notifications',
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
-        child: const NotificationScreen(),
+        child: const PatientSafeBackScope(
+          fallbackRoute: '/patient/dashboard',
+          child: NotificationScreen(),
+        ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
             position: Tween<Offset>(

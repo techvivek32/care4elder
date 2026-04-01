@@ -631,7 +631,13 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) return;
+        _onCallEnd();
+      },
+      child: Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Stack(
@@ -749,6 +755,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 

@@ -108,13 +108,9 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
 
   Future<void> _shareDocument(String url, String docTitle) async {
     final shareUrl = _resolvedDocumentUrl(url);
+    if (shareUrl.isEmpty) return;
     try {
-      await SharePlus.instance.share(
-        ShareParams(
-          text: shareUrl,
-          subject: docTitle,
-        ),
-      );
+      await Share.share(shareUrl, subject: docTitle);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

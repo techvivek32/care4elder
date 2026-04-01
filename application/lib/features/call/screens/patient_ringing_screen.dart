@@ -126,7 +126,13 @@ class _PatientRingingScreenState extends State<PatientRingingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) return;
+        _cancelCall();
+      },
+      child: Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Padding(
@@ -175,6 +181,7 @@ class _PatientRingingScreenState extends State<PatientRingingScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

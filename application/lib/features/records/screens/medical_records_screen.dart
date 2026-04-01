@@ -145,7 +145,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        'Health Vault',
+                        'Medical Records',
                         style: GoogleFonts.roboto(
                           fontSize: 24,
                           height: 1.0,

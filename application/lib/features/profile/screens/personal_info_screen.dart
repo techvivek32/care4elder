@@ -173,22 +173,24 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final pageBg = isDark ? colorScheme.surface : const Color(0xFFF6F8FB);
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: pageBg,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: pageBg,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Personal Info',
+          'Edit Profile',
           style: GoogleFonts.roboto(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: colorScheme.primary,
           ),
         ),
         actions: [
@@ -215,9 +217,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 child: Text(
                   'Save',
                   style: GoogleFonts.roboto(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryBlue,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.primary,
                   ),
                 ),
               );
@@ -226,7 +228,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
         child: Form(
           key: _formKey,
           child: Column(
@@ -238,31 +240,30 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     child: Stack(
                       children: [
                         Container(
-                          width: 100,
-                          height: 100,
+                          width: 114,
+                          height: 114,
                           decoration: BoxDecoration(
-                            gradient: Theme.of(context).brightness == Brightness.light
-                                ? AppColors.premiumGradient
-                                : AppColors.darkPremiumGradient,
                             shape: BoxShape.circle,
+                            color: colorScheme.surfaceContainerHighest,
+                            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
                           ),
                           child: Center(
                             child: _profileService.currentUser?.profilePictureUrl
                                         .isNotEmpty ==
                                     true
                                 ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(50),
+                                    borderRadius: BorderRadius.circular(60),
                                     child: Image.network(
                                       _profileService.currentUser!.profilePictureUrl,
-                                      width: 100,
-                                      height: 100,
+                                      width: 114,
+                                      height: 114,
                                       fit: BoxFit.cover,
                                     ),
                                   )
-                                : const Icon(
+                                : Icon(
                                     Icons.person,
-                                    size: 50,
-                                    color: Colors.white,
+                                    size: 52,
+                                    color: colorScheme.onSurface.withOpacity(0.35),
                                   ),
                           ),
                         ),
@@ -286,18 +287,16 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                           child: GestureDetector(
                             onTap: _profileService.isLoading ? null : _pickProfileImage,
                             child: Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8.5),
                               decoration: BoxDecoration(
-                                gradient: Theme.of(context).brightness == Brightness.light
-                                    ? AppColors.premiumGradient
-                                    : AppColors.darkPremiumGradient,
+                                color: colorScheme.primary,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border: Border.all(color: pageBg, width: 2),
                               ),
                               child: const Icon(
                                 Icons.camera_alt,
                                 color: Colors.white,
-                                size: 20,
+                                size: 16,
                               ),
                             ),
                           ),
@@ -307,30 +306,50 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 14),
+              Text(
+                _nameController.text.trim().isNotEmpty
+                    ? _nameController.text.trim()
+                    : 'Member',
+                style: GoogleFonts.roboto(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Premium Member',
+                style: GoogleFonts.roboto(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface.withOpacity(0.55),
+                ),
+              ),
+              const SizedBox(height: 18),
               _buildTextField(
                 context,
                 controller: _nameController,
-                label: 'Full Name',
+                label: 'FULL NAME',
                 icon: Icons.person_outline,
                 validator: (value) =>
                     value?.isEmpty == true ? 'Please enter your name' : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildTextField(
                 context,
                 controller: _emailController,
-                label: 'Email',
+                label: 'EMAIL ADDRESS',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) =>
                     value?.isEmpty == true ? 'Please enter your email' : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildTextField(
                 context,
                 controller: _phoneController,
-                label: 'Phone Number',
+                label: 'PHONE NUMBER',
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
@@ -347,11 +366,11 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildTextField(
                 context,
                 controller: _dobController,
-                label: 'Date of Birth',
+                label: 'BIRTH DATE',
                 icon: Icons.calendar_today_outlined,
                 readOnly: true,
                 onTap: () => _selectDate(context),
@@ -359,15 +378,26 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     ? 'Please select your date of birth'
                     : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildTextField(
                 context,
                 controller: _locationController,
-                label: 'Location',
+                label: 'LOCATION',
                 icon: Icons.location_on_outlined,
                 validator: (value) => value?.isEmpty == true
                     ? 'Please enter your location'
                     : null,
+              ),
+              const SizedBox(height: 22),
+              Text(
+                'Your information is stored securely in our\nCare4elder vault.\nOnly you and your verified clinicians have access.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.roboto(
+                  fontSize: 12,
+                  height: 1.55,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface.withOpacity(0.55),
+                ),
               ),
             ],
           ),
@@ -388,6 +418,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     List<TextInputFormatter>? inputFormatters,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return TextFormField(
       controller: controller,
@@ -396,25 +427,45 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       onTap: onTap,
       validator: validator,
       inputFormatters: inputFormatters,
-      style: GoogleFonts.roboto(color: colorScheme.onSurface),
+      style: GoogleFonts.roboto(
+        color: colorScheme.onSurface,
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
-        prefixIcon: Icon(icon, color: colorScheme.onSurface.withOpacity(0.4)),
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        labelStyle: GoogleFonts.roboto(
+          fontSize: 10,
+          letterSpacing: 1.2,
+          fontWeight: FontWeight.w800,
+          color: colorScheme.onSurface.withOpacity(0.52),
+        ),
+        prefixIcon: Container(
+          margin: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isDark
+                ? colorScheme.surfaceContainerHighest
+                : const Color(0xFFF1F4FA),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: colorScheme.primary, size: 20),
+        ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.12)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.12)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1.6),
         ),
         filled: true,
-        fillColor: colorScheme.surfaceContainerLow,
+        fillColor: isDark ? colorScheme.surface : Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }

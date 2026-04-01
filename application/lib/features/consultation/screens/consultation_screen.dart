@@ -96,7 +96,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                     child: _TopHeaderBar(
-                      title: 'Sanctuary Health',
+                      title: 'Consult',
                       onMenuTap: () {},
                       avatarUrl: (profileImageUrl != null &&
                               profileImageUrl.trim().isNotEmpty)

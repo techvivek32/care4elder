@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../auth/services/auth_service.dart';
 import '../../../core/services/call_request_service.dart';
+import '../../../core/services/profile_service.dart';
 import 'patient_record_detail_screen.dart';
 import 'dart:ui';
 
@@ -105,6 +107,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final profileImageUrl =
+        context.watch<ProfileService>().currentUser?.profilePictureUrl;
     
     // Calculate counts
     int prescriptionsCount = 0;
@@ -118,149 +122,161 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: Column(
-        children: [
-          // Rounded Header
-          Container(
-            decoration: BoxDecoration(
-              gradient: Theme.of(context).brightness == Brightness.light
-                  ? AppColors.premiumGradient
-                  : AppColors.darkPremiumGradient,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
-              ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Medical Records',
-                          style: GoogleFonts.roboto(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+      backgroundColor: const Color(0xFFF6F8FB),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: _fetchRecords,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildTopHeader(
+                        avatarUrl: (profileImageUrl != null &&
+                                profileImageUrl.trim().isNotEmpty)
+                            ? profileImageUrl
+                            : null,
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Medical Records',
+                        style: GoogleFonts.roboto(
+                          fontSize: 24,
+                          height: 1.0,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F4AA8),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Content
-          Expanded(
-            child: _isLoading 
-              ? const Center(child: CircularProgressIndicator())
-              : RefreshIndicator(
-                  onRefresh: _fetchRecords,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCategoryCard(
-                title: 'Prescriptions',
-                count: '$prescriptionsCount files',
-                icon: Icons.description_outlined,
-                color: const Color(0xFF041E34),
-                onTap: () {
-                  final allPrescriptions = _records.expand((r) => r.prescriptions).toList();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PatientCategoryFilesScreen(
-                        title: 'Prescriptions',
-                        files: allPrescriptions,
-                        icon: Icons.description_outlined,
-                        color: const Color(0xFF041E34),
                       ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildCategoryCard(
-                title: 'Lab Reports',
-                count: '$labReportsCount files',
-                icon: Icons.science_outlined,
-                color: const Color(0xFF041E34),
-                onTap: () {
-                  final allLabReports = _records.expand((r) => r.labReports).toList();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PatientCategoryFilesScreen(
+                      const SizedBox(height: 8),
+                      Text(
+                        'Your health history, secured and simplified.',
+                        style: GoogleFonts.roboto(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.onSurface.withOpacity(0.62),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildCategoryCard(
                         title: 'Lab Reports',
-                        files: allLabReports,
+                        count: '$labReportsCount files updated recently',
                         icon: Icons.science_outlined,
-                        color: const Color(0xFF041E34),
+                        color: const Color(0xFF0F4AA8),
+                        large: true,
+                        onTap: () {
+                          final allLabReports =
+                              _records.expand((r) => r.labReports).toList();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PatientCategoryFilesScreen(
+                                title: 'Lab Reports',
+                                files: allLabReports,
+                                icon: Icons.science_outlined,
+                                color: const Color(0xFF041E34),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildCategoryCard(
-                title: 'Medical Documents',
-                count: '$medicalDocsCount files',
-                icon: Icons.folder_open_outlined,
-                color: const Color(0xFF041E34),
-                onTap: () {
-                  final allMedicalDocs = _records.expand((r) => r.medicalDocuments).toList();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PatientCategoryFilesScreen(
-                        title: 'Medical Documents',
-                        files: allMedicalDocs,
-                        icon: Icons.folder_open_outlined,
-                        color: const Color(0xFF041E34),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildCategoryCard(
+                              title: 'Prescriptions',
+                              count: '$prescriptionsCount active files',
+                              icon: Icons.description_outlined,
+                              color: const Color(0xFF0F4AA8),
+                              onTap: () {
+                                final allPrescriptions =
+                                    _records.expand((r) => r.prescriptions).toList();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PatientCategoryFilesScreen(
+                                      title: 'Prescriptions',
+                                      files: allPrescriptions,
+                                      icon: Icons.description_outlined,
+                                      color: const Color(0xFF041E34),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildCategoryCard(
+                              title: 'Documents',
+                              count: '$medicalDocsCount archived files',
+                              icon: Icons.folder_open_outlined,
+                              color: const Color(0xFF0F4AA8),
+                              onTap: () {
+                                final allMedicalDocs = _records
+                                    .expand((r) => r.medicalDocuments)
+                                    .toList();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PatientCategoryFilesScreen(
+                                      title: 'Medical Documents',
+                                      files: allMedicalDocs,
+                                      icon: Icons.folder_open_outlined,
+                                      color: const Color(0xFF041E34),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 32),
-              Text(
-                'Recent Records',
-                style: GoogleFonts.roboto(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (_records.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Text(
-                      'No records found',
-                      style: GoogleFonts.roboto(color: AppColors.textGrey),
-                    ),
-                  ),
-                )
-              else
-                ..._buildRecentRecordsList(),
-              const SizedBox(height: 32),
+                      const SizedBox(height: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Recent Entries',
+                            style: GoogleFonts.roboto(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          Text(
+                            'View All',
+                            style: GoogleFonts.roboto(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF1565C0),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      if (_records.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Text(
+                              'No records found',
+                              style: GoogleFonts.roboto(color: AppColors.textGrey),
+                            ),
+                          ),
+                        )
+                      else
+                        ..._buildRecentRecordsList(),
+                      const SizedBox(height: 14),
+                      _buildSecurityBanner(),
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ),
               ),
-          ),
-        ],
       ),
     );
   }
@@ -343,20 +359,20 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    bool large = false,
   }) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      constraints: BoxConstraints(minHeight: large ? 96 : 92),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -366,61 +382,58 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(large ? 14 : 10),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(large ? 9 : 8),
                   decoration: BoxDecoration(
-                    gradient: isDarkMode
-                        ? AppColors.darkPremiumGradient
-                        : AppColors.premiumGradient,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: (isDarkMode ? Colors.blue : const Color(0xFF041E34))
-                            .withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    color: const Color(0xFFEAF0FC),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     icon,
-                    color: Colors.white,
-                    size: 28,
+                    color: color,
+                    size: large ? 18 : 16,
                   ),
                 ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.roboto(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: large ? 1 : 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.roboto(
+                          fontSize: large ? 14 : 12,
+                          height: 1.05,
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        count,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.roboto(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    count,
-                    style: GoogleFonts.roboto(
-                      fontSize: 14,
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                    ),
+                ),
+                if (large)
+                  Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: colorScheme.onSurface.withOpacity(0.28),
                   ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withOpacity(0.5),
-            ),
               ],
             ),
           ),
@@ -492,59 +505,57 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required String subtitle,
     required IconData icon,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
-        border: Border.all(
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface
-              .withOpacity(0.08),
-        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              gradient: Theme.of(context).brightness == Brightness.light
-                  ? AppColors.premiumGradient
-                  : AppColors.darkPremiumGradient,
+              color: const Color(0xFFEAF0FC),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               icon,
-              color: Colors.white,
-              size: 24,
+              color: const Color(0xFF0F4AA8),
+              size: 20,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.roboto(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.roboto(
-                    fontSize: 13,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.onSurface.withOpacity(0.58),
                   ),
                 ),
               ],
@@ -553,16 +564,128 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: Theme.of(context).brightness == Brightness.light
-                  ? AppColors.premiumGradient
-                  : AppColors.darkPremiumGradient,
+              color: colorScheme.surfaceContainerHighest,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.download_rounded,
-              color: Colors.white,
-              size: 20,
+              color: const Color(0xFF0F4AA8).withOpacity(0.9),
+              size: 18,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopHeader({String? avatarUrl}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(Icons.menu, color: colorScheme.onSurface, size: 22),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'Medical Records',
+            style: GoogleFonts.roboto(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF1565C0),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+          ),
+          child: CircleAvatar(
+            radius: 18,
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            backgroundImage:
+                avatarUrl != null ? NetworkImage(avatarUrl) : null,
+            child: avatarUrl == null
+                ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSecurityBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0D47A1),
+            Color(0xFF1E6CD6),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0D47A1).withOpacity(0.22),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -14,
+            top: -20,
+            child: Icon(
+              Icons.shield_outlined,
+              color: Colors.white.withOpacity(0.18),
+              size: 110,
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your data is\nencrypted and\nsecure.',
+                style: GoogleFonts.roboto(
+                  fontSize: 31,
+                  height: 0.9,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(
+                    Icons.verified_user_outlined,
+                    color: Colors.white.withOpacity(0.92),
+                    size: 14,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Your Data Is Safe With Us!',
+                    style: GoogleFonts.roboto(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.95),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

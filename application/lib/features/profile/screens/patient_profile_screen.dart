@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/profile_service.dart';
 import '../../auth/services/auth_service.dart';
 
 class PatientProfileScreen extends StatelessWidget {
@@ -39,149 +41,437 @@ class PatientProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final profile = context.watch<ProfileService>().currentUser;
+    final profileImageUrl = profile?.profilePictureUrl.trim().isNotEmpty == true
+        ? profile!.profilePictureUrl
+        : null;
+    final displayName =
+        profile?.fullName.trim().isNotEmpty == true ? profile!.fullName : 'Member';
+    final walletBalance = profile?.walletBalance ?? 0.0;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: Column(
-        children: [
-          // Rounded Header
-          Container(
-            decoration: BoxDecoration(
-              gradient: Theme.of(context).brightness == Brightness.light
-                  ? AppColors.premiumGradient
-                  : AppColors.darkPremiumGradient,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
+      backgroundColor: const Color(0xFFF6F8FB),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _TopHeaderBar(
+                title: 'Profile',
+                onMenuTap: () {},
+                avatarUrl: profileImageUrl,
               ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const SizedBox(height: 18),
+              Center(
+                child: Column(
                   children: [
+                    _ProfileAvatar(
+                      imageUrl: profileImageUrl,
+                      onEditTap: () => context.push('/patient/profile/personal-info'),
+                    ),
+                    const SizedBox(height: 14),
                     Text(
-                      'Profile',
+                      displayName,
                       style: GoogleFonts.roboto(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        fontSize: 26,
+                        height: 1.0,
+                        fontWeight: FontWeight.w800,
+                        color: colorScheme.onSurface,
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    _PillBadge(
+                      icon: Icons.verified,
+                      text: 'Premium Member',
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
-
-          // Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
+              const SizedBox(height: 22),
+              _SectionLabel('ACCOUNT & HEALTH'),
+              const SizedBox(height: 10),
+              _CardGroup(
                 children: [
-                  _buildMenuItem(
-                    context,
+                  _MenuRow(
                     icon: Icons.settings_outlined,
                     title: 'Profile Settings',
                     onTap: () => context.push('/patient/profile/personal-info'),
                   ),
-                  const SizedBox(height: 16),
-                  _buildMenuItem(
-                    context,
+                  _MenuRow(
                     icon: Icons.account_balance_wallet_outlined,
                     title: 'My Wallet',
+                    trailingText: '₹${walletBalance.toStringAsFixed(2)}',
                     onTap: () => context.push('/patient/profile/wallet'),
                   ),
-                  const SizedBox(height: 16),
-                  _buildMenuItem(
-                    context,
+                  _MenuRow(
                     icon: Icons.medical_services_outlined,
-                    title: 'Patient Medical Information',
+                    title: 'Patient Medical\nInformation',
                     onTap: () => context.push('/patient/profile/medical-info'),
                   ),
-                  const SizedBox(height: 16),
-                  _buildMenuItem(
-                    context,
+                ],
+              ),
+              const SizedBox(height: 18),
+              _SectionLabel('SUPPORT & SAFETY'),
+              const SizedBox(height: 10),
+              _CardGroup(
+                children: [
+                  _MenuRow(
                     icon: Icons.people_outline,
                     title: 'Emergency Contacts',
                     onTap: () => context.push('/patient/contacts'),
                   ),
-                  const SizedBox(height: 16),
-                  _buildMenuItem(
-                    context,
+                  _MenuRow(
                     icon: Icons.settings_applications_outlined,
                     title: 'App Settings',
                     onTap: () => context.push('/patient/profile/settings'),
                   ),
-                  const SizedBox(height: 16),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.logout,
-                    title: 'Logout',
-                    onTap: () => _handleLogout(context),
-                  ),
-                  const SizedBox(height: 80),
                 ],
               ),
+              const SizedBox(height: 14),
+              _LogoutCard(
+                onTap: () => _handleLogout(context),
+              ),
+              const SizedBox(height: 18),
+              Center(
+                child: Text(
+                  'Care4elder v2.4.0',
+                  style: GoogleFonts.roboto(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.onSurface.withOpacity(0.45),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 80),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TopHeaderBar extends StatelessWidget {
+  final String title;
+  final VoidCallback onMenuTap;
+  final String? avatarUrl;
+
+  const _TopHeaderBar({
+    required this.title,
+    required this.onMenuTap,
+    required this.avatarUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        InkWell(
+          onTap: onMenuTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(Icons.menu, color: colorScheme.onSurface, size: 22),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.roboto(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF1565C0),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+          ),
+          child: CircleAvatar(
+            radius: 18,
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+            child: avatarUrl == null
+                ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  final String? imageUrl;
+  final VoidCallback onEditTap;
+
+  const _ProfileAvatar({
+    required this.imageUrl,
+    required this.onEditTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: colorScheme.surfaceContainerHighest,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
+              ),
+            ],
+            image: imageUrl != null
+                ? DecorationImage(image: NetworkImage(imageUrl!), fit: BoxFit.cover)
+                : null,
+          ),
+          child: imageUrl == null
+              ? Icon(Icons.person, size: 56, color: colorScheme.onSurface.withOpacity(0.35))
+              : null,
+        ),
+        Positioned(
+          right: 6,
+          bottom: 6,
+          child: InkWell(
+            onTap: onEditTap,
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1565C0),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: const Icon(Icons.edit, size: 16, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PillBadge extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _PillBadge({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF0FC),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.12)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: const Color(0xFF1565C0)),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: GoogleFonts.roboto(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildMenuItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        text,
+        style: GoogleFonts.roboto(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.1,
+          color: colorScheme.onSurface.withOpacity(0.45),
+        ),
+      ),
+    );
+  }
+}
 
+class _CardGroup extends StatelessWidget {
+  final List<Widget> children;
+  const _CardGroup({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          for (int i = 0; i < children.length; i++) ...[
+            children[i],
+            if (i != children.length - 1)
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: colorScheme.outline.withOpacity(0.08),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? trailingText;
+  final VoidCallback onTap;
+
+  const _MenuRow({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.trailingText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEAF0FC),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 20, color: const Color(0xFF1565C0)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.roboto(
+                  fontSize: 14,
+                  height: 1.15,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+            if (trailingText != null) ...[
+              Text(
+                trailingText!,
+                style: GoogleFonts.roboto(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1565C0),
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
+            Icon(Icons.chevron_right,
+                color: colorScheme.onSurface.withOpacity(0.25)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LogoutCard extends StatelessWidget {
+  final VoidCallback onTap;
+  const _LogoutCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color,
-          borderRadius: BorderRadius.circular(20),
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.primary.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                gradient: isDarkMode
-                    ? AppColors.darkPremiumGradient
-                    : AppColors.premiumGradient,
+                color: const Color(0xFFFFEBEE),
                 shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFFFCDD2)),
               ),
-              child: Icon(icon, color: Colors.white, size: 24),
+              child: const Icon(Icons.logout, size: 20, color: Color(0xFFD32F2F)),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
-                title,
+                'Logout',
                 style: GoogleFonts.roboto(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFD32F2F),
                 ),
               ),
             ),
-            Icon(Icons.chevron_right, color: colorScheme.onSurface.withOpacity(0.3)),
           ],
         ),
       ),

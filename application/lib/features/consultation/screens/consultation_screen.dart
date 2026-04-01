@@ -130,37 +130,25 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: _FeaturedServiceCard(
-                      title: 'Advanced\nCardiac\nScreening',
-                      subtitle: 'Book a comprehensive checkup today.',
+                      title: 'Expert Doctor\nConsultations',
+                      subtitle:
+                          'Connect with top specialists for your health needs.',
                     ),
                   ),
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Recommended Doctors',
-                          style: GoogleFonts.roboto(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurface,
-                          ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Recommended Doctors',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
                         ),
-                        TextButton(
-                          onPressed: () {},
-                          child: Text(
-                            'View Map',
-                            style: GoogleFonts.roboto(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF1565C0),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -289,20 +277,27 @@ class _TopHeaderBar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
-          ),
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            backgroundImage:
-                avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-            child: avatarUrl == null
-                ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
-                : null,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.go('/patient/profile'),
+            borderRadius: BorderRadius.circular(22),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                backgroundImage:
+                    avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                child: avatarUrl == null
+                    ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
+                    : null,
+              ),
+            ),
           ),
         ),
       ],
@@ -328,13 +323,9 @@ class _SearchPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.12),
+        ),
       ),
       child: Row(
         children: [
@@ -399,15 +390,6 @@ class _CategoryChipsRow extends StatelessWidget {
                         ? Colors.transparent
                         : colorScheme.outline.withOpacity(0.15),
                   ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF0D47A1).withOpacity(0.25),
-                            blurRadius: 16,
-                            offset: const Offset(0, 8),
-                          ),
-                        ]
-                      : null,
                 ),
                 child: Text(
                   c,
@@ -451,13 +433,6 @@ class _FeaturedServiceCard extends StatelessWidget {
             Color(0xFF1976D2),
           ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0D47A1).withOpacity(0.25),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
       ),
       child: Stack(
         children: [
@@ -549,13 +524,9 @@ class _DoctorListCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withOpacity(0.04),
-              blurRadius: 22,
-              offset: const Offset(0, 10),
-            ),
-          ],
+          border: Border.all(
+            color: colorScheme.outline.withOpacity(0.1),
+          ),
         ),
         child: Row(
           children: [
@@ -750,13 +721,9 @@ class _EmergencySosBanner extends StatelessWidget {
               ? colorScheme.errorContainer.withOpacity(0.35)
               : const Color(0xFFF3E7E7),
           borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withOpacity(0.03),
-              blurRadius: 18,
-              offset: const Offset(0, 10),
-            ),
-          ],
+          border: Border.all(
+            color: colorScheme.outline.withOpacity(0.08),
+          ),
         ),
         child: Row(
           children: [

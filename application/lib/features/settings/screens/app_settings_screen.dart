@@ -182,8 +182,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                       _NavRow(
                         icon: Icons.language,
                         title: 'Language',
-                        trailingText: settings.language,
-                        onTap: () => _showLanguageDialog(context, settings),
+                        trailingText: 'English',
                       ),
                     ],
                   ),
@@ -335,49 +334,6 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     }
   }
 
-  Future<void> _showLanguageDialog(
-    BuildContext context,
-    SettingsService settings,
-  ) async {
-    await showDialog(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Select Language'),
-        children: [
-          SimpleDialogOption(
-            onPressed: () {
-              settings.setLanguage('English');
-              Navigator.pop(context);
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('English'),
-            ),
-          ),
-          SimpleDialogOption(
-            onPressed: () {
-              settings.setLanguage('Spanish');
-              Navigator.pop(context);
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('Spanish'),
-            ),
-          ),
-          SimpleDialogOption(
-            onPressed: () {
-              settings.setLanguage('Hindi');
-              Navigator.pop(context);
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('Hindi'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _TopHeaderBar extends StatelessWidget {
@@ -422,19 +378,27 @@ class _TopHeaderBar extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
-          ),
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-            child: avatarUrl == null
-                ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
-                : null,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.go('/patient/profile'),
+            borderRadius: BorderRadius.circular(22),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                backgroundImage:
+                    avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                child: avatarUrl == null
+                    ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
+                    : null,
+              ),
+            ),
           ),
         ),
       ],
@@ -687,12 +651,12 @@ class _NavRow extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? trailingText;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _NavRow({
     required this.icon,
     required this.title,
-    required this.onTap,
+    this.onTap,
     this.trailingText,
   });
 
@@ -703,49 +667,56 @@ class _NavRow extends StatelessWidget {
     final iconBg = isDark
         ? colorScheme.surfaceContainerHighest
         : const Color(0xFFEAF0FC);
+    final interactive = onTap != null;
+    final child = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconBg,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: colorScheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                height: 1.15,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+          if (trailingText != null) ...[
+            Text(
+              trailingText!,
+              style: GoogleFonts.roboto(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface.withOpacity(0.55),
+              ),
+            ),
+            const SizedBox(width: 10),
+          ],
+          if (interactive)
+            Icon(Icons.chevron_right,
+                color: colorScheme.onSurface.withOpacity(0.25)),
+        ],
+      ),
+    );
+    if (!interactive) {
+      return child;
+    }
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: iconBg,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 20, color: colorScheme.primary),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: GoogleFonts.roboto(
-                  fontSize: 14,
-                  height: 1.15,
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-            ),
-            if (trailingText != null) ...[
-              Text(
-                trailingText!,
-                style: GoogleFonts.roboto(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface.withOpacity(0.55),
-                ),
-              ),
-              const SizedBox(width: 10),
-            ],
-            Icon(Icons.chevron_right, color: colorScheme.onSurface.withOpacity(0.25)),
-          ],
-        ),
-      ),
+      child: child,
     );
   }
 }

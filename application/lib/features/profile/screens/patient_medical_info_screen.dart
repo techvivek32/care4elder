@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/profile_service.dart';
@@ -91,20 +92,40 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
     await FileDownloadService.downloadAndOpenFile(context, url);
   }
 
-  Future<void> _viewDocument(String url) async {
-    String finalUrl = url;
-    if (!url.startsWith('http')) {
-      final baseUrl = ApiConstants.baseUrl;
-      final rootUrl = baseUrl.endsWith('/api') 
-          ? baseUrl.substring(0, baseUrl.length - 4) 
-          : baseUrl;
-      
-      if (!url.startsWith('/')) {
-        finalUrl = '$rootUrl/$url';
-      } else {
-        finalUrl = '$rootUrl$url';
+  String _resolvedDocumentUrl(String url) {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    final baseUrl = ApiConstants.baseUrl;
+    final rootUrl = baseUrl.endsWith('/api')
+        ? baseUrl.substring(0, baseUrl.length - 4)
+        : baseUrl;
+    if (!url.startsWith('/')) {
+      return '$rootUrl/$url';
+    }
+    return '$rootUrl$url';
+  }
+
+  Future<void> _shareDocument(String url, String docTitle) async {
+    final shareUrl = _resolvedDocumentUrl(url);
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          text: shareUrl,
+          subject: docTitle,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not share: $e')),
+        );
       }
     }
+  }
+
+  Future<void> _viewDocument(String url) async {
+    final finalUrl = _resolvedDocumentUrl(url);
 
     final uri = Uri.parse(finalUrl);
     if (_isImageUrl(finalUrl)) {
@@ -461,6 +482,7 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
               title: '$label ${i + 1}',
               subtitle: 'Uploaded document',
               onOpen: () => _viewDocument(url),
+              onShare: () => _shareDocument(url, '$label ${i + 1}'),
             ),
           ),
         );
@@ -1238,12 +1260,14 @@ class _DocCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onOpen;
+  final VoidCallback onShare;
 
   const _DocCard({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onOpen,
+    required this.onShare,
   });
 
   @override
@@ -1303,14 +1327,13 @@ class _DocCard extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.share_outlined,
-                    color: colorScheme.onSurface.withOpacity(0.45), size: 18),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.more_vert,
-                    color: colorScheme.onSurface.withOpacity(0.45), size: 18),
+                tooltip: 'Share',
+                onPressed: onShare,
+                icon: Icon(
+                  Icons.share_outlined,
+                  color: colorScheme.onSurface.withOpacity(0.55),
+                  size: 22,
+                ),
               ),
             ],
           ),

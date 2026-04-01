@@ -34,7 +34,10 @@ class SettingsService extends ChangeNotifier {
     final isDark = prefs.getBool('is_dark_mode') ?? false;
     _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
     _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
-    _language = prefs.getString('language') ?? 'English';
+    _language = 'English';
+    if (prefs.getString('language') != 'English') {
+      await prefs.setString('language', 'English');
+    }
     _isLoading = false;
     notifyListeners();
   }
@@ -68,9 +71,9 @@ class SettingsService extends ChangeNotifier {
   }
 
   Future<void> setLanguage(String language) async {
-    _language = language;
+    _language = 'English';
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language', language);
+    await prefs.setString('language', 'English');
   }
 }

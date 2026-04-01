@@ -910,19 +910,27 @@ class _TopHeaderBar extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
-          ),
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-            child: avatarUrl == null
-                ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
-                : null,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.go('/patient/profile'),
+            borderRadius: BorderRadius.circular(22),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                backgroundImage:
+                    avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                child: avatarUrl == null
+                    ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
+                    : null,
+              ),
+            ),
           ),
         ),
       ],
@@ -1039,7 +1047,7 @@ class _PrivacyGuaranteeBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(18, 18, 12, 18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         gradient: const LinearGradient(
@@ -1058,39 +1066,41 @@ class _PrivacyGuaranteeBanner extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Positioned(
-            right: -10,
-            bottom: -24,
-            child: Icon(
-              Icons.shield_outlined,
-              size: 130,
-              color: Colors.white.withOpacity(0.12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Privacy Guarantee',
+                  style: GoogleFonts.roboto(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Emergency contacts are encrypted\nand only accessible to verified\nmedical responders when an SOS is\ntriggered.',
+                  style: GoogleFonts.roboto(
+                    fontSize: 12,
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+              ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Privacy Guarantee',
-                style: GoogleFonts.roboto(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Emergency contacts are encrypted\nand only accessible to verified\nmedical responders when an SOS is\ntriggered.',
-                style: GoogleFonts.roboto(
-                  fontSize: 12,
-                  height: 1.4,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withOpacity(0.9),
-                ),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Icon(
+              Icons.shield_outlined,
+              size: 96,
+              color: Colors.white.withOpacity(0.16),
+            ),
           ),
         ],
       ),

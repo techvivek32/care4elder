@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -144,7 +145,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        'Medical Records',
+                        'Health Vault',
                         style: GoogleFonts.roboto(
                           fontSize: 24,
                           height: 1.0,
@@ -238,26 +239,16 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         ],
                       ),
                       const SizedBox(height: 18),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Recent Entries',
-                            style: GoogleFonts.roboto(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: colorScheme.onSurface,
-                            ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Recent Entries',
+                          style: GoogleFonts.roboto(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface,
                           ),
-                          Text(
-                            'View All',
-                            style: GoogleFonts.roboto(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF1565C0),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 10),
                       if (_records.isEmpty)
@@ -605,7 +596,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            'Medical Records',
+            'Health Vault',
             style: GoogleFonts.roboto(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -613,20 +604,27 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
-          ),
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            backgroundImage:
-                avatarUrl != null ? NetworkImage(avatarUrl) : null,
-            child: avatarUrl == null
-                ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
-                : null,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.go('/patient/profile'),
+            borderRadius: BorderRadius.circular(22),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                backgroundImage:
+                    avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                child: avatarUrl == null
+                    ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
+                    : null,
+              ),
+            ),
           ),
         ),
       ],
@@ -636,7 +634,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   Widget _buildSecurityBanner() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 10, 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         gradient: const LinearGradient(
@@ -655,49 +653,53 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           ),
         ],
       ),
-      child: Stack(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Positioned(
-            right: -14,
-            top: -20,
-            child: Icon(
-              Icons.shield_outlined,
-              color: Colors.white.withOpacity(0.18),
-              size: 110,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your data is\nencrypted and\nsecure.',
+                  style: GoogleFonts.roboto(
+                    fontSize: 31,
+                    height: 0.9,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.verified_user_outlined,
+                      color: Colors.white.withOpacity(0.92),
+                      size: 14,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'Your Data Is Safe With Us!',
+                        style: GoogleFonts.roboto(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withOpacity(0.95),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Your data is\nencrypted and\nsecure.',
-                style: GoogleFonts.roboto(
-                  fontSize: 31,
-                  height: 0.9,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Icon(
-                    Icons.verified_user_outlined,
-                    color: Colors.white.withOpacity(0.92),
-                    size: 14,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Your Data Is Safe With Us!',
-                    style: GoogleFonts.roboto(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withOpacity(0.95),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(left: 6),
+            child: Icon(
+              Icons.shield_outlined,
+              color: Colors.white.withOpacity(0.22),
+              size: 88,
+            ),
           ),
         ],
       ),

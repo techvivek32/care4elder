@@ -194,19 +194,27 @@ class _TopHeaderBar extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
-          ),
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-            child: avatarUrl == null
-                ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
-                : null,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.go('/patient/profile'),
+            borderRadius: BorderRadius.circular(22),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                backgroundImage:
+                    avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                child: avatarUrl == null
+                    ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
+                    : null,
+              ),
+            ),
           ),
         ),
       ],

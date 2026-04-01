@@ -160,17 +160,19 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final pageBg = isDark ? colorScheme.surface : const Color(0xFFF6F8FB);
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: pageBg,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: pageBg,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         title: Text(
           'My Wallet',
           style: GoogleFonts.roboto(
-            fontSize: 20,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: colorScheme.onSurface,
           ),
@@ -179,306 +181,428 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
           icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.more_vert, color: colorScheme.onSurface),
+          ),
+        ],
       ),
       body: Consumer<ProfileService>(
         builder: (context, profileService, child) {
           final balance = profileService.currentUser?.walletBalance ?? 0.0;
           
-          return Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      // Balance Card
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          gradient: Theme.of(context).brightness == Brightness.light
-                              ? AppColors.premiumGradient
-                              : AppColors.darkPremiumGradient,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Total Balance',
-                              style: GoogleFonts.roboto(
-                                fontSize: 16,
-                                color: Colors.white.withOpacity(0.9),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  '₹',
-                                  style: GoogleFonts.roboto(
-                                    fontSize: 48,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  balance.toStringAsFixed(2),
-                                  style: GoogleFonts.roboto(
-                                    fontSize: 48,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 48),
-                      
-                      // Amount Input
-                      Text(
-                        'Enter Amount',
-                        style: GoogleFonts.roboto(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        width: 200,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: colorScheme.outlineVariant),
-                        ),
-                        child: TextField(
-                          controller: _amountController,
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.roboto(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                          ),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: '0',
-                            prefixText: '₹ ',
-                            prefixStyle: GoogleFonts.roboto(
-                              color: colorScheme.onSurface,
-                            ),
-                            hintStyle: GoogleFonts.roboto(
-                              color: colorScheme.onSurfaceVariant.withOpacity(0.4),
-                            ),
-                          ),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-                      
-                      // History Header
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Wallet History',
-                          style: GoogleFonts.roboto(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // History List
-                      if (profileService.walletHistory.isEmpty)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(
-                              'No transactions yet',
-                              style: GoogleFonts.roboto(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        )
-                      else
-                          ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: profileService.walletHistory.length,
-                          itemBuilder: (context, index) {
-                            final transaction = profileService.walletHistory[index];
-                            final isCredit = transaction.type == 'credit';
-                            
-                            // Get doctor name from metadata only - no mock names
-                            String? doctorName = transaction.metadata?['doctorName'] as String?;
-                            String? callRequestId = transaction.metadata?['callRequestId'] as String?;
-                            String? doctorId = transaction.metadata?['doctorId'] as String?;
-                            
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: colorScheme.outlineVariant),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: isCredit 
-                                              ? Colors.green.withOpacity(0.1) 
-                                              : Colors.red.withOpacity(0.1),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          isCredit 
-                                              ? Icons.add_rounded 
-                                              : Icons.remove_rounded,
-                                          color: isCredit 
-                                              ? Colors.green 
-                                              : Colors.red,
-                                          size: 20,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              transaction.description,
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500,
-                                                color: colorScheme.onSurface,
-                                              ),
-                                            ),
-                                            if (doctorName != null) ...[
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                doctorName,
-                                                style: GoogleFonts.roboto(
-                                                  fontSize: 14,
-                                                  color: colorScheme.primary,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              _formatDate(transaction.timestamp),
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 12,
-                                                color: colorScheme.onSurfaceVariant,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Text(
-                                        '${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(0)}',
-                                        style: GoogleFonts.roboto(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: isCredit ? Colors.green : Colors.red,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  // Refund button for debit consultation transactions
-                                  if (!isCredit && callRequestId != null && doctorId != null) ...[
-                                    const SizedBox(height: 10),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: _buildRefundWidget(
-                                        transaction: transaction,
-                                        callRequestId: callRequestId,
-                                        doctorId: doctorId,
-                                        doctorName: doctorName ?? '',
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                    ],
-                  ),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _BalanceCard(amount: balance),
+                const SizedBox(height: 14),
+                _RechargeCard(
+                  amountController: _amountController,
+                  isLoading: profileService.isLoading,
+                  onRecharge: _openCheckout,
                 ),
-              ),
-              
-              // Recharge Button at Bottom
-              Container(
-                padding: const EdgeInsets.all(20),
-                width: double.infinity,
-                child: Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: Theme.of(context).brightness == Brightness.light
-                        ? AppColors.premiumGradient
-                        : AppColors.darkPremiumGradient,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    onPressed: _openCheckout,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                const SizedBox(height: 22),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Wallet History',
+                      style: GoogleFonts.roboto(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: colorScheme.onSurface,
                       ),
                     ),
-                    child: profileService.isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                        'Recharge Now',
+                    Text(
+                      'View All',
+                      style: GoogleFonts.roboto(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (profileService.walletHistory.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Text(
+                        'No transactions yet',
                         style: GoogleFonts.roboto(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
-                  ),
+                    ),
+                  )
+                else
+                  ...profileService.walletHistory.map((transaction) {
+                    final isCredit = transaction.type == 'credit';
+                    final doctorName =
+                        transaction.metadata?['doctorName'] as String?;
+                    final callRequestId =
+                        transaction.metadata?['callRequestId'] as String?;
+                    final doctorId = transaction.metadata?['doctorId'] as String?;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _TransactionCard(
+                        title: transaction.description,
+                        subtitle1: doctorName,
+                        subtitle2: _formatDate(transaction.timestamp),
+                        amountText:
+                            '${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(0)}',
+                        amountColor: isCredit ? Colors.green : Colors.red,
+                        icon: isCredit
+                            ? Icons.account_balance_wallet_outlined
+                            : Icons.receipt_long_outlined,
+                        refundWidget: (!isCredit &&
+                                callRequestId != null &&
+                                doctorId != null)
+                            ? _buildRefundWidget(
+                                transaction: transaction,
+                                callRequestId: callRequestId,
+                                doctorId: doctorId,
+                                doctorName: doctorName ?? '',
+                              )
+                            : null,
+                      ),
+                    );
+                  }).toList(),
+                const SizedBox(height: 18),
+                _SupportCard(),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // UI widgets (no behavior changes)
+  Widget _BalanceCard({required double amount}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: Theme.of(context).brightness == Brightness.light
+            ? AppColors.premiumGradient
+            : AppColors.darkPremiumGradient,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.18),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Total Balance',
+            style: GoogleFonts.roboto(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withOpacity(0.85),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '₹ ${amount.toStringAsFixed(2)}',
+            style: GoogleFonts.roboto(
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _RechargeCard({
+    required TextEditingController amountController,
+    required bool isLoading,
+    required VoidCallback onRecharge,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Enter Amount',
+            style: GoogleFonts.roboto(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colorScheme.outline.withOpacity(0.12)),
+            ),
+            child: TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              style: GoogleFonts.roboto(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: colorScheme.onSurface,
+              ),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: '500.00',
+                prefixText: '₹ ',
+                prefixStyle: GoogleFonts.roboto(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+                hintStyle: GoogleFonts.roboto(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface.withOpacity(0.35),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              onPressed: isLoading ? null : onRecharge,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                elevation: 0,
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(
+                      'Recharge Now',
+                      style: GoogleFonts.roboto(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _TransactionCard({
+    required String title,
+    required String? subtitle1,
+    required String subtitle2,
+    required String amountText,
+    required Color amountColor,
+    required IconData icon,
+    required Widget? refundWidget,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 20, color: colorScheme.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.roboto(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    if (subtitle1 != null && subtitle1!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle1!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.roboto(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle2,
+                      style: GoogleFonts.roboto(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface.withOpacity(0.55),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                amountText,
+                style: GoogleFonts.roboto(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: amountColor,
                 ),
               ),
             ],
-          );
-        },
+          ),
+          if (refundWidget != null) ...[
+            const SizedBox(height: 10),
+            refundWidget,
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _SupportCard() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Need help?',
+                  style: GoogleFonts.roboto(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Our support team is\navailable 24/7 for\nany wallet related\nissues.',
+                  style: GoogleFonts.roboto(
+                    fontSize: 11,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface.withOpacity(0.55),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                    ),
+                    child: Text(
+                      'Contact Support',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.roboto(
+                        fontSize: 12,
+                        height: 1.1,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Icon(
+            Icons.support_agent_rounded,
+            size: 64,
+            color: colorScheme.onSurface.withOpacity(0.15),
+          ),
+        ],
       ),
     );
   }

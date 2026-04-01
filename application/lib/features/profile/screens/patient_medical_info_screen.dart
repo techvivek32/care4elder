@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/constants/api_constants.dart';
@@ -208,152 +209,256 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
     if (_patient == null) return const Scaffold(body: Center(child: Text('No data')));
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    final profile = context.watch<ProfileService>().currentUser;
+    if (profile != null && !identical(profile, _patient)) {
+      // keep local snapshot fresh without changing behavior
+      _patient = profile;
+    }
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: Text('Medical Information', style: GoogleFonts.roboto(fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: Colors.white,
-        actions: [
-          if (_isEditing) ...[
-            if (_saving)
-              const Padding(padding: EdgeInsets.all(16.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)))
-            else
-              TextButton(onPressed: _save, child: const Text('SAVE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-          ] else
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => setState(() => _isEditing = true),
+      backgroundColor: isDark ? colorScheme.surface : const Color(0xFFF6F8FB),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _TopHeader(
+              title: 'Medical Information',
+              isEditing: _isEditing,
+              isSaving: _saving,
+              onBack: () => context.pop(),
+              onEdit: () => setState(() => _isEditing = true),
+              onSave: _save,
             ),
-        ],
+            Expanded(
+              child: _isEditing ? _buildEditView() : _buildViewMode(isDark),
+            ),
+          ],
+        ),
       ),
-      body: _isEditing ? _buildEditView() : _buildViewMode(isDark),
     );
   }
 
   Widget _buildViewMode(bool isDark) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final primary = colorScheme.primary;
+    final patient = _patient!;
+    final avatarUrl = patient.profilePictureUrl.trim().isNotEmpty
+        ? patient.profilePictureUrl
+        : null;
+    final medsCount = patient.currentMedications.length;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionCard(
-            isDark: isDark,
-            title: 'Basic Clinical Info',
-            icon: Icons.person_outline,
-            content: Column(
-              children: [
-                _buildInfoRow('Full Name', _patient!.fullName, isDark),
-                _buildInfoRow('Blood Group', _patient!.bloodGroup, isDark),
-                _buildInfoRow('Gender', _patient!.gender ?? '—', isDark),
-                _buildInfoRow('Date of Birth', _patient!.dateOfBirth != null ? '${_patient!.dateOfBirth!.day}/${_patient!.dateOfBirth!.month}/${_patient!.dateOfBirth!.year}' : '—', isDark),
-              ],
+          _SectionLabel('PATIENT PROFILE'),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      patient.fullName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.roboto(
+                        fontSize: 22,
+                        height: 1.05,
+                        fontWeight: FontWeight.w800,
+                        color: primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colorScheme.surfaceContainerHighest,
+                  image: avatarUrl != null
+                      ? DecorationImage(image: NetworkImage(avatarUrl), fit: BoxFit.cover)
+                      : null,
+                ),
+                child: avatarUrl == null
+                    ? Icon(Icons.person, color: colorScheme.onSurface.withOpacity(0.35))
+                    : null,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _MiniInfoCard(
+                  label: 'Blood Group',
+                  value: (patient.bloodGroup.isNotEmpty ? patient.bloodGroup : '—'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MiniInfoCard(
+                  label: 'Gender',
+                  value: (patient.gender?.isNotEmpty == true ? patient.gender! : '—'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _WideInfoCard(
+            label: 'Date of Birth',
+            value: patient.dateOfBirth != null
+                ? '${patient.dateOfBirth!.day}/${patient.dateOfBirth!.month}/${patient.dateOfBirth!.year}'
+                : '—',
+          ),
+          const SizedBox(height: 18),
+
+          _SectionTitleRow(
+            icon: Icons.warning_amber_rounded,
+            iconColor: colorScheme.error,
+            title: 'Allergies',
+          ),
+          const SizedBox(height: 10),
+          _MutedCard(
+            child: Text(
+              patient.allergies.isEmpty
+                  ? 'No known allergies reported'
+                  : patient.allergies,
+              style: GoogleFonts.roboto(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface.withOpacity(0.65),
+              ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          _buildSectionCard(
-            isDark: isDark,
-            title: 'Allergies',
-            icon: Icons.warning_amber,
-            content: Text(_patient!.allergies.isEmpty ? 'None reported.' : _patient!.allergies),
-          ),
-          const SizedBox(height: 16),
-
-          _buildSectionCard(
-            isDark: isDark,
+          _SectionTitleRow(
+            icon: Icons.medication_outlined,
+            iconColor: primary,
             title: 'Active Medications',
-            icon: Icons.medication,
-            content: _patient!.currentMedications.isEmpty
-                ? const Text('No active medications.')
-                : Column(
-                    children: _patient!.currentMedications.map((m) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      subtitle: Text(m.purpose ?? '—', style: const TextStyle(fontSize: 12)),
-                      leading: const Icon(Icons.circle, size: 8, color: Colors.green),
-                    )).toList(),
-                  ),
+            trailing: medsCount > 0 ? _CountBadge(text: '$medsCount ACTIVE') : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          if (patient.currentMedications.isEmpty)
+            _MutedCard(
+              child: Text(
+                'No active medications.',
+                style: GoogleFonts.roboto(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            )
+          else
+            ...patient.currentMedications.map((m) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _MedicationCard(
+                  name: m.name,
+                  subtitle: (m.purpose?.isNotEmpty == true) ? m.purpose! : '—',
+                ),
+              );
+            }),
+          const SizedBox(height: 18),
 
-          _buildSectionCard(
-            isDark: isDark,
+          _SectionTitleRow(
+            icon: Icons.history_rounded,
+            iconColor: primary,
             title: 'Past Surgeries',
-            icon: Icons.history,
-            content: _patient!.pastSurgeries.isEmpty
-                ? const Text('No past surgeries.')
-                : Column(
-                    children: _patient!.pastSurgeries.map((s) => Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkBackground.withOpacity(0.3) : Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.medical_services, color: AppColors.primaryBlue, size: 24),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(s.procedure, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                if (s.date != null) 
-                                  Text('${s.date!.day}/${s.date!.month}/${s.date!.year}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                              ],
-                            ),
-                          ),
-                          if (s.documentUrl != null) ...[
-                            Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              child: ElevatedButton.icon(
-                                onPressed: () => _viewDocument(s.documentUrl!),
-                                icon: const Icon(Icons.visibility, size: 16),
-                                label: const Text('View'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryBlue,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  minimumSize: const Size(0, 32),
-                                  textStyle: const TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: () => _downloadDocument(s.documentUrl!),
-                              icon: const Icon(Icons.download, size: 16),
-                              label: const Text('Download'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                minimumSize: const Size(0, 32),
-                                textStyle: const TextStyle(fontSize: 12),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    )).toList(),
-                  ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          if (patient.pastSurgeries.isEmpty)
+            _MutedCard(
+              child: Text(
+                'No past surgeries.',
+                style: GoogleFonts.roboto(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            )
+          else
+            ...patient.pastSurgeries.map((s) {
+              final dateText = s.date != null
+                  ? 'Performed on ${s.date!.day}/${s.date!.month}/${s.date!.year}'
+                  : 'Performed on —';
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _SurgeryCard(
+                  name: s.procedure.isNotEmpty ? s.procedure : '—',
+                  subtitle: dateText,
+                  canOpen: s.documentUrl != null && s.documentUrl!.isNotEmpty,
+                  onView: s.documentUrl == null ? null : () => _viewDocument(s.documentUrl!),
+                  onDownload: s.documentUrl == null ? null : () => _downloadDocument(s.documentUrl!),
+                ),
+              );
+            }),
+          const SizedBox(height: 18),
 
-          _buildDocSection(isDark, 'Prescriptions', _patient!.prescriptions),
-          const SizedBox(height: 16),
-          _buildDocSection(isDark, 'Laboratory Reports', _patient!.labReports),
-          const SizedBox(height: 16),
-          _buildDocSection(isDark, 'Other Medical Documents', _patient!.additionalDocuments),
-          
-          const SizedBox(height: 40),
+          _SectionTitleRow(
+            icon: Icons.folder_open_outlined,
+            iconColor: primary,
+            title: 'Health Documents',
+          ),
+          const SizedBox(height: 10),
+          ..._buildHealthDocsCards(),
+
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
+
+  List<Widget> _buildHealthDocsCards() {
+    final List<Widget> cards = [];
+    void addCards(String label, IconData icon, List<String> urls) {
+      for (int i = 0; i < urls.length; i++) {
+        final url = urls[i];
+        cards.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _DocCard(
+              icon: icon,
+              title: '$label ${i + 1}',
+              subtitle: 'Uploaded document',
+              onOpen: () => _viewDocument(url),
+            ),
+          ),
+        );
+      }
+    }
+
+    addCards('Prescriptions', Icons.description_outlined, _patient!.prescriptions);
+    addCards('Laboratory Reports', Icons.science_outlined, _patient!.labReports);
+    addCards('Other Documents', Icons.folder_open_outlined, _patient!.additionalDocuments);
+
+    if (cards.isEmpty) {
+      return [
+        _MutedCard(
+          child: Text(
+            'No documents found.',
+            style: GoogleFonts.roboto(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            ),
+          ),
+        ),
+      ];
+    }
+    return cards;
+  }
+
+  // Legacy helpers still used in edit mode; keep as-is.
 
   Widget _buildSectionCard({required bool isDark, required String title, required IconData icon, required Widget content}) {
     return Container(
@@ -650,4 +755,558 @@ class _MedicationRow {
   final TextEditingController name;
   final TextEditingController purpose;
   _MedicationRow(this.name, this.purpose);
+}
+
+class _TopHeader extends StatelessWidget {
+  final String title;
+  final bool isEditing;
+  final bool isSaving;
+  final VoidCallback onBack;
+  final VoidCallback onEdit;
+  final VoidCallback onSave;
+
+  const _TopHeader({
+    required this.title,
+    required this.isEditing,
+    required this.isSaving,
+    required this.onBack,
+    required this.onEdit,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: onBack,
+            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+          ),
+          Expanded(
+            child: Text(
+              title,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.roboto(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+          if (isEditing) ...[
+            if (isSaving)
+              const Padding(
+                padding: EdgeInsets.all(12),
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            else
+              TextButton(
+                onPressed: onSave,
+                child: Text(
+                  'SAVE',
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+          ] else
+            IconButton(
+              onPressed: onEdit,
+              icon: Icon(Icons.edit, color: colorScheme.onSurface),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Text(
+      text,
+      style: GoogleFonts.roboto(
+        fontSize: 10,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.0,
+        color: colorScheme.onSurface.withOpacity(0.45),
+      ),
+    );
+  }
+}
+
+class _MiniInfoCard extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _MiniInfoCard({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.roboto(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurface.withOpacity(0.55),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.roboto(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WideInfoCard extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _WideInfoCard({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.roboto(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface.withOpacity(0.55),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  value,
+                  style: GoogleFonts.roboto(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitleRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final Widget? trailing;
+
+  const _SectionTitleRow({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Icon(icon, color: iconColor, size: 18),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.roboto(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ),
+        if (trailing != null) trailing!,
+      ],
+    );
+  }
+}
+
+class _CountBadge extends StatelessWidget {
+  final String text;
+  const _CountBadge({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.12)),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.roboto(
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          color: colorScheme.primary,
+        ),
+      ),
+    );
+  }
+}
+
+class _MutedCard extends StatelessWidget {
+  final Widget child;
+  const _MutedCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.surfaceContainerHighest
+            : const Color(0xFFF3F5F8),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.08)),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _MedicationCard extends StatelessWidget {
+  final String name;
+  final String subtitle;
+
+  const _MedicationCard({required this.name, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.medication_outlined, color: colorScheme.primary, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: GoogleFonts.roboto(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.roboto(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface.withOpacity(0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: colorScheme.outline.withOpacity(0.10)),
+            ),
+            child: Text(
+              'DAILY',
+              style: GoogleFonts.roboto(
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SurgeryCard extends StatelessWidget {
+  final String name;
+  final String subtitle;
+  final bool canOpen;
+  final VoidCallback? onView;
+  final VoidCallback? onDownload;
+
+  const _SurgeryCard({
+    required this.name,
+    required this.subtitle,
+    required this.canOpen,
+    required this.onView,
+    required this.onDownload,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerHighest : const Color(0xFFF3F5F8),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            name,
+            style: GoogleFonts.roboto(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: GoogleFonts.roboto(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface.withOpacity(0.55),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: canOpen ? onView : null,
+                  icon: const Icon(Icons.visibility, size: 16),
+                  label: const Text('View'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: colorScheme.onSurface,
+                    side: BorderSide(color: colorScheme.outline.withOpacity(0.15)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: canOpen ? onDownload : null,
+                  icon: const Icon(Icons.download, size: 16),
+                  label: const Text('Download'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DocCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onOpen;
+
+  const _DocCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: colorScheme.primary, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.roboto(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.roboto(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface.withOpacity(0.55),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.share_outlined,
+                    color: colorScheme.onSurface.withOpacity(0.45), size: 18),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.more_vert,
+                    color: colorScheme.onSurface.withOpacity(0.45), size: 18),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onOpen,
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    isDark ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+                foregroundColor: isDark ? Colors.white : colorScheme.primary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: Text(
+                'Open Document',
+                style: GoogleFonts.roboto(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

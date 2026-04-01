@@ -107,8 +107,29 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
     }
 
     final uri = Uri.parse(finalUrl);
+    if (_isImageUrl(finalUrl)) {
+      if (!mounted) return;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => _InAppImageViewer(imageUrl: finalUrl),
+        ),
+      );
+      return;
+    }
+
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final opened = await launchUrl(
+        uri,
+        mode: LaunchMode.inAppWebView,
+        webViewConfiguration: const WebViewConfiguration(
+          enableJavaScript: true,
+          enableDomStorage: true,
+        ),
+      );
+      if (!opened) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -116,6 +137,15 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
         );
       }
     }
+  }
+
+  bool _isImageUrl(String url) {
+    final clean = url.split('?').first.toLowerCase();
+    return clean.endsWith('.png') ||
+        clean.endsWith('.jpg') ||
+        clean.endsWith('.jpeg') ||
+        clean.endsWith('.webp') ||
+        clean.endsWith('.gif');
   }
 
   Future<void> _pickDob() async {
@@ -1306,6 +1336,48 @@ class _DocCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _InAppImageViewer extends StatelessWidget {
+  final String imageUrl;
+
+  const _InAppImageViewer({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Center(
+        child: InteractiveViewer(
+          minScale: 0.8,
+          maxScale: 4.0,
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) {
+              return Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Unable to load image',
+                  style: GoogleFonts.roboto(
+                    color: colorScheme.onPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -516,167 +517,128 @@ class _PatientEmergencyContactsScreenState
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final pageBg = isDark ? colorScheme.surface : const Color(0xFFF6F8FB);
+    final profile = context.watch<ProfileService>().currentUser;
+    final avatarUrl = profile?.profilePictureUrl.trim().isNotEmpty == true
+        ? profile!.profilePictureUrl
+        : null;
+
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: Theme.of(context).brightness == Brightness.light
-                  ? AppColors.premiumGradient
-                  : AppColors.darkPremiumGradient,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.blue
-                          : const Color(0xFF041E34))
-                      .withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-          ),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          'Emergency Relative',
-          style: GoogleFonts.roboto(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-      ),
+      backgroundColor: pageBg,
       body: SafeArea(
         child: Form(
           key: _formKey,
-          child: Column(
+          child: Stack(
             children: [
-              // Import from Contacts Button
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    onPressed: _isLoading ? null : _importFromContacts,
-                    icon: Icon(
-                      Icons.contacts_outlined,
-                      color: colorScheme.primary,
-                    ),
-                    label: Text(
-                      'Import from Contacts',
-                      style: GoogleFonts.roboto(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      backgroundColor: colorScheme.primary.withOpacity(
-                        0.1,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+              ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 140),
+                children: [
+                  _TopHeaderBar(
+                    title: 'Emergency Contacts',
+                    avatarUrl: avatarUrl,
+                    onBack: () => context.pop(),
+                  ),
+                  const SizedBox(height: 18),
+                  _PillLabel(text: 'SAFETY PROFILE'),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Who should we call in an emergency?',
+                    style: GoogleFonts.roboto(
+                      fontSize: 30,
+                      height: 1.05,
+                      fontWeight: FontWeight.w800,
+                      color: colorScheme.onSurface,
                     ),
                   ),
-                ),
-              ),
-
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(24),
-                  itemCount: _contacts.length,
-                  itemBuilder: (context, index) {
+                  const SizedBox(height: 10),
+                  Text(
+                    'Ensure your safety by linking a trusted relative. '
+                    'We will only contact them during critical health alerts.',
+                    style: GoogleFonts.roboto(
+                      fontSize: 13,
+                      height: 1.45,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _ImportButton(
+                    enabled: !_isLoading,
+                    onTap: _importFromContacts,
+                  ),
+                  const SizedBox(height: 22),
+                  // Form fields (reuse existing builder)
+                  ...List.generate(_contacts.length, (index) {
                     return _buildContactItem(
                       _contacts[index],
                       index,
                       const AlwaysStoppedAnimation(1.0),
                     );
-                  },
-                ),
-              ),
-
-              // Add Another Relative Button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _addContact,
-                    icon: Icon(Icons.add, color: colorScheme.primary),
-                    label: Text(
-                      'Add Another Relative',
-                      style: GoogleFonts.roboto(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: colorScheme.primary),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                  }),
+                  const SizedBox(height: 4),
+                  _AddAnotherButton(
+                    onTap: _addContact,
                   ),
-                ),
+                  const SizedBox(height: 18),
+                  _PrivacyGuaranteeBanner(),
+                ],
               ),
-
-              const SizedBox(height: 16),
-
-              // Save and Verify Button
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
                 child: Container(
-                  width: double.infinity,
-                  height: 56,
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
                   decoration: BoxDecoration(
-                    gradient: Theme.of(context).brightness == Brightness.light
-                        ? AppColors.premiumGradient
-                        : AppColors.darkPremiumGradient,
-                    borderRadius: BorderRadius.circular(16),
+                    color: pageBg,
                     boxShadow: [
                       BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 20,
+                        offset: const Offset(0, -8),
                       ),
                     ],
                   ),
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveAndVerify,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _saveAndVerify,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D47A1),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        elevation: 0,
                       ),
-                    ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text(
-                            'Save and Verify',
-                            style: GoogleFonts.roboto(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Save and Verify',
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                const Icon(Icons.check_circle_outline, size: 18),
+                              ],
                             ),
-                          ),
+                    ),
                   ),
                 ),
               ),
-
-              // Skip Button (Removed/Disabled as per request, just showing text maybe or nothing)
-              // Request said "remove or disable". I will remove it to be cleaner.
             ],
           ),
         ),
@@ -690,42 +652,30 @@ class _PatientEmergencyContactsScreenState
     Animation<double> animation,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fieldBg = isDark ? colorScheme.surface : Colors.white;
+    final fieldBorder = colorScheme.outline.withOpacity(isDark ? 0.22 : 0.10);
+    final iconMuted = colorScheme.onSurface.withOpacity(0.45);
+
     return SizeTransition(
       sizeFactor: animation,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 24),
+        margin: const EdgeInsets.only(bottom: 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (index > 0) ...[
-              Divider(height: 32, color: colorScheme.outlineVariant),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Relative ${index + 1}',
-                    style: GoogleFonts.roboto(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () => _removeContact(index),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
             ],
 
             // Name Field
             Text(
-              'Relative Name',
+              'RELATIVE NAME',
               style: GoogleFonts.roboto(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.0,
+                color: colorScheme.onSurface.withOpacity(0.55),
               ),
             ),
             const SizedBox(height: 8),
@@ -736,24 +686,24 @@ class _PatientEmergencyContactsScreenState
                   : null,
               style: TextStyle(color: colorScheme.onSurface),
               decoration: InputDecoration(
-                hintText: 'Enter full name',
+                hintText: 'Full legal name',
                 hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
                 prefixIcon: Icon(
                   Icons.person_outline,
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  color: iconMuted,
                 ),
                 filled: true,
-                fillColor: colorScheme.surface,
+                fillColor: fieldBg,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: fieldBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: fieldBorder),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
@@ -766,11 +716,12 @@ class _PatientEmergencyContactsScreenState
 
             // Relation Dropdown
             Text(
-              'Relation',
+              'RELATION',
               style: GoogleFonts.roboto(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.0,
+                color: colorScheme.onSurface.withOpacity(0.55),
               ),
             ),
             const SizedBox(height: 8),
@@ -783,17 +734,17 @@ class _PatientEmergencyContactsScreenState
               style: TextStyle(color: colorScheme.onSurface),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: colorScheme.surface,
+                fillColor: fieldBg,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: fieldBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: fieldBorder),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
@@ -827,17 +778,17 @@ class _PatientEmergencyContactsScreenState
                   hintText: 'Enter relationship type',
                   hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
                   filled: true,
-                  fillColor: colorScheme.surface,
+                  fillColor: fieldBg,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: colorScheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: fieldBorder),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: colorScheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: fieldBorder),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide(color: colorScheme.primary),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
@@ -852,11 +803,12 @@ class _PatientEmergencyContactsScreenState
 
             // Phone Number Field
             Text(
-              'Mobile Number',
+              'MOBILE NUMBER',
               style: GoogleFonts.roboto(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.0,
+                color: colorScheme.onSurface.withOpacity(0.55),
               ),
             ),
             const SizedBox(height: 8),
@@ -885,24 +837,24 @@ class _PatientEmergencyContactsScreenState
                 return null;
               },
               decoration: InputDecoration(
-                hintText: 'Enter phone number',
+                hintText: '+1 (555) 000-0000',
                 hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
                 prefixIcon: Icon(
                   Icons.phone_outlined,
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  color: iconMuted,
                 ),
                 filled: true,
-                fillColor: colorScheme.surface,
+                fillColor: fieldBg,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: fieldBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: fieldBorder),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
@@ -913,6 +865,234 @@ class _PatientEmergencyContactsScreenState
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TopHeaderBar extends StatelessWidget {
+  final String title;
+  final String? avatarUrl;
+  final VoidCallback onBack;
+
+  const _TopHeaderBar({
+    required this.title,
+    required this.avatarUrl,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final titleColor = Theme.of(context).brightness == Brightness.dark
+        ? colorScheme.primary
+        : const Color(0xFF1565C0);
+    return Row(
+      children: [
+        InkWell(
+          onTap: onBack,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(Icons.arrow_back_ios_new,
+                color: colorScheme.onSurface, size: 20),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.roboto(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: titleColor,
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+          ),
+          child: CircleAvatar(
+            radius: 18,
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+            child: avatarUrl == null
+                ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PillLabel extends StatelessWidget {
+  final String text;
+  const _PillLabel({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.surfaceContainerHighest
+            : const Color(0xFFEAF0FC),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.roboto(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.0,
+          color: colorScheme.onSurface.withOpacity(0.55),
+        ),
+      ),
+    );
+  }
+}
+
+class _ImportButton extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _ImportButton({required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark
+        ? colorScheme.surfaceContainerHighest
+        : const Color(0xFFF1F4FA);
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.contacts_outlined,
+                size: 18, color: colorScheme.primary),
+            const SizedBox(width: 10),
+            Text(
+              'Import from Contacts',
+              style: GoogleFonts.roboto(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddAnotherButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AddAnotherButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Icon(Icons.add_circle_outline,
+                color: colorScheme.primary, size: 18),
+            const SizedBox(width: 10),
+            Text(
+              'Add Another Relative',
+              style: GoogleFonts.roboto(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PrivacyGuaranteeBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0D47A1),
+            Color(0xFF1E6CD6),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0D47A1).withOpacity(0.22),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -10,
+            bottom: -24,
+            child: Icon(
+              Icons.shield_outlined,
+              size: 130,
+              color: Colors.white.withOpacity(0.12),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Privacy Guarantee',
+                style: GoogleFonts.roboto(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Emergency contacts are encrypted\nand only accessible to verified\nmedical responders when an SOS is\ntriggered.',
+                style: GoogleFonts.roboto(
+                  fontSize: 12,
+                  height: 1.4,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withOpacity(0.9),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

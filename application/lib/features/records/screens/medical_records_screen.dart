@@ -107,6 +107,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final profileImageUrl =
         context.watch<ProfileService>().currentUser?.profilePictureUrl;
     
@@ -122,7 +123,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FB),
+      backgroundColor: isDark ? colorScheme.surface : const Color(0xFFF6F8FB),
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -362,6 +363,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     bool large = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBg = isDark
+        ? colorScheme.surfaceContainerHighest
+        : const Color(0xFFEAF0FC);
 
     return Container(
       constraints: BoxConstraints(minHeight: large ? 96 : 92),
@@ -388,7 +393,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 Container(
                   padding: EdgeInsets.all(large ? 9 : 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEAF0FC),
+                    color: iconBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -506,6 +511,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required IconData icon,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -524,12 +530,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF0FC),
+              color: isDark
+                  ? colorScheme.surfaceContainerHighest
+                  : const Color(0xFFEAF0FC),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               icon,
-              color: const Color(0xFF0F4AA8),
+              color: colorScheme.primary,
               size: 20,
             ),
           ),
@@ -569,7 +577,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             ),
             child: Icon(
               Icons.download_rounded,
-              color: const Color(0xFF0F4AA8).withOpacity(0.9),
+              color: colorScheme.primary.withOpacity(0.9),
               size: 18,
             ),
           ),
@@ -580,6 +588,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
   Widget _buildTopHeader({String? avatarUrl}) {
     final colorScheme = Theme.of(context).colorScheme;
+    final titleColor = Theme.of(context).brightness == Brightness.dark
+        ? colorScheme.primary
+        : const Color(0xFF1565C0);
     return Row(
       children: [
         InkWell(
@@ -597,7 +608,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             style: GoogleFonts.roboto(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF1565C0),
+              color: titleColor,
             ),
           ),
         ),

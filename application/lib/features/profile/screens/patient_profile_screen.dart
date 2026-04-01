@@ -41,6 +41,7 @@ class PatientProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final profile = context.watch<ProfileService>().currentUser;
     final profileImageUrl = profile?.profilePictureUrl.trim().isNotEmpty == true
         ? profile!.profilePictureUrl
@@ -50,7 +51,7 @@ class PatientProfileScreen extends StatelessWidget {
     final walletBalance = profile?.walletBalance ?? 0.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FB),
+      backgroundColor: isDark ? colorScheme.surface : const Color(0xFFF6F8FB),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -167,6 +168,9 @@ class _TopHeaderBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final titleColor = Theme.of(context).brightness == Brightness.dark
+        ? colorScheme.primary
+        : const Color(0xFF1565C0);
     return Row(
       children: [
         InkWell(
@@ -185,7 +189,7 @@ class _TopHeaderBar extends StatelessWidget {
             style: GoogleFonts.roboto(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF1565C0),
+              color: titleColor,
             ),
           ),
         ),
@@ -277,17 +281,20 @@ class _PillBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFEAF0FC),
+        color: isDark
+            ? colorScheme.surfaceContainerHighest
+            : const Color(0xFFEAF0FC),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: colorScheme.outline.withOpacity(0.12)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: const Color(0xFF1565C0)),
+          Icon(icon, size: 14, color: colorScheme.primary),
           const SizedBox(width: 6),
           Text(
             text,
@@ -377,6 +384,11 @@ class _MenuRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBg = isDark
+        ? colorScheme.surfaceContainerHighest
+        : const Color(0xFFEAF0FC);
+    final primary = Theme.of(context).colorScheme.primary;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
@@ -388,10 +400,12 @@ class _MenuRow extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: const BoxDecoration(
-                color: Color(0xFFEAF0FC),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 20, color: const Color(0xFF1565C0)),
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                child: Icon(icon, size: 20, color: primary),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -411,7 +425,7 @@ class _MenuRow extends StatelessWidget {
                 style: GoogleFonts.roboto(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1565C0),
+                  color: primary,
                 ),
               ),
               const SizedBox(width: 10),
@@ -432,6 +446,7 @@ class _LogoutCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
@@ -455,9 +470,15 @@ class _LogoutCard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFEBEE),
+                color: isDark
+                    ? colorScheme.errorContainer.withOpacity(0.6)
+                    : const Color(0xFFFFEBEE),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFFFCDD2)),
+                border: Border.all(
+                  color: isDark
+                      ? colorScheme.error.withOpacity(0.35)
+                      : const Color(0xFFFFCDD2),
+                ),
               ),
               child: const Icon(Icons.logout, size: 20, color: Color(0xFFD32F2F)),
             ),

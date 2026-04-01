@@ -3,12 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../auth/services/auth_service.dart';
 import '../../../core/services/settings_service.dart';
 import '../../../core/services/background_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/profile_service.dart';
 import 'privacy_policy_screen.dart';
 
 class AppSettingsScreen extends StatefulWidget {
@@ -44,254 +46,191 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final profile = context.watch<ProfileService>().currentUser;
+    final avatarUrl = profile?.profilePictureUrl.trim().isNotEmpty == true
+        ? profile!.profilePictureUrl
+        : null;
+    final name =
+        profile?.fullName.trim().isNotEmpty == true ? profile!.fullName : 'Member';
+    final handle =
+        profile?.email.trim().isNotEmpty == true ? profile!.email : '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: Theme.of(context).brightness == Brightness.light
-                ? AppColors.premiumGradient
-                : AppColors.darkPremiumGradient,
-          ),
-        ),
-        title: Text(
-          'Settings',
-          style: GoogleFonts.roboto(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: AnimatedBuilder(
-        animation: SettingsService(),
-        builder: (context, child) {
-          final settings = SettingsService();
-          if (settings.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              _buildSectionHeader('Appearance', context),
-              _buildSwitchTile(
-                context: context,
-                title: 'Dark Mode',
-                subtitle: 'Enable dark theme for the application',
-                icon: Icons.dark_mode_outlined,
-                value: settings.themeMode == ThemeMode.dark,
-                onChanged: (value) => settings.toggleTheme(value),
-              ),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Protection', context),
-              _buildSwitchTile(
-                context: context,
-                title: 'Background Protection',
-                subtitle: 'Stay protected even if app is closed',
-                icon: Icons.security_outlined,
-                value: _backgroundServiceEnabled,
-                onChanged: (value) async {
-                  if (value) {
-                    // Request notification permission before starting service
-                    final status = await Permission.notification.request();
-                    if (status.isGranted) {
-                      await BackgroundServiceHelper.startService();
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool(_kBgProtectionKey, true);
-                      setState(() {
-                        _backgroundServiceEnabled = value;
-                      });
+      backgroundColor: isDark ? colorScheme.surface : const Color(0xFFF6F8FB),
+      body: SafeArea(
+        child: AnimatedBuilder(
+          animation: SettingsService(),
+          builder: (context, child) {
+            final settings = SettingsService();
+            if (settings.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                      // Show one-time notification that protection is ON
-                      await _showProtectionEnabledNotification();
-
-                      // Request battery optimization exemption (Samsung fix)
-                      await _requestBatteryOptimizationExemption();
-
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Background protection activated!'),
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _TopHeaderBar(
+                    title: 'App Settings',
+                    avatarUrl: avatarUrl,
+                    onLeadingTap: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
                       }
-                    } else {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Notification permission is required for background protection'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                      return;
-                    }
-                  } else {
-                    await BackgroundServiceHelper.stopService();
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool(_kBgProtectionKey, false);
-                    setState(() {
-                      _backgroundServiceEnabled = value;
-                    });
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Background protection deactivated'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
-              const SizedBox(height: 24),
-              _buildSectionHeader('General', context),
-              /*
-              _buildSwitchTile(
-                context: context,
-                title: 'Notifications',
-                subtitle: 'Enable push notifications',
-                icon: Icons.notifications_outlined,
-                value: settings.notificationsEnabled,
-                onChanged: (value) => settings.setNotifications(value),
-              ),
-              const SizedBox(height: 12),
-              */
-              _buildListTile(
-                context: context,
-                title: 'Language',
-                subtitle: settings.language,
-                icon: Icons.language,
-                onTap: () => _showLanguageDialog(context, settings),
-              ),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Data & Privacy', context),
-              // Data Backup button hidden as requested
-              // _buildListTile(
-              //   context: context,
-              //   title: 'Data Backup',
-              //   subtitle: 'Last backup: Never',
-              //   icon: Icons.backup_outlined,
-              //   onTap: () {
-              //     ScaffoldMessenger.of(context).showSnackBar(
-              //       const SnackBar(content: Text('Backup feature coming soon')),
-              //     );
-              //   },
-              // ),
-              // const SizedBox(height: 12),
-              _buildListTile(
-                context: context,
-                title: 'Privacy Policy',
-                subtitle: 'View privacy policy',
-                icon: Icons.privacy_tip_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const PrivacyPolicyScreen(),
+                    },
+                    showBackIfPossible: Navigator.of(context).canPop(),
+                  ),
+                  const SizedBox(height: 14),
+                  _UserCard(
+                    name: name,
+                    subtitleLine1: 'Premium Member •',
+                    subtitleLine2: handle,
+                    avatarUrl: avatarUrl,
+                    onEditTap: () => context.push('/patient/profile/personal-info'),
+                  ),
+                  const SizedBox(height: 18),
+                  _SectionHeader('APPEARANCE'),
+                  const SizedBox(height: 10),
+                  _CardGroup(
+                    children: [
+                      _ToggleRow(
+                        icon: Icons.dark_mode_outlined,
+                        title: 'Dark Mode',
+                        value: settings.themeMode == ThemeMode.dark,
+                        onChanged: (value) => settings.toggleTheme(value),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionHeader('PROTECTION'),
+                  const SizedBox(height: 10),
+                  _CardGroup(
+                    children: [
+                      _ToggleRow(
+                        icon: Icons.security_outlined,
+                        title: 'Background\nProtection',
+                        subtitle: 'Real-time health\nmonitoring',
+                        value: _backgroundServiceEnabled,
+                        onChanged: (value) async {
+                          if (value) {
+                            final status = await Permission.notification.request();
+                            if (status.isGranted) {
+                              await BackgroundServiceHelper.startService();
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setBool(_kBgProtectionKey, true);
+                              setState(() {
+                                _backgroundServiceEnabled = value;
+                              });
+
+                              await _showProtectionEnabledNotification();
+                              await _requestBatteryOptimizationExemption();
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Background protection activated!'),
+                                    backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 3),
+                                  ),
+                                );
+                              }
+                            } else {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Notification permission is required for background protection',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+                          } else {
+                            await BackgroundServiceHelper.stopService();
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setBool(_kBgProtectionKey, false);
+                            setState(() {
+                              _backgroundServiceEnabled = value;
+                            });
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Background protection deactivated'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionHeader('GENERAL'),
+                  const SizedBox(height: 10),
+                  _CardGroup(
+                    children: [
+                      _NavRow(
+                        icon: Icons.language,
+                        title: 'Language',
+                        trailingText: settings.language,
+                        onTap: () => _showLanguageDialog(context, settings),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionHeader('DATA & PRIVACY'),
+                  const SizedBox(height: 10),
+                  _CardGroup(
+                    children: [
+                      _NavRow(
+                        icon: Icons.privacy_tip_outlined,
+                        title: 'Privacy Policy',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PrivacyPolicyScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionHeader('ACCOUNT'),
+                  const SizedBox(height: 10),
+                  _CardGroup(
+                    children: [
+                      _LogoutRow(
+                        onTap: () => _handleLogout(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Center(
+                    child: Text(
+                      'VERSION 2.4.1 (CARE4ELDER BUILD)',
+                      style: GoogleFonts.roboto(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface.withOpacity(0.35),
+                        letterSpacing: 1.0,
+                      ),
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 60),
+                ],
               ),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Account', context),
-              _buildListTile(
-                context: context,
-                title: 'Logout',
-                subtitle: 'Sign out of your account',
-                icon: Icons.logout,
-                onTap: () => _handleLogout(context),
-                isDestructive: true,
-              ),
-              const SizedBox(height: 40),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title.toUpperCase(),
-        style: GoogleFonts.roboto(
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.2,
-          color: Theme.of(context).brightness == Brightness.light
-              ? const Color(0xFF041E34).withOpacity(0.6)
-              : Colors.blue.withOpacity(0.6),
+            );
+          },
         ),
-      ),
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required BuildContext context,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SwitchListTile(
-        value: value,
-        onChanged: onChanged,
-        title: Text(
-          title,
-          style: GoogleFonts.roboto(fontWeight: FontWeight.w600, fontSize: 16),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: GoogleFonts.roboto(
-            color: Theme.of(context).textTheme.bodySmall?.color,
-            fontSize: 12,
-          ),
-        ),
-        secondary: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            gradient: Theme.of(context).brightness == Brightness.light
-                ? AppColors.premiumGradient
-                : AppColors.darkPremiumGradient,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: (Theme.of(context).brightness == Brightness.light
-                        ? const Color(0xFF041E34)
-                        : Colors.blue)
-                    .withOpacity(0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Icon(icon, color: Colors.white, size: 20),
-        ),
-        activeColor: Theme.of(context).brightness == Brightness.light
-            ? const Color(0xFF041E34)
-            : Colors.blue,
-        activeTrackColor: (Theme.of(context).brightness == Brightness.light
-                ? const Color(0xFF041E34)
-                : Colors.blue)
-            .withOpacity(0.3),
       ),
     );
   }
@@ -436,81 +375,415 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
       ),
     );
   }
+}
 
-  Widget _buildListTile({
-    required BuildContext context,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-    bool isDestructive = false,
-  }) {
+class _TopHeaderBar extends StatelessWidget {
+  final String title;
+  final String? avatarUrl;
+  final VoidCallback onLeadingTap;
+  final bool showBackIfPossible;
+
+  const _TopHeaderBar({
+    required this.title,
+    required this.avatarUrl,
+    required this.onLeadingTap,
+    required this.showBackIfPossible,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final titleColor = Theme.of(context).brightness == Brightness.dark
+        ? colorScheme.primary
+        : const Color(0xFF1565C0);
+    final leadingIcon = showBackIfPossible ? Icons.arrow_back_ios_new : Icons.menu;
+    return Row(
+      children: [
+        InkWell(
+          onTap: onLeadingTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(leadingIcon, color: colorScheme.onSurface, size: 22),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.roboto(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: titleColor,
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: colorScheme.outline.withOpacity(0.25)),
+          ),
+          child: CircleAvatar(
+            radius: 18,
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+            child: avatarUrl == null
+                ? Icon(Icons.person, color: colorScheme.onSurface, size: 18)
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UserCard extends StatelessWidget {
+  final String name;
+  final String subtitleLine1;
+  final String subtitleLine2;
+  final String? avatarUrl;
+  final VoidCallback onEditTap;
+
+  const _UserCard({
+    required this.name,
+    required this.subtitleLine1,
+    required this.subtitleLine2,
+    required this.avatarUrl,
+    required this.onEditTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final nameColor =
+        isDark ? colorScheme.onSurface : const Color(0xFF0F4AA8);
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: ListTile(
-        onTap: onTap,
-        title: Text(
-          title,
-          style: GoogleFonts.roboto(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            color: isDestructive
-                ? AppColors.error
-                : Theme.of(context).colorScheme.onSurface,
+      child: Column(
+        children: [
+          Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colorScheme.surfaceContainerHighest,
+              image: avatarUrl != null
+                  ? DecorationImage(image: NetworkImage(avatarUrl!), fit: BoxFit.cover)
+                  : null,
+            ),
+            child: avatarUrl == null
+                ? Icon(Icons.person, size: 38, color: colorScheme.onSurface.withOpacity(0.35))
+                : null,
           ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: GoogleFonts.roboto(
-            color: Theme.of(context).textTheme.bodySmall?.color,
-            fontSize: 12,
+          const SizedBox(height: 12),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.roboto(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: nameColor,
+            ),
           ),
+          const SizedBox(height: 4),
+          Text(
+            subtitleLine1,
+            style: GoogleFonts.roboto(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface.withOpacity(0.55),
+            ),
+          ),
+          if (subtitleLine2.isNotEmpty)
+            Text(
+              subtitleLine2,
+              style: GoogleFonts.roboto(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface.withOpacity(0.45),
+              ),
+            ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 36,
+            child: ElevatedButton(
+              onPressed: onEditTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                elevation: 0,
+              ),
+              child: Text(
+                'Edit Profile',
+                style: GoogleFonts.roboto(fontWeight: FontWeight.w700, fontSize: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        title,
+        style: GoogleFonts.roboto(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.1,
+          color: colorScheme.onSurface.withOpacity(0.45),
         ),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            gradient: isDestructive
-                ? null
-                : (Theme.of(context).brightness == Brightness.light
-                    ? AppColors.premiumGradient
-                    : AppColors.darkPremiumGradient),
-            color: isDestructive ? AppColors.error.withOpacity(0.1) : null,
-            shape: BoxShape.circle,
-            boxShadow: isDestructive
-                ? null
-                : [
-                    BoxShadow(
-                      color: (Theme.of(context).brightness == Brightness.light
-                              ? const Color(0xFF041E34)
-                              : Colors.blue)
-                          .withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+      ),
+    );
+  }
+}
+
+class _CardGroup extends StatelessWidget {
+  final List<Widget> children;
+  const _CardGroup({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          for (int i = 0; i < children.length; i++) ...[
+            children[i],
+            if (i != children.length - 1)
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: colorScheme.outline.withOpacity(0.08),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _ToggleRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+    this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBg = isDark
+        ? colorScheme.surfaceContainerHighest
+        : const Color(0xFFEAF0FC);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconBg,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: colorScheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.roboto(
+                    fontSize: 14,
+                    height: 1.15,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: GoogleFonts.roboto(
+                      fontSize: 11,
+                      height: 1.15,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface.withOpacity(0.55),
                     ),
-                  ],
+                  ),
+                ],
+              ],
+            ),
           ),
-          child: Icon(
-            icon,
-            color: isDestructive ? AppColors.error : Colors.white,
-            size: 20,
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: Colors.white,
+            activeTrackColor: colorScheme.primary,
+            inactiveThumbColor: Colors.white,
+            inactiveTrackColor: colorScheme.onSurface.withOpacity(0.15),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? trailingText;
+  final VoidCallback onTap;
+
+  const _NavRow({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.trailingText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBg = isDark
+        ? colorScheme.surfaceContainerHighest
+        : const Color(0xFFEAF0FC);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconBg,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 20, color: colorScheme.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.roboto(
+                  fontSize: 14,
+                  height: 1.15,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+            if (trailingText != null) ...[
+              Text(
+                trailingText!,
+                style: GoogleFonts.roboto(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface.withOpacity(0.55),
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
+            Icon(Icons.chevron_right, color: colorScheme.onSurface.withOpacity(0.25)),
+          ],
         ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface
-              .withOpacity(0.5),
+      ),
+    );
+  }
+}
+
+class _LogoutRow extends StatelessWidget {
+  final VoidCallback onTap;
+  const _LogoutRow({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEBEE),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFFFCDD2)),
+              ),
+              child: const Icon(Icons.logout, size: 20, color: Color(0xFFD32F2F)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Logout',
+                style: GoogleFonts.roboto(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFD32F2F),
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right, color: colorScheme.onSurface.withOpacity(0.25)),
+          ],
         ),
       ),
     );

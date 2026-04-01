@@ -262,6 +262,9 @@ class _TopHeaderBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final titleColor = Theme.of(context).brightness == Brightness.dark
+        ? colorScheme.primary
+        : const Color(0xFF1565C0);
     return Row(
       children: [
         InkWell(
@@ -280,7 +283,7 @@ class _TopHeaderBar extends StatelessWidget {
             style: GoogleFonts.roboto(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF1565C0),
+              color: titleColor,
             ),
           ),
         ),
@@ -735,13 +738,16 @@ class _EmergencySosBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF3E7E7),
+          color: isDark
+              ? colorScheme.errorContainer.withOpacity(0.35)
+              : const Color(0xFFF3E7E7),
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(

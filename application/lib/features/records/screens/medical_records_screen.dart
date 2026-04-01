@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/patient_side_menu.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../auth/services/auth_service.dart';
 import '../../../core/services/call_request_service.dart';
@@ -594,7 +595,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     return Row(
       children: [
         InkWell(
-          onTap: () {},
+          onTap: () => openPatientSideMenu(context),
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(8),

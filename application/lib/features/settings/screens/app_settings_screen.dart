@@ -10,6 +10,7 @@ import '../../auth/services/auth_service.dart';
 import '../../../core/services/settings_service.dart';
 import '../../../core/services/background_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/patient_side_menu.dart';
 import '../../../core/services/profile_service.dart';
 import 'privacy_policy_screen.dart';
 
@@ -80,6 +81,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                     onLeadingTap: () {
                       if (Navigator.of(context).canPop()) {
                         Navigator.of(context).pop();
+                      } else {
+                        openPatientSideMenu(context);
                       }
                     },
                     showBackIfPossible: Navigator.of(context).canPop(),

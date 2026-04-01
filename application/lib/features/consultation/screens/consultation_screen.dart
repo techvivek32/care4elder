@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/patient_side_menu.dart';
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/profile_service.dart';
 
@@ -97,7 +98,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                     child: _TopHeaderBar(
                       title: 'Consult',
-                      onMenuTap: () {},
+                      onMenuTap: () => openPatientSideMenu(context),
                       avatarUrl: (profileImageUrl != null &&
                               profileImageUrl.trim().isNotEmpty)
                           ? profileImageUrl

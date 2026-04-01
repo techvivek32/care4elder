@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/patient_side_menu.dart';
 import '../../../core/services/profile_service.dart';
 import '../../auth/services/auth_service.dart';
 
@@ -61,7 +62,7 @@ class PatientProfileScreen extends StatelessWidget {
             children: [
               _TopHeaderBar(
                 title: 'Profile',
-                onMenuTap: () {},
+                onMenuTap: () => openPatientSideMenu(context),
                 avatarUrl: profileImageUrl,
               ),
               const SizedBox(height: 18),

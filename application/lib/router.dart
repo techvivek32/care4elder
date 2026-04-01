@@ -39,6 +39,7 @@ import 'features/call/screens/video_call_screen.dart';
 import 'features/call/screens/patient_ringing_screen.dart';
 import 'features/notifications/screens/notification_screen.dart';
 import 'features/settings/screens/app_settings_screen.dart';
+import 'features/support/screens/patient_help_support_screen.dart';
 import 'features/profile/screens/patient_wallet_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_history_screen.dart';
 import 'features/doctor_dashboard/screens/doctor_profile_tab_screen.dart';
@@ -333,6 +334,10 @@ final router = GoRouter(
             final open = state.uri.queryParameters['open'];
             return MedicalRecordsScreen(initialCategory: open);
           },
+        ),
+        GoRoute(
+          path: '/patient/help-support',
+          builder: (context, state) => const PatientHelpSupportScreen(),
         ),
         GoRoute(
           path: '/patient/profile',

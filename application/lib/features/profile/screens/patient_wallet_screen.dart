@@ -8,6 +8,7 @@ import '../../../core/services/profile_service.dart';
 import '../../../core/services/refund_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
+import '../../support/screens/patient_help_support_screen.dart';
 
 class PatientWalletScreen extends StatefulWidget {
   const PatientWalletScreen({super.key});
@@ -155,6 +156,14 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
     } catch (e) {
       debugPrint('Error: $e');
     }
+  }
+
+  void _openHelpSupport() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (context) => const PatientHelpSupportScreen(),
+      ),
+    );
   }
 
   @override
@@ -382,16 +391,21 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            height: 46,
+            height: 52,
             child: ElevatedButton(
               onPressed: isLoading ? null : onRecharge,
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 foregroundColor: Colors.white,
+                textStyle: GoogleFonts.roboto(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(26),
                 ),
                 elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
               child: isLoading
                   ? const SizedBox(
@@ -402,13 +416,7 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                         color: Colors.white,
                       ),
                     )
-                  : Text(
-                      'Recharge Now',
-                      style: GoogleFonts.roboto(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                  : const Text('Recharge Now'),
             ),
           ),
         ],
@@ -559,24 +567,24 @@ class _PatientWalletScreenState extends State<PatientWalletScreen> {
                 SizedBox(
                   height: 44,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _openHelpSupport,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: Colors.white,
+                      textStyle: GoogleFonts.roboto(
+                        fontSize: 14,
+                        height: 1.1,
+                        fontWeight: FontWeight.w900,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Contact Support',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.roboto(
-                        fontSize: 12,
-                        height: 1.1,
-                        fontWeight: FontWeight.w900,
-                      ),
                     ),
                   ),
                 ),

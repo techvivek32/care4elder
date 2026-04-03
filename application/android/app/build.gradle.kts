@@ -61,6 +61,19 @@ android {
             }
         }
     }
+
+    // Friendly APK filename when sharing/installing from files (e.g. Care4Elder-v1.0.0-release.apk)
+    applicationVariants.configureEach {
+        val variant = this
+        outputs.configureEach {
+            val fileName = "Care4Elder-v${variant.versionName}-${variant.buildType.name}.apk"
+            try {
+                javaClass.getMethod("setOutputFileName", String::class.java).invoke(this, fileName)
+            } catch (e: Exception) {
+                println("Care4Elder: custom APK name not applied: ${e.message}")
+            }
+        }
+    }
 }
 
 dependencies {

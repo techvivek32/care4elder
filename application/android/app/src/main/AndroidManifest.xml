@@ -28,7 +28,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
     
     <application
-        android:label="care4elder"
+        android:label="Care4Elder"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <service

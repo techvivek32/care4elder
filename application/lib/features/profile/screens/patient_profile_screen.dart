@@ -122,7 +122,9 @@ class PatientProfileScreen extends StatelessWidget {
                   _MenuRow(
                     icon: Icons.people_outline,
                     title: 'Emergency Contacts',
-                    onTap: () => context.push('/patient/contacts'),
+                    onTap: () => context.push(
+                      '/patient/contacts?from=${Uri.encodeComponent('/patient/profile')}',
+                    ),
                   ),
                   _MenuRow(
                     icon: Icons.settings_applications_outlined,

@@ -466,7 +466,10 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                   icon: Icons.people_outline,
                                   label: 'Emergency\nContacts',
                                   color: const Color(0xFF041E34),
-                                  onTap: () => context.push('/patient/contacts'),
+                                  onTap: () =>
+                                      context.push(
+                                        '/patient/contacts?from=${Uri.encodeComponent('/patient/dashboard')}',
+                                      ),
                                 ),
                               ),
                             ],

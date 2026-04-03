@@ -106,10 +106,16 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/patient/contacts',
-      builder: (context, state) => const PatientSafeBackScope(
-        fallbackRoute: '/patient/permissions',
-        child: PatientEmergencyContactsScreen(),
-      ),
+      builder: (context, state) {
+        final from = state.uri.queryParameters['from'];
+        // Remember where the user came from so Back returns them properly.
+        final fallbackRoute =
+            (from != null && from.isNotEmpty) ? from : '/patient/permissions';
+        return PatientSafeBackScope(
+          fallbackRoute: fallbackRoute,
+          child: const PatientEmergencyContactsScreen(),
+        );
+      },
     ),
     GoRoute(
       path: '/patient/contacts/otp',
@@ -127,8 +133,14 @@ final router = GoRouter(
               .toList();
         }
 
+        final from = state.uri.queryParameters['from'];
+        final fallbackRoute =
+            (from != null && from.isNotEmpty)
+                ? '/patient/contacts?from=${Uri.encodeComponent(from)}'
+                : '/patient/contacts';
+
         return PatientSafeBackScope(
-          fallbackRoute: '/patient/contacts',
+          fallbackRoute: fallbackRoute,
           child: PatientRelativeOtpScreen(
             phoneNumber: phone,
             contactsToSave: contactsData,

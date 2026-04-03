@@ -227,7 +227,10 @@ class _PatientSideMenuPanel extends StatelessWidget {
                           color: const Color(0xFFFFEBEE),
                           borderRadius: BorderRadius.circular(14),
                           child: InkWell(
-                            onTap: () => _go(context, '/patient/contacts'),
+                            onTap: () => _go(
+                              context,
+                              '/patient/contacts?from=${Uri.encodeComponent('/patient/profile')}',
+                            ),
                             borderRadius: BorderRadius.circular(14),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(

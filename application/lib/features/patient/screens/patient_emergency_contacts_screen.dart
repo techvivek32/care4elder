@@ -327,8 +327,13 @@ class _PatientEmergencyContactsScreenState
         );
 
         // Navigate to OTP verification and pass contactsData for local persistence after success
+        final from = GoRouterState.of(context).uri.queryParameters['from'];
+        final otpRoute = (from != null && from.isNotEmpty)
+            ? '/patient/contacts/otp?from=${Uri.encodeComponent(from)}'
+            : '/patient/contacts/otp';
+
         context.push(
-          '/patient/contacts/otp',
+          otpRoute,
           extra: {
             'phone': phoneToVerify,
             'contactsData': contactsData,
@@ -537,7 +542,18 @@ class _PatientEmergencyContactsScreenState
                   _TopHeaderBar(
                     title: 'Emergency Contacts',
                     avatarUrl: avatarUrl,
-                    onBack: () => context.pop(),
+                    onBack: () {
+                      final from =
+                          GoRouterState.of(context).uri.queryParameters['from'];
+                      final fallbackRoute = (from != null && from.isNotEmpty)
+                          ? from
+                          : '/patient/permissions';
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go(fallbackRoute);
+                      }
+                    },
                   ),
                   const SizedBox(height: 18),
                   _PillLabel(text: 'SAFETY PROFILE'),

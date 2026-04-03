@@ -35,7 +35,9 @@ class _PatientPermissionsScreenState extends State<PatientPermissionsScreen> {
 
       if (mounted) {
         // Navigate to the next screen (Emergency Contacts)
-        context.go('/patient/contacts');
+        context.go(
+          '/patient/contacts?from=${Uri.encodeComponent('/patient/permissions')}',
+        );
       }
     }
   }

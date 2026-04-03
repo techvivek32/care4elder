@@ -276,7 +276,7 @@ export default function AdminNotificationsPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto text-gray-900 [color-scheme:light]">
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center gap-2">
                 <Bell className="w-5 h-5 text-blue-600" />
@@ -290,7 +290,8 @@ export default function AdminNotificationsPage() {
                   setIsModalOpen(false);
                   resetForm();
                 }}
-                className="p-2 rounded-lg hover:bg-gray-100"
+                className="p-2 rounded-lg hover:bg-gray-100 text-gray-700"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -302,7 +303,7 @@ export default function AdminNotificationsPage() {
                 </label>
                 <input
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={formData.title}
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
@@ -316,7 +317,7 @@ export default function AdminNotificationsPage() {
                 <textarea
                   required
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={formData.body}
                   onChange={(e) =>
                     setFormData({ ...formData, body: e.target.value })
@@ -328,7 +329,7 @@ export default function AdminNotificationsPage() {
                   Topic (optional label, e.g. &quot;Holiday hours&quot;)
                 </label>
                 <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={formData.topic}
                   onChange={(e) =>
                     setFormData({ ...formData, topic: e.target.value })
@@ -341,7 +342,7 @@ export default function AdminNotificationsPage() {
                   Tag (controls icon / category in app)
                 </label>
                 <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 [&>option]:bg-white [&>option]:text-gray-900"
                   value={formData.type}
                   onChange={(e) =>
                     setFormData({
@@ -361,7 +362,7 @@ export default function AdminNotificationsPage() {
                   Audience
                 </label>
                 <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-700 [&>option]:bg-white [&>option]:text-gray-900"
                   value={formData.audience}
                   disabled={!!editing}
                   onChange={(e) =>

@@ -37,6 +37,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     super.initState();
     // Ensure we have a valid notifier
     _unreadCountNotifier = NotificationService().unreadCountNotifier;
+    NotificationService().fetchNotifications();
     _loadProfile();
     _startIncomingCallPolling();
     _loadHeroSections();
@@ -510,7 +511,6 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 ],
               ),
             ),
-            /*
             GestureDetector(
               onTap: () => context.push('/doctor/notifications'),
               child: Container(
@@ -563,7 +563,6 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 ),
               ),
             ),
-            */
           ],
         );
       },

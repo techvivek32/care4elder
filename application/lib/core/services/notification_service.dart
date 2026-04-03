@@ -3,12 +3,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../constants/api_constants.dart';
 import '../../features/auth/services/auth_service.dart';
+import '../../features/doctor_auth/services/doctor_auth_service.dart';
 
 class AppNotification {
   final String id;
   final String title;
   final String body;
   final String type; // 'emergency', 'appointment', 'tip', 'general'
+  /// Optional admin/topic label (e.g. broadcast topic).
+  final String topic;
   final DateTime timestamp;
   bool isRead;
 
@@ -18,6 +21,7 @@ class AppNotification {
     required this.body,
     required this.type,
     required this.timestamp,
+    this.topic = '',
     this.isRead = false,
   });
 
@@ -27,6 +31,7 @@ class AppNotification {
       title: json['title'] ?? '',
       body: json['body'] ?? '',
       type: json['type'] ?? 'general',
+      topic: json['topic']?.toString() ?? '',
       timestamp: DateTime.parse(json['createdAt'] ?? json['timestamp'] ?? DateTime.now().toIso8601String()),
       isRead: json['isRead'] ?? false,
     );
@@ -51,11 +56,18 @@ class NotificationService {
   int _currentPage = 1;
   static const int _itemsPerPage = 20;
 
+  /// Patient or doctor JWT (whichever session is active).
+  Future<String?> _bearerToken() async {
+    final patient = await AuthService().getToken();
+    if (patient != null && patient.isNotEmpty) return patient;
+    return DoctorAuthService().getDoctorToken();
+  }
+
   Future<void> fetchNotifications({int page = 1, String filter = 'all'}) async {
     try {
-      final token = await AuthService().getToken();
+      final token = await _bearerToken();
       if (token == null) {
-        debugPrint('No token found');
+        debugPrint('No auth token for notifications');
         return;
       }
 
@@ -113,7 +125,7 @@ class NotificationService {
 
   Future<void> markAsRead(String id) async {
     try {
-      final token = await AuthService().getToken();
+      final token = await _bearerToken();
       if (token == null) return;
 
       final response = await http.patch(
@@ -147,7 +159,7 @@ class NotificationService {
 
       final newStatus = !list[index].isRead;
       
-      final token = await AuthService().getToken();
+      final token = await _bearerToken();
       if (token == null) return;
 
       final response = await http.patch(
@@ -171,7 +183,7 @@ class NotificationService {
 
   Future<void> markAllAsRead() async {
     try {
-      final token = await AuthService().getToken();
+      final token = await _bearerToken();
       if (token == null) return;
 
       final response = await http.post(
@@ -197,7 +209,7 @@ class NotificationService {
 
   Future<void> deleteNotification(String id) async {
     try {
-      final token = await AuthService().getToken();
+      final token = await _bearerToken();
       if (token == null) return;
 
       final response = await http.delete(
@@ -233,7 +245,7 @@ class NotificationService {
     String? userId,
   }) async {
     try {
-      final token = await AuthService().getToken();
+      final token = await _bearerToken();
       if (token == null) return;
 
       await http.post(

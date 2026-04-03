@@ -454,6 +454,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               ),
                           ],
                         ),
+                        if (notification.topic.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            notification.topic,
+                            style: GoogleFonts.roboto(
+                              color: colorScheme.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 4),
                         Text(
                           notification.body,

@@ -20,6 +20,10 @@ const notificationSchema = new mongoose.Schema(
       enum: ['emergency', 'appointment', 'tip', 'general'],
       default: 'general',
     },
+    topic: {
+      type: String,
+      default: '',
+    },
     isRead: {
       type: Boolean,
       default: false,

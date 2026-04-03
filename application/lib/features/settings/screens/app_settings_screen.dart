@@ -41,7 +41,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     if (saved) {
       await BackgroundServiceHelper.startService();
     } else {
-      await BackgroundServiceHelper.stopService();
+      // Keep admin notifications polling running even when protection is OFF.
+      await BackgroundServiceHelper.startAdminNotificationsPolling();
     }
   }
 
@@ -155,7 +156,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                               return;
                             }
                           } else {
-                            await BackgroundServiceHelper.stopService();
+                            await BackgroundServiceHelper
+                                .disableBackgroundProtectionKeepAdminPolling();
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setBool(_kBgProtectionKey, false);
                             setState(() {

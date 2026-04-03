@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_background_service/flutter_background_service.dart' as bg;
+import 'package:permission_handler/permission_handler.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/settings_service.dart';
 import 'core/services/profile_service.dart';
@@ -59,6 +60,21 @@ Future<void> main() async {
   } catch (e) {
     if (kDebugMode) print("Background Service Init Error: $e");
   }
+
+  // Start admin-notification polling in background (independent of "Background Protection" toggle).
+  try {
+    final status = await Permission.notification.status;
+    if (status.isGranted) {
+      await BackgroundServiceHelper.startAdminNotificationsPolling();
+    } else {
+      final req = await Permission.notification.request();
+      if (req.isGranted) {
+        await BackgroundServiceHelper.startAdminNotificationsPolling();
+      }
+    }
+  } catch (_) {
+    // If permission is not available / denied, drawer notifications may not show.
+  }
   
   // Listen for background service events
   final service = bg.FlutterBackgroundService();
@@ -67,6 +83,13 @@ Future<void> main() async {
       // Always navigate — SosScreen will detect if SOS is already active
       // and skip re-triggering the API call
       router.go('/patient/sos?autoStart=true&trigger=${event['trigger']}');
+    }
+  });
+
+  service.on('openAdminNotifications').listen((event) {
+    final route = event?['route']?.toString();
+    if (route != null && route.isNotEmpty) {
+      router.go(route);
     }
   });
 

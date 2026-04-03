@@ -1,20 +1,26 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart';
 import 'hotword_service.dart';
 import '../../features/emergency/services/sos_service.dart';
+import '../../core/constants/api_constants.dart';
+import '../../features/auth/services/auth_service.dart';
+import '../../features/doctor_auth/services/doctor_auth_service.dart';
 
 const bool kEnableVoiceSos = false;
 
 class BackgroundServiceHelper {
   static const String backgroundServiceEnabledKey = 'background_protection_enabled';
+  static const String adminPollingOnlyKey = 'admin_notifications_polling_only_enabled';
 
   static Future<void> initializeService() async {
     final service = FlutterBackgroundService();
@@ -55,10 +61,22 @@ class BackgroundServiceHelper {
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         final service = FlutterBackgroundService();
+        final payload = response.payload;
+        if (payload != null &&
+            payload.startsWith('admin_notifications|route=')) {
+          final route = payload.substring('admin_notifications|route='.length);
+          service.invoke('openAdminNotifications', {'route': route});
+          return;
+        }
+
         if (response.actionId == 'cancel_sos') {
           service.invoke('cancelSosAction');
-        } else if (response.actionId == 'open_sos' || response.actionId == null) {
-          // Tapped notification body or Open SOS button — open app to SOS page
+          return;
+        }
+
+        // SOS: tapped notification body or "Open SOS" action.
+        if (response.actionId == 'open_sos' ||
+            (response.actionId == null && (payload == null || payload.isEmpty))) {
           service.invoke('openSos', {'trigger': 'notification'});
         }
       },
@@ -70,6 +88,17 @@ class BackgroundServiceHelper {
     
     await androidPlugin?.createNotificationChannel(channel);
     await androidPlugin?.createNotificationChannel(sosTriggerChannel);
+    await androidPlugin?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'admin_notifications_channel',
+        'Admin Notifications',
+        description: 'Notifications sent by admin broadcasts',
+        importance: Importance.max,
+        playSound: false,
+        enableVibration: false,
+        showBadge: true,
+      ),
+    );
 
     await service.configure(
       androidConfiguration: AndroidConfiguration(
@@ -101,6 +130,7 @@ class BackgroundServiceHelper {
     // Always persist enabled state
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(backgroundServiceEnabledKey, true);
+    await prefs.setBool(adminPollingOnlyKey, false);
     // Start the native fall detection foreground service
     try {
       const channel = MethodChannel('com.care4elder.app/fall_service_control');
@@ -118,12 +148,44 @@ class BackgroundServiceHelper {
     // Always persist disabled state
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(backgroundServiceEnabledKey, false);
+    await prefs.setBool(adminPollingOnlyKey, false);
     // Stop native fall detection service
     try {
       const channel = MethodChannel('com.care4elder.app/fall_service_control');
       await channel.invokeMethod('stopFallService');
     } catch (e) {
       if (kDebugMode) print('BackgroundServiceHelper: stopFallService error: $e');
+    }
+  }
+
+  /// Start background service for admin notification polling only.
+  /// Does NOT start native fall detection.
+  static Future<void> startAdminNotificationsPolling() async {
+    final service = FlutterBackgroundService();
+    if (!await service.isRunning()) {
+      await service.startService();
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(backgroundServiceEnabledKey, false);
+    await prefs.setBool(adminPollingOnlyKey, true);
+  }
+
+  /// Disable background protection (fall detection) but KEEP admin polling running.
+  static Future<void> disableBackgroundProtectionKeepAdminPolling() async {
+    // Mark protection off, admin polling on
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(backgroundServiceEnabledKey, false);
+    await prefs.setBool(adminPollingOnlyKey, true);
+
+    // Stop native fall detection only
+    try {
+      const channel = MethodChannel('com.care4elder.app/fall_service_control');
+      await channel.invokeMethod('stopFallService');
+    } catch (e) {
+      if (kDebugMode) {
+        print('BackgroundServiceHelper: stopFallService error: $e');
+      }
     }
   }
 }
@@ -165,10 +227,16 @@ void onStart(ServiceInstance service) async {
 
   // Ensure notification is shown immediately on start
   if (service is AndroidServiceInstance) {
+    final prefs = await SharedPreferences.getInstance();
+    final adminOnly =
+        prefs.getBool(BackgroundServiceHelper.adminPollingOnlyKey) ?? false;
     service.setAsForegroundService();
     service.setForegroundNotificationInfo(
-      title: 'Care4Elder Protection Active',
-      content: 'Background protection active',
+      title:
+          adminOnly ? 'Care4Elder Notifications Active' : 'Care4Elder Protection Active',
+      content: adminOnly
+          ? 'Admin notification polling is active'
+          : 'Background protection active',
     );
   }
 
@@ -192,8 +260,114 @@ void onStart(ServiceInstance service) async {
     });
   }
 
+  Timer? adminPollingTimer;
+  final adminPrefs = await SharedPreferences.getInstance();
+  List<String> seenAdminNotificationIds =
+      adminPrefs.getStringList('admin_notif_seen_ids') ?? <String>[];
+
   service.on('stopService').listen((event) {
+    adminPollingTimer?.cancel();
     service.stopSelf();
+  });
+
+  Future<void> pollAdminOnce() async {
+    try {
+      final patientToken = await AuthService().getToken();
+      final doctorToken =
+          patientToken == null ? await DoctorAuthService().getDoctorToken() : null;
+
+      final token = patientToken ?? doctorToken;
+      if (token == null) return;
+
+      final route =
+          patientToken != null ? '/patient/notifications' : '/doctor/notifications';
+
+      final url =
+          '${ApiConstants.baseUrl}/notifications?page=1&limit=20&filter=unread';
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode != 200) return;
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final List<dynamic> notificationsJson = data['notifications'] ?? [];
+
+      final List<String> newIds = [];
+      for (final n in notificationsJson) {
+        if (n is! Map<String, dynamic>) continue;
+        final id = n['_id']?.toString() ?? n['id']?.toString() ?? '';
+        if (id.isEmpty) continue;
+        if (seenAdminNotificationIds.contains(id)) continue;
+
+        final title = n['title']?.toString() ?? 'Notification';
+        final body = n['body']?.toString() ?? '';
+
+        final notifId = id.hashCode & 0x7fffffff;
+
+        await flutterLocalNotificationsPlugin.show(
+          notifId,
+          title,
+          body,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              'admin_notifications_channel',
+              'Admin Notifications',
+              channelDescription: 'Notifications sent by admin broadcasts',
+              importance: Importance.max,
+              priority: Priority.high,
+              playSound: false,
+              enableVibration: false,
+              icon: '@mipmap/ic_launcher',
+              autoCancel: true,
+              showWhen: true,
+              actions: const [
+                AndroidNotificationAction(
+                  'open_admin_notifications',
+                  'Open',
+                  showsUserInterface: true,
+                  cancelNotification: false,
+                ),
+              ],
+            ),
+          ),
+          payload: 'admin_notifications|route=$route',
+        );
+
+        newIds.add(id);
+      }
+
+      if (newIds.isNotEmpty) {
+        seenAdminNotificationIds = [
+          ...seenAdminNotificationIds,
+          ...newIds,
+        ];
+        if (seenAdminNotificationIds.length > 50) {
+          seenAdminNotificationIds = seenAdminNotificationIds
+              .sublist(seenAdminNotificationIds.length - 50);
+        }
+        await adminPrefs.setStringList(
+          'admin_notif_seen_ids',
+          seenAdminNotificationIds,
+        );
+      }
+    } catch (_) {
+      // Keep background alive; ignore polling errors.
+    }
+  }
+
+  // Run once immediately, then keep polling.
+  await pollAdminOnce();
+
+  // Poll admin notifications and show them in Android notification drawer
+  // while the background service is alive (so app-closed also works).
+  adminPollingTimer = Timer.periodic(const Duration(seconds: 20), (_) async {
+    await pollAdminOnce();
   });
 
   String currentTitle = "Care4Elder Protection Active";

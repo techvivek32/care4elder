@@ -17,9 +17,11 @@ class FallDetectionManager(private val context: Context) {
     private var accelerometer: Sensor? = null
     private var sensorListener: SensorEventListener? = null
 
-    private val impactThreshold = 18.0f
-    private val inactivityThreshold = 2.0f   // slightly higher — easier to detect stillness
-    private val inactivityWindowMs = 1500L   // 1.5s window
+    // Tuned for real phones: strict thresholds often never reach "Fall confirmed!" (only "Impact... verifying").
+    private val impactThreshold = 16.0f
+    private val inactivityThreshold = 3.0f   // m/s² — allow more sensor noise / small hand motion
+    private val inactivityWindowMs = 2000L   // longer window to collect low-motion samples after impact
+    private val lowMotionRatioRequired = 0.30f // was 0.40 — many devices stay noisier after a jolt
     private val cooldownMs = 30000L
 
     private var lastTriggerTime = 0L
@@ -58,10 +60,15 @@ class FallDetectionManager(private val context: Context) {
                         verifying = false
                         val total = if (verifySamples == 0) 1 else verifySamples
                         val lowRatio = lowMotionSamples.toFloat() / total
-                        if (lowRatio >= 0.4f) {  // 40% low motion enough to confirm fall
+                        if (lowRatio >= lowMotionRatioRequired) {
                             lastTriggerTime = now
-                            android.util.Log.d("FallDetectionManager", "Fall confirmed!")
+                            android.util.Log.d("FallDetectionManager", "Fall confirmed! lowRatio=$lowRatio samples=$total")
                             onFallDetected?.invoke()
+                        } else {
+                            android.util.Log.d(
+                                "FallDetectionManager",
+                                "Fall verification rejected (not still enough): lowRatio=$lowRatio need>=$lowMotionRatioRequired samples=$total"
+                            )
                         }
                     }
                     return

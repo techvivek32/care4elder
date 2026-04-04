@@ -436,7 +436,7 @@ void onStart(ServiceInstance service) async {
     hotwordService.setBackgroundService(service);
     hotwordService.onTrigger = () async {
       print('Background: Voice SOS Triggered!');
-      _showSosNotification('Voice Command Detected', 'SOS triggered via voice. Tap to manage or cancel.');
+      showSosTriggerNotification('Voice Command Detected', 'SOS triggered via voice. Tap to manage or cancel.');
       try {
         await SOSService().startSOS();
         service.invoke('openSos', {'trigger': 'voice'});
@@ -513,7 +513,7 @@ Future<void> _triggerFallSOS(ServiceInstance service) async {
     return;
   }
 
-  await _showSosNotification(
+  await showSosTriggerNotification(
     'Fall Detected',
     'A fall was detected. Tap to open SOS or tap Cancel SOS to stop.',
   );
@@ -529,7 +529,9 @@ Future<void> _triggerFallSOS(ServiceInstance service) async {
   }
 }
 
-Future<void> _showSosNotification(String title, String content) async {
+/// High-priority SOS alert in the Android notification drawer (fall / voice).
+/// Call only after [BackgroundServiceHelper.initializeService] (e.g. from main isolate or background).
+Future<void> showSosTriggerNotification(String title, String content) async {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 

@@ -5,8 +5,10 @@ import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/background_service.dart';
 import '../../../core/widgets/patient_navigation.dart';
 import '../../emergency/services/fall_detection_service.dart';
+import '../../emergency/services/sos_service.dart';
 
 class PatientShell extends StatefulWidget {
   final Widget child;
@@ -40,8 +42,14 @@ class _PatientShellState extends State<PatientShell> {
     super.dispose();
   }
 
-  void _onFallDetected() {
-    // Navigate to SOS screen with auto-start and trigger source enabled
+  void _onFallDetected() async {
+    final alreadyActive = await SOSService().isSosActive();
+    if (!alreadyActive) {
+      await showSosTriggerNotification(
+        'Fall Detected',
+        'A fall was detected. Tap to open SOS or tap Cancel SOS to stop.',
+      );
+    }
     if (mounted) {
       context.go('/patient/sos?autoStart=true&trigger=fall');
     }

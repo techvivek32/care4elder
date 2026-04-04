@@ -148,17 +148,18 @@ class BackgroundFallService : Service() {
             return
         }
 
-        if (mainIsolateFallCallback != null) {
-            // App is open — notify main Dart isolate directly
-            Log.d(TAG, "Notifying main isolate")
+        // Only deliver via MethodChannel while the activity is resumed. When the app is only
+        // minimized (onPause), the engine often does not run the Dart handler until later, so SOS
+        // would not fire — use the same pending + Flutter background path as when the UI is gone.
+        val mainForeground = mainIsolateFallCallback != null && MainActivity.isActivityResumed
+        if (mainForeground) {
+            Log.d(TAG, "Notifying main isolate (activity resumed)")
             mainIsolateFallCallback?.invoke()
-        } else if (backgroundEngineCallback != null) {
-            // Flutter background service is running — notify its isolate
-            Log.d(TAG, "Notifying background isolate via callback")
+        } else if (backgroundEngineCallback != null && MainActivity.isActivityResumed) {
+            Log.d(TAG, "Notifying engine via background callback (resumed)")
             backgroundEngineCallback?.invoke()
         } else {
-            // Neither available — set flag AND start Flutter bg service
-            Log.d(TAG, "No isolate available — setting flag and starting Flutter bg service")
+            Log.d(TAG, "UI not resumed or no callback — pending flag + Flutter bg service")
             prefs.edit()
                 .putBoolean("flutter.fall_detected_pending", true)
                 .putLong("flutter.fall_detected_time", System.currentTimeMillis())

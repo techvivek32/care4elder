@@ -9,6 +9,22 @@ class MainActivity : FlutterActivity() {
     private val controlChannel = "com.care4elder.app/fall_service_control"
     private val callbackChannel = "com.care4elder.app/fall_callback"
 
+    companion object {
+        /** Used by [BackgroundFallService]: MethodChannel to the main isolate is unreliable while paused. */
+        @Volatile
+        var isActivityResumed: Boolean = false
+    }
+
+    override fun onResume() {
+        super.onResume()
+        isActivityResumed = true
+    }
+
+    override fun onPause() {
+        isActivityResumed = false
+        super.onPause()
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 

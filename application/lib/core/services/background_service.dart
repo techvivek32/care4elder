@@ -166,12 +166,18 @@ class BackgroundServiceHelper {
   /// changed (main() calls this every launch — it must not flip the toggle off).
   static Future<void> startAdminNotificationsPolling() async {
     final prefs = await SharedPreferences.getInstance();
-    final protectionEnabled = prefs.getBool(backgroundServiceEnabledKey) ?? false;
+    try {
+      await prefs.reload();
+    } catch (_) {}
+    var protectionEnabled = prefs.getBool(backgroundServiceEnabledKey) ?? false;
 
     final service = FlutterBackgroundService();
     if (!await service.isRunning()) {
       await service.startService();
     }
+
+    // After the engine starts, prefs may reflect a user action; never clobber ON with OFF here.
+    protectionEnabled = prefs.getBool(backgroundServiceEnabledKey) ?? false;
 
     if (protectionEnabled) {
       // Keep fall detection + full foreground copy; admin polling still runs in onStart.
@@ -187,7 +193,9 @@ class BackgroundServiceHelper {
       return;
     }
 
-    await prefs.setBool(backgroundServiceEnabledKey, false);
+    // Admin-only mode: do not write [backgroundServiceEnabledKey] here — that was wiping ON
+    // when this method ran with a stale false (e.g. after resume / multi-call). OFF is only
+    // set by [disableBackgroundProtectionKeepAdminPolling] and [stopService].
     await prefs.setBool(adminPollingOnlyKey, true);
   }
 

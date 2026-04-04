@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,16 +24,38 @@ class AppSettingsScreen extends StatefulWidget {
   State<AppSettingsScreen> createState() => _AppSettingsScreenState();
 }
 
-class _AppSettingsScreenState extends State<AppSettingsScreen> {
+class _AppSettingsScreenState extends State<AppSettingsScreen>
+    with SingleTickerProviderStateMixin {
   bool _backgroundServiceEnabled = false;
+  final GlobalKey _bgProtectionCardKey = GlobalKey(debugLabel: 'bgProtectionCard');
+  bool _highlightBgProtectionToggle = false;
+
+  late final AnimationController _bgTogglePulseController;
+  late final Animation<double> _bgTogglePulse;
 
   @override
   void initState() {
     super.initState();
+    _bgTogglePulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 480),
+    );
+    _bgTogglePulse = CurvedAnimation(
+      parent: _bgTogglePulseController,
+      curve: Curves.easeInOut,
+    );
     _loadBackgroundServiceState();
   }
 
+  @override
+  void dispose() {
+    _bgTogglePulseController.dispose();
+    super.dispose();
+  }
+
   static const _kBgProtectionKey = BackgroundServiceHelper.backgroundServiceEnabledKey;
+  /// Shown once the first time the user opens App Settings (fresh install / new device).
+  static const _kBgProtectionIntroSeen = 'seen_background_protection_intro_v1';
 
   Future<void> _loadBackgroundServiceState() async {
     final prefs = await SharedPreferences.getInstance();
@@ -43,6 +68,52 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     } else {
       // Keep admin notifications polling running even when protection is OFF.
       await BackgroundServiceHelper.startAdminNotificationsPolling();
+    }
+
+    final seenIntro = prefs.getBool(_kBgProtectionIntroSeen) ?? false;
+    if (!seenIntro && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          unawaited(_showBackgroundProtectionIntroOnce());
+        }
+      });
+    }
+  }
+
+  Future<void> _showBackgroundProtectionIntroOnce() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_kBgProtectionIntroSeen) == true || !mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black54,
+      builder: (ctx) => _BackgroundProtectionIntroDialog(
+        onGotIt: () => Navigator.of(ctx).pop(),
+      ),
+    );
+
+    if (!mounted) return;
+    await prefs.setBool(_kBgProtectionIntroSeen, true);
+
+    setState(() => _highlightBgProtectionToggle = true);
+    _bgTogglePulseController.repeat(reverse: true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _bgProtectionCardKey.currentContext;
+      if (target != null && mounted) {
+        Scrollable.ensureVisible(
+          target,
+          alignment: 0.25,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+    await Future<void>.delayed(const Duration(milliseconds: 2800));
+    if (mounted) {
+      _bgTogglePulseController.stop();
+      _bgTogglePulseController.reset();
+      setState(() => _highlightBgProtectionToggle = false);
     }
   }
 
@@ -112,69 +183,106 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                   const SizedBox(height: 16),
                   _SectionHeader('PROTECTION'),
                   const SizedBox(height: 10),
-                  _CardGroup(
-                    children: [
-                      _ToggleRow(
-                        icon: Icons.security_outlined,
-                        title: 'Background\nProtection',
-                        subtitle: 'Real-time health\nmonitoring',
-                        value: _backgroundServiceEnabled,
-                        onChanged: (value) async {
-                          if (value) {
-                            final status = await Permission.notification.request();
-                            if (status.isGranted) {
-                              await BackgroundServiceHelper.startService();
-                              final prefs = await SharedPreferences.getInstance();
-                              await prefs.setBool(_kBgProtectionKey, true);
-                              setState(() {
-                                _backgroundServiceEnabled = value;
-                              });
-
-                              await _showProtectionEnabledNotification();
-                              await _requestBatteryOptimizationExemption();
-
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Background protection activated!'),
-                                    backgroundColor: Colors.green,
-                                    duration: Duration(seconds: 3),
-                                  ),
-                                );
-                              }
-                            } else {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Notification permission is required for background protection',
-                                    ),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                              return;
-                            }
-                          } else {
-                            await BackgroundServiceHelper
-                                .disableBackgroundProtectionKeepAdminPolling();
-                            final prefs = await SharedPreferences.getInstance();
-                            await prefs.setBool(_kBgProtectionKey, false);
-                            setState(() {
-                              _backgroundServiceEnabled = value;
-                            });
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Background protection deactivated'),
-                                  duration: Duration(seconds: 2),
+                  KeyedSubtree(
+                    key: _bgProtectionCardKey,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 380),
+                      curve: Curves.easeOutCubic,
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: _highlightBgProtectionToggle
+                              ? colorScheme.primary
+                              : Colors.transparent,
+                          width: _highlightBgProtectionToggle ? 2.5 : 0,
+                        ),
+                        boxShadow: _highlightBgProtectionToggle
+                            ? [
+                                BoxShadow(
+                                  color: colorScheme.primary.withOpacity(0.28),
+                                  blurRadius: 18,
+                                  spreadRadius: 0,
+                                  offset: const Offset(0, 4),
                                 ),
-                              );
-                            }
-                          }
-                        },
+                              ]
+                            : const [],
                       ),
-                    ],
+                      child: _CardGroup(
+                        children: [
+                          _ToggleRow(
+                            icon: Icons.security_outlined,
+                            title: 'Background\nProtection',
+                            subtitle: 'Real-time health\nmonitoring',
+                            value: _backgroundServiceEnabled,
+                            switchPulseAnimation: _highlightBgProtectionToggle
+                                ? _bgTogglePulse
+                                : null,
+                            onChanged: (value) async {
+                              if (value) {
+                                final status =
+                                    await Permission.notification.request();
+                                if (status.isGranted) {
+                                  await BackgroundServiceHelper.startService();
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  await prefs.setBool(_kBgProtectionKey, true);
+                                  setState(() {
+                                    _backgroundServiceEnabled = value;
+                                  });
+
+                                  await _showProtectionEnabledNotification();
+                                  await _requestBatteryOptimizationExemption();
+
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Background protection activated!',
+                                        ),
+                                        backgroundColor: Colors.green,
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                } else {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Notification permission is required for background protection',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                  return;
+                                }
+                              } else {
+                                await BackgroundServiceHelper
+                                    .disableBackgroundProtectionKeepAdminPolling();
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                await prefs.setBool(_kBgProtectionKey, false);
+                                setState(() {
+                                  _backgroundServiceEnabled = value;
+                                });
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Background protection deactivated',
+                                      ),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _SectionHeader('GENERAL'),
@@ -336,6 +444,229 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
     }
   }
 
+}
+
+class _BackgroundProtectionIntroDialog extends StatefulWidget {
+  final VoidCallback onGotIt;
+
+  const _BackgroundProtectionIntroDialog({required this.onGotIt});
+
+  @override
+  State<_BackgroundProtectionIntroDialog> createState() =>
+      _BackgroundProtectionIntroDialogState();
+}
+
+class _BackgroundProtectionIntroDialogState
+    extends State<_BackgroundProtectionIntroDialog> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final mq = MediaQuery.of(context);
+    final maxH = mq.size.height * 0.82;
+    final maxW = math.min(440.0, mq.size.width - 40);
+
+    final dialogFill = cs.surface;
+    final headerFill =
+        Color.alphaBlend(cs.primary.withOpacity(isDark ? 0.14 : 0.08), dialogFill);
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),
+        child: Material(
+          color: dialogFill,
+          elevation: isDark ? 16 : 10,
+          shadowColor: Colors.black.withOpacity(isDark ? 0.55 : 0.18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: BorderSide(
+              color: cs.outlineVariant.withOpacity(isDark ? 0.4 : 0.45),
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 16),
+                color: headerFill,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: cs.primary.withOpacity(isDark ? 0.22 : 0.14),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.shield_outlined, size: 32, color: cs.primary),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Background protection',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.roboto(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: cs.onSurface,
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: Scrollbar(
+                  controller: _scrollController,
+                  thumbVisibility: true,
+                  thickness: 5,
+                  radius: const Radius.circular(8),
+                  child: ListView(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(22, 18, 14, 12),
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    children: [
+                      Text(
+                        'This option helps keep fall detection and SOS working when you are not '
+                        'actively using the Care4Elder app.',
+                        style: GoogleFonts.roboto(
+                          fontSize: 14,
+                          height: 1.5,
+                          fontWeight: FontWeight.w500,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _BgProtectionIntroBullet(
+                        icon: Icons.phone_android_rounded,
+                        iconColor: cs.primary,
+                        text:
+                            'When it is turned on, monitoring can continue if you close the app or leave it in the background (for example in your recent apps list).',
+                      ),
+                      const SizedBox(height: 14),
+                      _BgProtectionIntroBullet(
+                        icon: Icons.notifications_active_outlined,
+                        iconColor: cs.primary,
+                        text:
+                            'You may see a small status notification while protection is active. That is normal and means the service is running safely.',
+                      ),
+                      const SizedBox(height: 14),
+                      _BgProtectionIntroBullet(
+                        icon: Icons.health_and_safety_outlined,
+                        iconColor: cs.primary,
+                        text:
+                            'If a fall is detected, SOS and alerts can work more reliably so your emergency contacts can be notified.',
+                      ),
+                      const SizedBox(height: 14),
+                      _BgProtectionIntroBullet(
+                        icon: Icons.toggle_on_outlined,
+                        iconColor: cs.primary,
+                        text:
+                            'Use the switch below to turn it on or off. The first time you turn it on, your phone may ask for notification permission so we can show important alerts.',
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+              ),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: cs.outlineVariant.withOpacity(isDark ? 0.35 : 0.4),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
+                child: FilledButton(
+                  onPressed: widget.onGotIt,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Got it',
+                    style: GoogleFonts.roboto(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BgProtectionIntroBullet extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String text;
+
+  const _BgProtectionIntroBullet({
+    required this.icon,
+    required this.iconColor,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(isDark ? 0.22 : 0.12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 20, color: iconColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              text,
+              style: GoogleFonts.roboto(
+                fontSize: 13,
+                height: 1.5,
+                fontWeight: FontWeight.w500,
+                color: isDark ? cs.onSurface.withOpacity(0.92) : cs.onSurface.withOpacity(0.87),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _TopHeaderBar extends StatelessWidget {
@@ -577,6 +908,8 @@ class _ToggleRow extends StatelessWidget {
   final String? subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
+  /// When set (e.g. after “Got it” on background-protection intro), the switch gently pulses.
+  final Animation<double>? switchPulseAnimation;
 
   const _ToggleRow({
     required this.icon,
@@ -584,6 +917,7 @@ class _ToggleRow extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.subtitle,
+    this.switchPulseAnimation,
   });
 
   @override
@@ -593,6 +927,52 @@ class _ToggleRow extends StatelessWidget {
     final iconBg = isDark
         ? colorScheme.surfaceContainerHighest
         : const Color(0xFFEAF0FC);
+
+    final toggle = Switch(
+      value: value,
+      onChanged: onChanged,
+      activeColor: Colors.white,
+      activeTrackColor: colorScheme.primary,
+      inactiveThumbColor: Colors.white,
+      inactiveTrackColor: colorScheme.onSurface.withOpacity(0.15),
+    );
+
+    final Widget trailing = switchPulseAnimation != null
+        ? AnimatedBuilder(
+            animation: switchPulseAnimation!,
+            builder: (context, child) {
+              final v = switchPulseAnimation!.value;
+              final wave = math.sin(v * math.pi);
+              final scale = 1.0 + 0.11 * wave;
+              final glow = isDark ? 0.38 : 0.42;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: colorScheme.primary
+                        .withOpacity(0.2 + 0.65 * wave),
+                    width: 1.2 + 1.8 * wave,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(glow * wave),
+                      blurRadius: 14 * wave,
+                      spreadRadius: 0.5 * wave,
+                    ),
+                  ],
+                ),
+                child: Transform.scale(
+                  scale: scale,
+                  alignment: Alignment.center,
+                  child: child,
+                ),
+              );
+            },
+            child: toggle,
+          )
+        : toggle;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       child: Row(
@@ -635,14 +1015,7 @@ class _ToggleRow extends StatelessWidget {
               ],
             ),
           ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: Colors.white,
-            activeTrackColor: colorScheme.primary,
-            inactiveThumbColor: Colors.white,
-            inactiveTrackColor: colorScheme.onSurface.withOpacity(0.15),
-          ),
+          trailing,
         ],
       ),
     );

@@ -14,9 +14,9 @@ import android.os.Looper
 import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.engine.dart.DartExecutor
-import io.flutter.plugin.common.MethodChannel
+import androidx.core.content.ContextCompat
+import id.flutter.flutter_background_service.FlutterBackgroundServicePlugin
+import org.json.JSONObject
 
 /**
  * FOREGROUND service for fall detection.
@@ -159,20 +159,47 @@ class BackgroundFallService : Service() {
             Log.d(TAG, "Notifying engine via background callback (resumed)")
             backgroundEngineCallback?.invoke()
         } else {
-            Log.d(TAG, "UI not resumed or no callback — pending flag + Flutter bg service")
+            Log.d(TAG, "UI not resumed or no callback — tray notif + pending + Flutter bg service")
             prefs.edit()
                 .putBoolean("flutter.fall_detected_pending", true)
                 .putLong("flutter.fall_detected_time", System.currentTimeMillis())
+                .putBoolean("flutter.native_sos_tray_for_fall", true)
                 .commit()
+            // Same drawer UX as app-killed path; tap opens MainActivity → SOS route via Dart.
+            SosTrayNotifier.showFallDetectedTray(applicationContext)
             startFlutterBackgroundService()
         }
     }
 
+    /**
+     * Same payload Dart sends with [FlutterBackgroundService.invoke]('fallDetected').
+     * When the app is minimized, the SharedPreferences poll in the BG isolate can lag or stall;
+     * this delivers the event immediately if [BackgroundService] is already running.
+     */
+    private fun pushFallToFlutterBackgroundIsolate() {
+        try {
+            val envelope = JSONObject().apply {
+                put("method", "fallDetected")
+                put("args", JSONObject())
+            }
+            FlutterBackgroundServicePlugin.servicePipe.invoke(envelope)
+            Log.d(TAG, "servicePipe: fallDetected sent to Flutter background isolate")
+        } catch (e: Exception) {
+            Log.w(TAG, "servicePipe fallDetected failed: ${e.message}")
+        }
+    }
+
     private fun startFlutterBackgroundService() {
+        pushFallToFlutterBackgroundIsolate()
         try {
             val clazz = Class.forName("id.flutter.flutter_background_service.BackgroundService")
-            applicationContext.startService(Intent(applicationContext, clazz))
-            Log.d(TAG, "Flutter bg service start requested")
+            val intent = Intent(applicationContext, clazz)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ContextCompat.startForegroundService(applicationContext, intent)
+            } else {
+                applicationContext.startService(intent)
+            }
+            Log.d(TAG, "Flutter bg service start requested (foreground on O+)")
         } catch (e: Exception) {
             Log.e(TAG, "startFlutterBackgroundService error: ${e.message}")
         }

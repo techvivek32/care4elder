@@ -28,9 +28,9 @@ class BackgroundServiceHelper {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
 
-    // SOS Trigger Channel (High Importance with Sound & Actions)
+    // Distinct id so OEMs/Android cannot keep an old low-importance channel under a reused id.
     const AndroidNotificationChannel sosTriggerChannel = AndroidNotificationChannel(
-      'sos_trigger_channel',
+      'sos_fall_alert_tray',
       'SOS Alerts',
       description: 'Triggered when a fall or voice command is detected',
       importance: Importance.max,
@@ -438,7 +438,7 @@ void onStart(ServiceInstance service) async {
       print('Background: Voice SOS Triggered!');
       showSosTriggerNotification('Voice Command Detected', 'SOS triggered via voice. Tap to manage or cancel.');
       try {
-        await SOSService().startSOS();
+        await SOSService().startSOS(relaxedLocationForBackground: true);
         service.invoke('openSos', {'trigger': 'voice'});
         service.invoke('updateNotification', {
           'title': 'SOS Alert Active',
@@ -513,13 +513,20 @@ Future<void> _triggerFallSOS(ServiceInstance service) async {
     return;
   }
 
-  await showSosTriggerNotification(
-    'Fall Detected',
-    'A fall was detected. Tap to open SOS or tap Cancel SOS to stop.',
-  );
+  // Minimized path: [SosTrayNotifier] already posted id 999 — skip duplicate sound/vibration.
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.reload();
+  final nativeTrayShown = prefs.getBool('native_sos_tray_for_fall') ?? false;
+  if (nativeTrayShown) {
+    await prefs.remove('native_sos_tray_for_fall');
+  } else {
+    await showSosTriggerNotification(
+      'Fall Detected',
+      'A fall was detected. Tap to open SOS or tap Cancel SOS to stop.',
+    );
+  }
   try {
-    await SOSService().startSOS();
-    service.invoke('openSos', {'trigger': 'fall'});
+    await SOSService().startSOS(relaxedLocationForBackground: true);
     service.invoke('updateNotification', {
       'title': 'SOS Alert Active',
       'content': 'Sharing live location with emergency contacts...',
@@ -527,6 +534,8 @@ Future<void> _triggerFallSOS(ServiceInstance service) async {
   } catch (e) {
     print('Background Fall SOS failed: $e');
   }
+  // Always deep-link main UI so user is on SOS when they return (and 10s dialog can run if API failed).
+  service.invoke('openSos', {'trigger': 'fall'});
 }
 
 /// High-priority SOS alert in the Android notification drawer (fall / voice).
@@ -537,7 +546,7 @@ Future<void> showSosTriggerNotification(String title, String content) async {
 
   const AndroidNotificationDetails androidPlatformChannelSpecifics =
       AndroidNotificationDetails(
-    'sos_trigger_channel',
+    'sos_fall_alert_tray',
     'SOS Alerts',
     channelDescription: 'Triggered when a fall or voice command is detected',
     importance: Importance.max,

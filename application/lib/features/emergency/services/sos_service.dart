@@ -32,48 +32,74 @@ class SOSService {
     return timestamp != null ? DateTime.fromMillisecondsSinceEpoch(timestamp) : null;
   }
 
-  Future<void> startSOS() async {
+  /// When [relaxedLocationForBackground] is true (fall/voice from background isolate), never throw
+  /// on location off or missing permission — POST SOS with 0,0 if needed. UI path keeps strict checks.
+  Future<void> startSOS({bool relaxedLocationForBackground = false}) async {
     try {
-      if (kDebugMode) print('SOS_LOG: startSOS requested');
-      // 1. Check/Request Permissions
-      bool serviceEnabled;
-      LocationPermission permission;
-
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        throw Exception('Location services are disabled.');
+      if (kDebugMode) {
+        print('SOS_LOG: startSOS requested (relaxedBg=$relaxedLocationForBackground)');
       }
 
-      permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+      Position? position;
+
+      if (!relaxedLocationForBackground) {
+        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          throw Exception('Location services are disabled.');
+        }
+
+        var permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.denied) {
-          throw Exception('Location permissions are denied');
+          permission = await Geolocator.requestPermission();
+          if (permission == LocationPermission.denied) {
+            throw Exception('Location permissions are denied');
+          }
         }
-      }
 
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Location permissions are permanently denied, we cannot request permissions.');
-      }
-
-      // 2. Get Location + Profile in parallel
-      final locationFuture = Geolocator.getLastKnownPosition().catchError((_) => null);
-      final profileFuture = Future(() async {
-        if (_profileService.currentUser == null) {
-          try { await _profileService.fetchProfile(); } catch (_) {}
-        }
-      });
-      final results = await Future.wait([locationFuture, profileFuture]);
-      Position? position = results[0] as Position?;
-
-      // If no last known, try fresh with short timeout
-      if (position == null) {
-        try {
-          position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.low,
-            timeLimit: const Duration(seconds: 5),
+        if (permission == LocationPermission.deniedForever) {
+          throw Exception(
+            'Location permissions are permanently denied, we cannot request permissions.',
           );
+        }
+
+        final locationFuture = Geolocator.getLastKnownPosition().catchError((_) => null);
+        final profileFuture = Future(() async {
+          if (_profileService.currentUser == null) {
+            try {
+              await _profileService.fetchProfile();
+            } catch (_) {}
+          }
+        });
+        final results = await Future.wait([locationFuture, profileFuture]);
+        position = results[0] as Position?;
+
+        if (position == null) {
+          try {
+            position = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.low,
+              timeLimit: const Duration(seconds: 5),
+            );
+          } catch (_) {}
+        }
+      } else {
+        try {
+          if (await Geolocator.isLocationServiceEnabled()) {
+            final permission = await Geolocator.checkPermission();
+            if (permission == LocationPermission.whileInUse ||
+                permission == LocationPermission.always) {
+              position = await Geolocator.getLastKnownPosition().catchError((_) => null);
+              position ??= await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.low,
+                timeLimit: const Duration(seconds: 4),
+              ).catchError((_) => null);
+            }
+          }
         } catch (_) {}
+        if (_profileService.currentUser == null) {
+          try {
+            await _profileService.fetchProfile();
+          } catch (_) {}
+        }
       }
 
       // SOS must go through regardless of location — use 0,0 as fallback

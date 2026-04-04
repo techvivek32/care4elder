@@ -75,6 +75,21 @@ Future<void> main() async {
   } catch (_) {
     // If permission is not available / denied, drawer notifications may not show.
   }
+
+  // Native SOS tray (minimized / background fall path) → tap Open/Cancel in drawer
+  const MethodChannel sosTrayIntentChannel =
+      MethodChannel('com.care4elder.app/sos_intent');
+  sosTrayIntentChannel.setMethodCallHandler((call) async {
+    switch (call.method) {
+      case 'open_sos':
+        final trigger = (call.arguments as String?) ?? 'fall';
+        router.go('/patient/sos?autoStart=true&trigger=$trigger');
+        break;
+      case 'cancel_sos':
+        bg.FlutterBackgroundService().invoke('cancelSosAction');
+        break;
+    }
+  });
   
   // Listen for background service events
   final service = bg.FlutterBackgroundService();

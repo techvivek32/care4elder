@@ -151,12 +151,21 @@ class _PatientOtpScreenState extends State<PatientOtpScreen> {
             ),
           );
 
-          context.go('/patient/permissions');
+          await Provider.of<ProfileService>(context, listen: false)
+              .fetchProfile();
+          if (mounted) {
+            context.go('/patient/permissions');
+          }
         }
       } else {
         // Login OTP logic
         await AuthService().verifyLoginOtp(widget.phoneNumber, otp);
-        
+
+        if (mounted) {
+          await Provider.of<ProfileService>(context, listen: false)
+              .fetchProfile();
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

@@ -150,6 +150,14 @@ class AuthService {
         if (data['refreshToken'] != null) {
           await _storage.write(key: _refreshTokenKey, value: data['refreshToken']);
         }
+        // Same as verifyLoginOtp — without user_session, cold start thinks user is logged out.
+        if (data['user'] != null) {
+          await _storage.write(key: _userKey, value: jsonEncode(data['user']));
+          final userId = data['user']['id'] ?? data['user']['_id'];
+          if (userId != null) {
+            await _storage.write(key: _patientIdKey, value: userId.toString());
+          }
+        }
         return data;
       } else {
         throw Exception(data['error'] ?? 'Verification failed');
@@ -263,11 +271,25 @@ class AuthService {
         }
         // Save user info
         if (data['user'] != null) {
-            await _storage.write(key: _userKey, value: jsonEncode(data['user']));
-            final userId = data['user']['id'] ?? data['user']['_id'];
-            if (userId != null) {
-              await _storage.write(key: _patientIdKey, value: userId);
-            }
+          await _storage.write(key: _userKey, value: jsonEncode(data['user']));
+          final userId = data['user']['id'] ?? data['user']['_id'];
+          if (userId != null) {
+            await _storage.write(key: _patientIdKey, value: userId.toString());
+          }
+        } else if (data['token'] != null) {
+          // API returned JWT but no user object — still persist a minimal session for splash / SOS.
+          final pid = data['patientId'] ?? data['patient']?['_id'] ?? data['patient']?['id'];
+          final minimal = <String, dynamic>{
+            'id': pid?.toString() ?? '',
+            '_id': pid?.toString() ?? '',
+            'phone': phone,
+            'email': data['email'] ?? '',
+            'name': data['name'] ?? 'Patient',
+          };
+          await _storage.write(key: _userKey, value: jsonEncode(minimal));
+          if (pid != null) {
+            await _storage.write(key: _patientIdKey, value: pid.toString());
+          }
         }
         return data;
       } else {
@@ -569,10 +591,13 @@ class AuthService {
     return null;
   }
 
-  /// Check if user is signed in
+  /// Check if user is signed in (session on disk). Uses user cache and/or auth token so cold
+  /// start matches right after OTP/email verify even if one write path was incomplete.
   Future<bool> isSignedIn() async {
     final user = await getCurrentUser();
-    return user != null;
+    if (user != null) return true;
+    final token = await _storage.read(key: 'auth_token');
+    return token != null && token.isNotEmpty;
   }
 
   /// Sign out

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/profile_service.dart';
 import '../../auth/services/auth_service.dart';
 
 class PatientLoginScreen extends StatefulWidget {
@@ -67,6 +69,10 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
         final password = _passwordController.text;
 
         await AuthService().loginWithEmail(email, password);
+
+        if (mounted) {
+          await context.read<ProfileService>().fetchProfile();
+        }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

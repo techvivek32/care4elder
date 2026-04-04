@@ -36,18 +36,10 @@ class _SplashScreenState extends State<SplashScreen> {
         bool isPatientLoggedIn = false;
         bool isDoctorLoggedIn = false;
         try {
-          isPatientLoggedIn = await AuthService()
-              .isSignedIn()
-              .timeout(const Duration(milliseconds: 200), onTimeout: () {
-                return false;
-              });
-          
+          // Secure storage can take >200ms on first read; short timeouts falsely logged users out.
+          isPatientLoggedIn = await AuthService().isSignedIn();
           if (!isPatientLoggedIn) {
-            isDoctorLoggedIn = await DoctorAuthService()
-                .isSignedIn()
-                .timeout(const Duration(milliseconds: 200), onTimeout: () {
-                  return false;
-                });
+            isDoctorLoggedIn = await DoctorAuthService().isSignedIn();
           }
         } catch (_) {
           isPatientLoggedIn = false;

@@ -18,6 +18,9 @@ import '../../features/doctor_auth/services/doctor_auth_service.dart';
 
 const bool kEnableVoiceSos = false;
 
+/// One fall event must not run [_triggerFallSOS] twice (Kotlin sets pending + servicePipe).
+bool _backgroundFallSosHandling = false;
+
 class BackgroundServiceHelper {
   static const String backgroundServiceEnabledKey = 'background_protection_enabled';
   static const String adminPollingOnlyKey = 'admin_notifications_polling_only_enabled';
@@ -158,15 +161,32 @@ class BackgroundServiceHelper {
     }
   }
 
-  /// Start background service for admin notification polling only.
-  /// Does NOT start native fall detection.
+  /// Start background service for admin notification polling.
+  /// If the user already turned **Background protection** on in settings, prefs are **not**
+  /// changed (main() calls this every launch — it must not flip the toggle off).
   static Future<void> startAdminNotificationsPolling() async {
+    final prefs = await SharedPreferences.getInstance();
+    final protectionEnabled = prefs.getBool(backgroundServiceEnabledKey) ?? false;
+
     final service = FlutterBackgroundService();
     if (!await service.isRunning()) {
       await service.startService();
     }
 
-    final prefs = await SharedPreferences.getInstance();
+    if (protectionEnabled) {
+      // Keep fall detection + full foreground copy; admin polling still runs in onStart.
+      await prefs.setBool(adminPollingOnlyKey, false);
+      try {
+        const channel = MethodChannel('com.care4elder.app/fall_service_control');
+        await channel.invokeMethod('startFallService');
+      } catch (e) {
+        if (kDebugMode) {
+          print('BackgroundServiceHelper: startFallService after protection prefs: $e');
+        }
+      }
+      return;
+    }
+
     await prefs.setBool(backgroundServiceEnabledKey, false);
     await prefs.setBool(adminPollingOnlyKey, true);
   }
@@ -460,21 +480,20 @@ void onStart(ServiceInstance service) async {
   // Listen for fallDetected event from Kotlin via servicePipe (primary path).
   service.on('fallDetected').listen((event) async {
     print('Background: fallDetected event from Kotlin!');
-    _triggerFallSOS(service);
+    await _triggerFallSOS(service);
   });
 
-  // Poll for fall_detected_pending flag every 1 second
+  // Poll for fall_detected_pending flag every 1 second (backup if servicePipe missed).
   Timer.periodic(const Duration(seconds: 1), (timer) async {
     try {
+      if (_backgroundFallSosHandling) return;
       // Force reload from disk — bypass in-memory cache
       await SharedPreferences.getInstance().then((p) => p.reload());
       final prefs = await SharedPreferences.getInstance();
       final pending = prefs.getBool('fall_detected_pending') ?? false;
       if (pending) {
-        await prefs.remove('fall_detected_pending');
-        await prefs.remove('fall_detected_time');
         print('Background: fall_detected_pending flag found — triggering SOS');
-        _triggerFallSOS(service);
+        await _triggerFallSOS(service);
       }
     } catch (e) {
       print('Background: fall pending poll error: $e');
@@ -506,36 +525,55 @@ void onStart(ServiceInstance service) async {
 }
 
 Future<void> _triggerFallSOS(ServiceInstance service) async {
-  // Guard: don't trigger if SOS already active
-  final alreadyActive = await SOSService().isSosActive();
-  if (alreadyActive) {
-    print('Background: SOS already active — skipping duplicate fall trigger');
+  if (_backgroundFallSosHandling) {
+    print('Background: _triggerFallSOS skipped (already handling same fall)');
     return;
   }
+  _backgroundFallSosHandling = true;
 
-  // Minimized path: [SosTrayNotifier] already posted id 999 — skip duplicate sound/vibration.
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.reload();
-  final nativeTrayShown = prefs.getBool('native_sos_tray_for_fall') ?? false;
-  if (nativeTrayShown) {
-    await prefs.remove('native_sos_tray_for_fall');
-  } else {
-    await showSosTriggerNotification(
-      'Fall Detected',
-      'A fall was detected. Tap to open SOS or tap Cancel SOS to stop.',
-    );
-  }
   try {
-    await SOSService().startSOS(relaxedLocationForBackground: true);
-    service.invoke('updateNotification', {
-      'title': 'SOS Alert Active',
-      'content': 'Sharing live location with emergency contacts...',
-    });
-  } catch (e) {
-    print('Background Fall SOS failed: $e');
+    // Clear pending immediately so the 1s poll cannot double-fire with servicePipe for one fall.
+    try {
+      final prefsClear = await SharedPreferences.getInstance();
+      await prefsClear.reload();
+      await prefsClear.remove('fall_detected_pending');
+      await prefsClear.remove('fall_detected_time');
+    } catch (e) {
+      print('Background: clear fall_detected_pending error: $e');
+    }
+
+    final alreadyActive = await SOSService().isSosActive();
+    if (alreadyActive) {
+      print('Background: SOS already active — skipping duplicate fall trigger');
+      return;
+    }
+
+    // Minimized path: [SosTrayNotifier] already posted id 999 — skip duplicate sound/vibration.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final nativeTrayShown = prefs.getBool('native_sos_tray_for_fall') ?? false;
+    if (nativeTrayShown) {
+      await prefs.remove('native_sos_tray_for_fall');
+    } else {
+      await showSosTriggerNotification(
+        'Fall Detected',
+        'A fall was detected. Tap to open SOS or tap Cancel SOS to stop.',
+      );
+    }
+    try {
+      await SOSService().startSOS(relaxedLocationForBackground: true);
+      service.invoke('updateNotification', {
+        'title': 'SOS Alert Active',
+        'content': 'Sharing live location with emergency contacts...',
+      });
+    } catch (e) {
+      print('Background Fall SOS failed: $e');
+    }
+    // Always deep-link main UI so user is on SOS when they return (and 10s dialog can run if API failed).
+    service.invoke('openSos', {'trigger': 'fall'});
+  } finally {
+    _backgroundFallSosHandling = false;
   }
-  // Always deep-link main UI so user is on SOS when they return (and 10s dialog can run if API failed).
-  service.invoke('openSos', {'trigger': 'fall'});
 }
 
 /// High-priority SOS alert in the Android notification drawer (fall / voice).

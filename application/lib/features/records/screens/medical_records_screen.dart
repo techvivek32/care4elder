@@ -661,7 +661,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Your data is\nencrypted and\nsecure.',
+                  'Your Data Is\nEncrypted And\nSecure.',
                   style: GoogleFonts.roboto(
                     fontSize: 31,
                     height: 0.9,

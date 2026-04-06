@@ -680,7 +680,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        'Your Data Is Safe With Us!',
+                        'Your data is safe with us!',
                         style: GoogleFonts.roboto(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,

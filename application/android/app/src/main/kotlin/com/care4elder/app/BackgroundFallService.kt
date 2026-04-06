@@ -14,7 +14,6 @@ import android.os.Looper
 import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import id.flutter.flutter_background_service.FlutterBackgroundServicePlugin
 import org.json.JSONObject
 
@@ -167,7 +166,10 @@ class BackgroundFallService : Service() {
                 .commit()
             // Same drawer UX as app-killed path; tap opens MainActivity → SOS route via Dart.
             SosTrayNotifier.showFallDetectedTray(applicationContext)
-            startFlutterBackgroundService()
+            // Try immediate delivery only if Flutter background isolate is already alive.
+            // Do not force-start Flutter background service from here: on newer Android
+            // this can terminate the app process when started from background context.
+            pushFallToFlutterBackgroundIsolate()
         }
     }
 
@@ -189,19 +191,6 @@ class BackgroundFallService : Service() {
         }
     }
 
-    private fun startFlutterBackgroundService() {
-        pushFallToFlutterBackgroundIsolate()
-        try {
-            val clazz = Class.forName("id.flutter.flutter_background_service.BackgroundService")
-            val intent = Intent(applicationContext, clazz)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                ContextCompat.startForegroundService(applicationContext, intent)
-            } else {
-                applicationContext.startService(intent)
-            }
-            Log.d(TAG, "Flutter bg service start requested (foreground on O+)")
-        } catch (e: Exception) {
-            Log.e(TAG, "startFlutterBackgroundService error: ${e.message}")
-        }
-    }
+    // Intentionally no force-start helper for Flutter background service here.
+    // If Flutter bg isolate is not running, pending flags + tray intent path are used.
 }

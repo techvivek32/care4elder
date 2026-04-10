@@ -14,10 +14,7 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -33,7 +30,7 @@
         android:icon="@mipmap/ic_launcher">
         <service
             android:name="id.flutter.flutter_background_service.BackgroundService"
-            android:foregroundServiceType="microphone|camera|location|dataSync" />
+            android:foregroundServiceType="location" />
 
         <!-- Boot receiver: restarts background protection after phone reboot -->
         <receiver
@@ -49,14 +46,13 @@
 
         <service
             android:name=".BootRestartService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
+            android:exported="false" />
 
         <!-- Standalone fall detection FOREGROUND service — survives Samsung/Xiaomi/Oppo battery killers -->
         <service
             android:name=".BackgroundFallService"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
+            android:foregroundServiceType="location"
             android:stopWithTask="false" />
         <!-- Use legacy back dispatch so Flutter Router/PopScope/BackButtonListener
              receive the event before the activity is minimized (API 33+ predictive back). -->

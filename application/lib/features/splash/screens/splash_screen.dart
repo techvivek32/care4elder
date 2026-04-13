@@ -22,21 +22,21 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    // Request all permissions on first time open
     final permissionService = PermissionService();
     bool alreadyRequested = await permissionService.hasRequestedPermissions();
     
-    if (!alreadyRequested) {
-      await permissionService.requestAllPermissions();
-    }
-
     // Navigate based on auth state after a delay
     Future.delayed(const Duration(seconds: 3), () async {
       if (mounted) {
+        // First time install — show permissions gate screen
+        if (!alreadyRequested) {
+          context.go('/permissions-gate');
+          return;
+        }
+
         bool isPatientLoggedIn = false;
         bool isDoctorLoggedIn = false;
         try {
-          // Secure storage can take >200ms on first read; short timeouts falsely logged users out.
           isPatientLoggedIn = await AuthService().isSignedIn();
           if (!isPatientLoggedIn) {
             isDoctorLoggedIn = await DoctorAuthService().isSignedIn();

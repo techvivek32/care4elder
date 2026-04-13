@@ -63,15 +63,7 @@ Future<void> main() async {
 
   // Start admin-notification polling in background (independent of "Background Protection" toggle).
   try {
-    final status = await Permission.notification.status;
-    if (status.isGranted) {
-      await BackgroundServiceHelper.startAdminNotificationsPolling();
-    } else {
-      final req = await Permission.notification.request();
-      if (req.isGranted) {
-        await BackgroundServiceHelper.startAdminNotificationsPolling();
-      }
-    }
+    await BackgroundServiceHelper.startAdminNotificationsPolling();
   } catch (_) {
     // If permission is not available / denied, drawer notifications may not show.
   }

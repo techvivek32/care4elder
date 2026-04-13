@@ -220,43 +220,28 @@ class _AppSettingsScreenState extends State<AppSettingsScreen>
                                 : null,
                             onChanged: (value) async {
                               if (value) {
-                                final status =
-                                    await Permission.notification.request();
-                                if (status.isGranted) {
-                                  await BackgroundServiceHelper.startService();
-                                  final prefs =
-                                      await SharedPreferences.getInstance();
-                                  await prefs.setBool(_kBgProtectionKey, true);
-                                  setState(() {
-                                    _backgroundServiceEnabled = value;
-                                  });
-
-                                  await _showProtectionEnabledNotification();
-                                  await _requestBatteryOptimizationExemption();
-
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Background protection activated!',
-                                        ),
-                                        backgroundColor: Colors.green,
-                                        duration: Duration(seconds: 3),
-                                      ),
-                                    );
-                                  }
-                                } else {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Notification permission is required for background protection',
-                                        ),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                  return;
+                                // Notification already requested on first install via permissions gate.
+                                // Directly start service.
+                                final notifStatus = await Permission.notification.status;
+                                if (notifStatus.isDenied || notifStatus.isPermanentlyDenied) {
+                                  await Permission.notification.request();
+                                }
+                                await BackgroundServiceHelper.startService();
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.setBool(_kBgProtectionKey, true);
+                                setState(() {
+                                  _backgroundServiceEnabled = value;
+                                });
+                                await _showProtectionEnabledNotification();
+                                // Battery optimization already requested on first install.
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Background protection activated!'),
+                                      backgroundColor: Colors.green,
+                                      duration: Duration(seconds: 3),
+                                    ),
+                                  );
                                 }
                               } else {
                                 await BackgroundServiceHelper

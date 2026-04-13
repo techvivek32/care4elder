@@ -24,10 +24,7 @@ class PermissionService {
       Permission.location,
       Permission.camera,
       Permission.microphone,
-      Permission.phone,
       Permission.contacts,
-      Permission.bluetoothConnect,
-      Permission.sensors,
       Permission.notification,
     ];
 

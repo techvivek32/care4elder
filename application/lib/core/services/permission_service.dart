@@ -26,14 +26,8 @@ class PermissionService {
       Permission.microphone,
       Permission.phone,
       Permission.contacts,
-      Permission.bluetooth,
       Permission.bluetoothConnect,
-      Permission.storage,
       Permission.sensors,
-      // For newer Android versions
-      Permission.photos,
-      Permission.videos,
-      Permission.audio,
       Permission.notification,
     ];
 

@@ -51,7 +51,8 @@
 
         <service
             android:name=".BootRestartService"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
 
         <!-- Standalone fall detection FOREGROUND service — survives Samsung/Xiaomi/Oppo battery killers -->
         <service

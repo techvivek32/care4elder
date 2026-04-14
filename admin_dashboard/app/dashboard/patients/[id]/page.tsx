@@ -275,7 +275,7 @@ export default async function PatientDetailsPage(props: { params: Promise<{ id: 
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-green-50 rounded-xl border border-green-100">
-                      <span className="text-xs font-bold text-green-600 uppercase tracking-wider block mb-1">Health Policy</span>
+                      <span className="text-xs font-bold text-green-600 uppercase tracking-wider block mb-1">Health Policy Provider</span>
                       <span className="text-sm font-semibold text-gray-900">
                         {patient.insuranceInfo?.healthPolicy || '—'}
                       </span>

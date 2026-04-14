@@ -467,7 +467,7 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInsuranceRow('Health Policy', patient.healthPolicy),
+                _buildInsuranceRow('Health Policy Provider', patient.healthPolicy),
                 const SizedBox(height: 8),
                 _buildInsuranceRow('Policy Number', patient.healthPolicyNumber),
               ],
@@ -704,7 +704,7 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
             TextFormField(
               controller: _healthPolicyCtrl,
               decoration: const InputDecoration(
-                labelText: 'Health Policy',
+                labelText: 'Health Policy Provider',
                 prefixIcon: Icon(Icons.health_and_safety_outlined),
               ),
             ),

@@ -458,15 +458,6 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
           const SizedBox(height: 18),
 
           _SectionTitleRow(
-            icon: Icons.folder_open_outlined,
-            iconColor: primary,
-            title: 'Health Documents',
-          ),
-          const SizedBox(height: 10),
-          ..._buildHealthDocsCards(),
-
-          const SizedBox(height: 18),
-          _SectionTitleRow(
             icon: Icons.health_and_safety_outlined,
             iconColor: const Color(0xFF2E7D32),
             title: 'Insurance Information',
@@ -482,6 +473,15 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
               ],
             ),
           ),
+
+          const SizedBox(height: 18),
+          _SectionTitleRow(
+            icon: Icons.folder_open_outlined,
+            iconColor: primary,
+            title: 'Health Documents',
+          ),
+          const SizedBox(height: 10),
+          ..._buildHealthDocsCards(),
 
           const SizedBox(height: 20),
         ],
@@ -700,20 +700,6 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
             ],
 
             const SizedBox(height: 24),
-            _buildSectionTitle('Documents & Additional Info'),
-            TextFormField(
-              controller: _additionalInfoCtrl,
-              decoration: const InputDecoration(labelText: 'Additional Medical Information'),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            _buildDocEditSection('Lab Reports', _labReports),
-            const SizedBox(height: 12),
-            _buildDocEditSection('Prescriptions', _prescriptions),
-            const SizedBox(height: 12),
-            _buildDocEditSection('Other Medical Documents', _additionalDocs),
-
-            const SizedBox(height: 24),
             _buildSectionTitle('Insurance Information'),
             TextFormField(
               controller: _healthPolicyCtrl,
@@ -730,6 +716,20 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
                 prefixIcon: Icon(Icons.numbers_outlined),
               ),
             ),
+
+            const SizedBox(height: 24),
+            _buildSectionTitle('Documents & Additional Info'),
+            TextFormField(
+              controller: _additionalInfoCtrl,
+              decoration: const InputDecoration(labelText: 'Additional Medical Information'),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            _buildDocEditSection('Lab Reports', _labReports),
+            const SizedBox(height: 12),
+            _buildDocEditSection('Prescriptions', _prescriptions),
+            const SizedBox(height: 12),
+            _buildDocEditSection('Other Medical Documents', _additionalDocs),
             const SizedBox(height: 40),
           ],
         ),

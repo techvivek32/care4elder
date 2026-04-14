@@ -4,7 +4,7 @@ import Patient from '@/models/Patient';
 import { 
   User, Phone, Mail, FileText, Calendar, Users, 
   Activity, CheckCircle, XCircle, Clock, HeartPulse, 
-  Stethoscope, Pill, Microscope, ClipboardList, Download
+  Stethoscope, Pill, Microscope, ClipboardList, Download, ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -265,6 +265,28 @@ export default async function PatientDetailsPage(props: { params: Promise<{ id: 
                       ))}
                     </div>
                   ) : <span className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-xl block text-center">No additional supporting documents.</span>}
+                </div>
+
+                {/* Insurance Information */}
+                <div className="p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
+                  <h4 className="font-bold text-gray-900 mb-4 flex items-center text-sm uppercase tracking-tight">
+                    <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
+                    Insurance Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-green-50 rounded-xl border border-green-100">
+                      <span className="text-xs font-bold text-green-600 uppercase tracking-wider block mb-1">Health Policy</span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {patient.insuranceInfo?.healthPolicy || '—'}
+                      </span>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-xl border border-green-100">
+                      <span className="text-xs font-bold text-green-600 uppercase tracking-wider block mb-1">Policy Number</span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {patient.insuranceInfo?.healthPolicyNumber || '—'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

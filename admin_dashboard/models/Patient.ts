@@ -35,6 +35,10 @@ export interface IPatient extends Document {
   labReports?: string[];
   prescriptions?: string[];
   walletBalance: number;
+  insuranceInfo?: {
+    healthPolicy?: string;
+    healthPolicyNumber?: string;
+  };
 }
 
 const PatientSchema: Schema = new Schema({
@@ -71,7 +75,11 @@ const PatientSchema: Schema = new Schema({
   additionalDocuments: [{ type: String }],
   labReports: [{ type: String }],
   prescriptions: [{ type: String }],
-  walletBalance: { type: Number, default: 0 }
+  walletBalance: { type: Number, default: 0 },
+  insuranceInfo: {
+    healthPolicy: { type: String, default: '' },
+    healthPolicyNumber: { type: String, default: '' },
+  },
 }, { timestamps: true });
 
 const Patient: Model<IPatient> = mongoose.models.Patient || mongoose.model<IPatient>('Patient', PatientSchema);

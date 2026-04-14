@@ -26,6 +26,8 @@ class UserProfile {
   List<String> additionalDocuments;
   List<String> labReports;
   List<String> prescriptions;
+  String? healthPolicy;
+  String? healthPolicyNumber;
 
   UserProfile({
     required this.id,
@@ -47,6 +49,8 @@ class UserProfile {
     this.additionalDocuments = const [],
     this.labReports = const [],
     this.prescriptions = const [],
+    this.healthPolicy,
+    this.healthPolicyNumber,
   });
 
   UserProfile copyWith({
@@ -69,6 +73,8 @@ class UserProfile {
     List<String>? additionalDocuments,
     List<String>? labReports,
     List<String>? prescriptions,
+    String? healthPolicy,
+    String? healthPolicyNumber,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -90,6 +96,8 @@ class UserProfile {
       additionalDocuments: additionalDocuments ?? this.additionalDocuments,
       labReports: labReports ?? this.labReports,
       prescriptions: prescriptions ?? this.prescriptions,
+      healthPolicy: healthPolicy ?? this.healthPolicy,
+      healthPolicyNumber: healthPolicyNumber ?? this.healthPolicyNumber,
     );
   }
 
@@ -134,6 +142,8 @@ class UserProfile {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      healthPolicy: json['insuranceInfo']?['healthPolicy'],
+      healthPolicyNumber: json['insuranceInfo']?['healthPolicyNumber'],
     );
   }
 
@@ -156,6 +166,10 @@ class UserProfile {
       'additionalDocuments': additionalDocuments,
       'labReports': labReports,
       'prescriptions': prescriptions,
+      'insuranceInfo': {
+        'healthPolicy': healthPolicy ?? '',
+        'healthPolicyNumber': healthPolicyNumber ?? '',
+      },
     };
   }
 }

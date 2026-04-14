@@ -29,6 +29,8 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
   String? _bloodGroup;
   final _allergiesCtrl = TextEditingController();
   final _additionalInfoCtrl = TextEditingController();
+  final _healthPolicyCtrl = TextEditingController();
+  final _healthPolicyNumberCtrl = TextEditingController();
   
   final List<_SurgeryRow> _surgeries = [];
   final List<_MedicationRow> _medications = [];
@@ -67,6 +69,8 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
     _bloodGroup = p.bloodGroup.isNotEmpty ? p.bloodGroup : null;
     _allergiesCtrl.text = p.allergies;
     _additionalInfoCtrl.text = p.additionalInfo ?? '';
+    _healthPolicyCtrl.text = p.healthPolicy ?? '';
+    _healthPolicyNumberCtrl.text = p.healthPolicyNumber ?? '';
     
     _surgeries.clear();
     for (final s in p.pastSurgeries) {
@@ -231,6 +235,8 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
         additionalDocuments: List<String>.from(_additionalDocs),
         labReports: List<String>.from(_labReports),
         prescriptions: List<String>.from(_prescriptions),
+        healthPolicy: _healthPolicyCtrl.text.trim().isEmpty ? null : _healthPolicyCtrl.text.trim(),
+        healthPolicyNumber: _healthPolicyNumberCtrl.text.trim().isEmpty ? null : _healthPolicyNumberCtrl.text.trim(),
       );
 
       final ok = await ProfileService().updateProfile(updated);
@@ -458,6 +464,24 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
           ),
           const SizedBox(height: 10),
           ..._buildHealthDocsCards(),
+
+          const SizedBox(height: 18),
+          _SectionTitleRow(
+            icon: Icons.health_and_safety_outlined,
+            iconColor: const Color(0xFF2E7D32),
+            title: 'Insurance Information',
+          ),
+          const SizedBox(height: 10),
+          _MutedCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInsuranceRow('Health Policy', patient.healthPolicy),
+                const SizedBox(height: 8),
+                _buildInsuranceRow('Policy Number', patient.healthPolicyNumber),
+              ],
+            ),
+          ),
 
           const SizedBox(height: 20),
         ],
@@ -688,10 +712,58 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
             _buildDocEditSection('Prescriptions', _prescriptions),
             const SizedBox(height: 12),
             _buildDocEditSection('Other Medical Documents', _additionalDocs),
+
+            const SizedBox(height: 24),
+            _buildSectionTitle('Insurance Information'),
+            TextFormField(
+              controller: _healthPolicyCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Health Policy',
+                prefixIcon: Icon(Icons.health_and_safety_outlined),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _healthPolicyNumberCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Health Policy Number',
+                prefixIcon: Icon(Icons.numbers_outlined),
+              ),
+            ),
             const SizedBox(height: 40),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildInsuranceRow(String label, String? value) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 120,
+          child: Text(
+            label,
+            style: GoogleFonts.roboto(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurface.withOpacity(0.55),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            (value != null && value.isNotEmpty) ? value : '—',
+            style: GoogleFonts.roboto(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

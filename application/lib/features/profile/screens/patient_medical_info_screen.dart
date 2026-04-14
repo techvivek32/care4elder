@@ -696,9 +696,15 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text(title, style: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
+      child: Text(title, style: GoogleFonts.roboto(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: isDark ? colorScheme.onSurface : AppColors.primaryBlue,
+      )),
     );
   }
 

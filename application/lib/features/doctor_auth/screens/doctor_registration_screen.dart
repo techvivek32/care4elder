@@ -26,8 +26,8 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
   final _confirmPasswordController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _specializationController = TextEditingController();
 
-  String? _selectedSpecialization;
   bool _lockEmail = false;
   bool _lockPhone = false;
 
@@ -39,18 +39,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
 
   bool _isLoading = false;
 
-  final List<String> _specializations = [
-    'General Physician',
-    'Cardiologist',
-    'Dermatologist',
-    'Orthopedist',
-    'Pediatrician',
-    'Neurologist',
-    'Psychiatrist',
-    'Gynecologist',
-  ];
-
-  @override
+@override
   void initState() {
     super.initState();
     final data = DoctorAuthService().registrationData;
@@ -75,6 +64,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
     _confirmPasswordController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _specializationController.dispose();
     super.dispose();
   }
 
@@ -197,7 +187,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
           fullName: _fullNameController.text,
           password: _passwordController.text,
           medicalRegistrationNumber: _licenseController.text,
-          specialization: _selectedSpecialization,
+          specialization: _specializationController.text,
           experienceYears: _experienceController.text,
           hospitalAffiliation: _hospitalController.text,
           qualifications: _qualificationsController.text,
@@ -346,22 +336,10 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
                       : null,
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: _inputDecoration('Specialization'),
-                  initialValue: _selectedSpecialization,
-                  items: _specializations.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      _selectedSpecialization = newValue;
-                    });
-                  },
-                  validator: (value) =>
-                      value == null ? 'Please select a specialization' : null,
+                _buildTextField(
+                  controller: _specializationController,
+                  label: 'Specialization',
+                  hint: 'e.g. Cardiologist',
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(

@@ -90,18 +90,7 @@ export default function DoctorsPage() {
   
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
-  const specializations = [
-    'General Physician',
-    'Cardiologist',
-    'Dermatologist',
-    'Orthopedist',
-    'Pediatrician',
-    'Neurologist',
-    'Psychiatrist',
-    'Gynecologist',
-  ];
-  
-  const { data: doctors, isLoading, error } = useQuery({
+const { data: doctors, isLoading, error } = useQuery({
     queryKey: ['doctors'],
     queryFn: fetchDoctors
   });
@@ -180,23 +169,8 @@ export default function DoctorsPage() {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
-    if (!formData.fullName.trim()) errors.fullName = 'Full name is required';
-    if (!formData.email.trim()) errors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
-    if (!formData.phone.trim()) errors.phone = 'Phone number is required';
-    if (!formData.password) errors.password = 'Password is required';
-    else if (formData.password.length < 6) errors.password = 'Password must be at least 6 characters';
-    if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match';
-    if (!formData.licenseNumber.trim()) errors.licenseNumber = 'Medical license number is required';
-    if (!formData.specialization) errors.specialization = 'Specialization is required';
-    if (!formData.qualifications.trim()) errors.qualifications = 'Qualifications are required';
-    if (!formData.experience.trim()) errors.experience = 'Years of experience is required';
-    else if (isNaN(Number(formData.experience))) errors.experience = 'Experience must be a number';
-    if (!formData.hospitalAddress.trim()) errors.hospitalAddress = 'Hospital/Clinic address is required';
-    if (!formData.medicalCertificate) errors.medicalCertificate = 'Medical certificate is required';
-    if (!formData.idProof) errors.idProof = 'ID proof is required';
-    
+    if (formData.email.trim() && !/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
+    if (formData.experience.trim() && isNaN(Number(formData.experience))) errors.experience = 'Experience must be a number';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -269,7 +243,7 @@ export default function DoctorsPage() {
                 <h4 className="text-md font-semibold text-gray-800 mb-3">Personal Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Full Name *</label>
+                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
                     <input
                       type="text"
                       value={formData.fullName}
@@ -281,7 +255,7 @@ export default function DoctorsPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Email Address *</label>
+                    <label className="block text-sm font-medium text-gray-700">Email Address</label>
                     <input
                       type="email"
                       value={formData.email}
@@ -293,7 +267,7 @@ export default function DoctorsPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone Number *</label>
+                    <label className="block text-sm font-medium text-gray-700">Phone Number</label>
                     <input
                       type="tel"
                       value={formData.phone}
@@ -311,7 +285,7 @@ export default function DoctorsPage() {
                 <h4 className="text-md font-semibold text-gray-800 mb-3">Account Security</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Password *</label>
+                    <label className="block text-sm font-medium text-gray-700">Password</label>
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
@@ -332,7 +306,7 @@ export default function DoctorsPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Confirm Password *</label>
+                    <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
                     <div className="relative">
                       <input
                         type={showConfirmPassword ? "text" : "password"}
@@ -359,7 +333,7 @@ export default function DoctorsPage() {
                 <h4 className="text-md font-semibold text-gray-800 mb-3">Professional Credentials</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Medical License Number *</label>
+                    <label className="block text-sm font-medium text-gray-700">Medical License Number</label>
                     <input
                       type="text"
                       value={formData.licenseNumber}
@@ -371,22 +345,19 @@ export default function DoctorsPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Specialization *</label>
-                    <select
+                    <label className="block text-sm font-medium text-gray-700">Specialization</label>
+                    <input
+                      type="text"
                       value={formData.specialization}
                       onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:bg-white"
-                    >
-                      <option value="">Select Specialization</option>
-                      {specializations.map(spec => (
-                        <option key={spec} value={spec}>{spec}</option>
-                      ))}
-                    </select>
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:bg-white"
+                      placeholder="e.g. Cardiologist"
+                    />
                     {formErrors.specialization && <p className="text-red-500 text-xs mt-1">{formErrors.specialization}</p>}
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Qualifications *</label>
+                    <label className="block text-sm font-medium text-gray-700">Qualifications</label>
                     <input
                       type="text"
                       value={formData.qualifications}
@@ -398,7 +369,7 @@ export default function DoctorsPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Years of Experience *</label>
+                    <label className="block text-sm font-medium text-gray-700">Years of Experience</label>
                     <input
                       type="number"
                       value={formData.experience}
@@ -411,7 +382,7 @@ export default function DoctorsPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Hospital/Clinic Address *</label>
+                    <label className="block text-sm font-medium text-gray-700">Hospital/Clinic Address</label>
                     <input
                       type="text"
                       value={formData.hospitalAddress}
@@ -429,7 +400,7 @@ export default function DoctorsPage() {
                 <h4 className="text-md font-semibold text-gray-800 mb-3">Documents</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Medical Registration Certificate *</label>
+                    <label className="block text-sm font-medium text-gray-700">Medical Registration Certificate</label>
                     <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                       <div className="space-y-1 text-center">
                         {formData.medicalCertificate ? (
@@ -471,7 +442,7 @@ export default function DoctorsPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">ID Proof *</label>
+                    <label className="block text-sm font-medium text-gray-700">ID Proof</label>
                     <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                       <div className="space-y-1 text-center">
                         {formData.idProof ? (

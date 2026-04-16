@@ -57,6 +57,8 @@ export async function POST(req: Request) {
     
     const sent = await sendSms(phone, message, templateId);
     
+    console.log(`Doctor Login OTP for ${phone}: ${otp}`);
+    
     if (!sent) {
         console.error(`Failed to send SMS to ${phone}`);
         console.log(`DEV BACKUP: Login OTP for ${phone}: ${otp}`);

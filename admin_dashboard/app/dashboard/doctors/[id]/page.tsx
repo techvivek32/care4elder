@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import WithdrawalRequestsManager from '@/components/WithdrawalRequestsManager';
 import DocumentViewer from '@/components/DocumentViewer';
+import DoctorEditSections from '@/components/DoctorEditSections';
 
 async function getDoctor(id: string) {
   await dbConnect();
@@ -120,90 +121,12 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Info Card */}
+        {/* Editable Sections - Main Info, Documents, Financial */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                {doctor.profileImage ? (
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-blue-100">
-                    <img 
-                      src={resolveImageUrl(doctor.profileImage)} 
-                      alt={doctor.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="bg-blue-100 p-3 rounded-full">
-                    <User className="w-8 h-8 text-blue-600" />
-                  </div>
-                )}
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">{doctor.name}</h2>
-                  <p className="text-gray-500">{doctor.specialization}</p>
-                </div>
-              </div>
-              <StatusBadge status={doctor.verificationStatus} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-500">Email</label>
-                <div className="flex items-center text-gray-900">
-                  <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                  {doctor.email}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-500">Phone</label>
-                <div className="flex items-center text-gray-900">
-                  <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                  {doctor.phone}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-500">License Number</label>
-                <div className="flex items-center text-gray-900">
-                  <Award className="w-4 h-4 mr-2 text-gray-400" />
-                  {doctor.licenseNumber}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-500">Experience</label>
-                <div className="flex items-center text-gray-900">
-                  <Briefcase className="w-4 h-4 mr-2 text-gray-400" />
-                  {doctor.experienceYears ? `${doctor.experienceYears} Years` : 'Not specified'}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500">About</label>
-                <p className="mt-1 text-gray-900 whitespace-pre-wrap">{doctor.about || 'No description provided.'}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Qualifications</label>
-                <p className="mt-1 text-gray-900">{doctor.qualifications || 'Not specified'}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Hospital Affiliation</label>
-                <p className="mt-1 text-gray-900">{doctor.hospitalAffiliation || 'Not specified'}</p>
-              </div>
-            </div>
-          </div>
+          <DoctorEditSections doctor={doctor} />
 
           {/* Withdrawal Requests Section */}
           <WithdrawalRequestsManager doctorId={doctor._id} />
-
-          {/* Documents Section */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <FileText className="w-5 h-5 mr-2 text-blue-500" />
-              Documents
-            </h3>
-            <DocumentViewer documents={doctor.documents || []} />
-          </div>
         </div>
 
 

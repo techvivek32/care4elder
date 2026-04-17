@@ -203,11 +203,15 @@ export async function PUT(
     if (body.specialization != null) updateData.specialization = body.specialization;
     if (body.qualifications != null) updateData.qualifications = body.qualifications;
     if (body.experience != null) updateData.experience = body.experience;
+    if (body.experienceYears != null) updateData.experienceYears = body.experienceYears;
     if (body.about != null) updateData.about = body.about;
     if (body.profileImage != null) updateData.profileImage = body.profileImage;
+    if (body.licenseNumber != null) updateData.licenseNumber = body.licenseNumber;
+    if (body.hospitalAffiliation != null) updateData.hospitalAffiliation = body.hospitalAffiliation;
+    if (body.documents != null) updateData.documents = body.documents;
+    if (body.consultationFee != null) updateData.consultationFee = body.consultationFee;
     if (body.consultationFees != null) {
         updateData.consultationFees = body.consultationFees;
-        // Also update standard fee as default for compatibility
         if (body.consultationFees.standard) {
              updateData.consultationFee = body.consultationFees.standard;
         }

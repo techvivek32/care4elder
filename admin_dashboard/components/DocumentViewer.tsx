@@ -6,9 +6,9 @@ import { Eye, Download, X, FileText } from 'lucide-react';
 function resolveImageUrl(url: string) {
   if (!url) return '';
   if (url.startsWith('http')) return url;
-  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-  if (!cleanUrl.startsWith('/uploads/')) return `/uploads${cleanUrl}`;
-  return cleanUrl;
+  if (url.startsWith('/uploads/')) return url;
+  if (url.startsWith('/')) return `/uploads${url}`;
+  return `/uploads/${url}`;
 }
 
 export default function DocumentViewer({ documents }: { documents: string[] }) {

@@ -156,6 +156,14 @@ export default function DoctorEditSections({ doctor }: Props) {
     }
   };
 
+  const resolveUrl = (url: string) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads/')) return url;
+    if (url.startsWith('/')) return `/uploads${url}`;
+    return `/uploads/${url}`;
+  };
+
   const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500';
   const labelCls = 'text-sm font-medium text-gray-500';
 
@@ -194,7 +202,7 @@ export default function DoctorEditSections({ doctor }: Props) {
             {profilePreview ? (
               <img src={profilePreview} className="w-full h-full object-cover" alt="preview" />
             ) : mainData.profileImage ? (
-              <img src={mainData.profileImage.startsWith('http') ? mainData.profileImage : `/uploads${mainData.profileImage.startsWith('/') ? '' : '/'}${mainData.profileImage}`} className="w-full h-full object-cover" alt="profile" />
+              <img src={resolveUrl(mainData.profileImage)} className="w-full h-full object-cover" alt="profile" />
             ) : (
               <span className="text-2xl text-blue-400">👤</span>
             )}
@@ -266,7 +274,7 @@ export default function DoctorEditSections({ doctor }: Props) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[0, 1].map((i) => {
-            const docUrl = documents[i] ? (documents[i].startsWith('http') ? documents[i] : `/uploads${documents[i].startsWith('/') ? '' : '/'}${documents[i]}`) : null;
+            const docUrl = documents[i] ? resolveUrl(documents[i]) : null;
             const newFile = i === 0 ? newDoc1 : newDoc2;
             return (
               <div key={i} className="space-y-2">

@@ -37,12 +37,12 @@ export interface IDoctor extends Document {
 }
 
 const DoctorSchema: Schema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true, select: false },
-  phone: { type: String, required: true },
-  specialization: { type: String, required: true },
-  licenseNumber: { type: String, required: true },
+  name: { type: String },
+  email: { type: String, unique: true, sparse: true },
+  password: { type: String, select: false },
+  phone: { type: String },
+  specialization: { type: String },
+  licenseNumber: { type: String },
   experienceYears: { type: Number },
   hospitalAffiliation: { type: String },
   qualifications: { type: String },
@@ -58,7 +58,7 @@ const DoctorSchema: Schema = new Schema({
   walletBalance: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
   reviews: { type: Number, default: 0 },
-  consultationFee: { type: Number, required: true }, // Keep for backward compatibility
+  consultationFee: { type: Number, default: 500 },
   consultationFees: {
     standard: { type: Number },
     emergency: { type: Number },

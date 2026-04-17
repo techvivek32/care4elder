@@ -35,50 +35,51 @@ async function bulkDelete(ids: string[]) {
 }
 
 async function addDoctor(doctorData: any) {
-  // First upload profile picture if exists
+  const uploadFile = async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('File upload failed');
+    const data = await res.json();
+    return data.urls[0];
+  };
+
+  // Upload all files from frontend first
   let profileImageUrl = '';
+  let medicalCertUrl = '';
+  let idProofUrl = '';
+
   if (doctorData.profilePicture) {
-    const uploadFormData = new FormData();
-    uploadFormData.append('file', doctorData.profilePicture);
-    
-    const uploadRes = await fetch('/api/upload', {
-      method: 'POST',
-      body: uploadFormData,
-    });
-    
-    if (uploadRes.ok) {
-      const uploadData = await uploadRes.json();
-      profileImageUrl = uploadData.urls[0];
-    }
+    profileImageUrl = await uploadFile(doctorData.profilePicture);
   }
-  
-  const formData = new FormData();
-  
-  // Add all text fields
-  Object.keys(doctorData).forEach(key => {
-    if (key !== 'medicalCertificate' && key !== 'idProof' && key !== 'profilePicture') {
-      formData.append(key, doctorData[key]);
-    }
-  });
-  
-  // Add profile image URL
-  if (profileImageUrl) {
-    formData.append('profileImage', profileImageUrl);
-  }
-  
-  // Add files
   if (doctorData.medicalCertificate) {
-    formData.append('medicalCertificate', doctorData.medicalCertificate);
+    medicalCertUrl = await uploadFile(doctorData.medicalCertificate);
   }
   if (doctorData.idProof) {
-    formData.append('idProof', doctorData.idProof);
+    idProofUrl = await uploadFile(doctorData.idProof);
   }
-  
+
+  // Send JSON with URLs (not FormData)
+  const body = {
+    fullName: doctorData.fullName,
+    email: doctorData.email,
+    phone: doctorData.phone,
+    password: doctorData.password,
+    licenseNumber: doctorData.licenseNumber,
+    specialization: doctorData.specialization,
+    qualifications: doctorData.qualifications,
+    experience: doctorData.experience,
+    hospitalAddress: doctorData.hospitalAddress,
+    profileImage: profileImageUrl || null,
+    documents: [medicalCertUrl, idProofUrl].filter(Boolean),
+  };
+
   const res = await fetch('/api/doctors', {
     method: 'POST',
-    body: formData,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
-  
+
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || 'Failed to add doctor');

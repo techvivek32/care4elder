@@ -36,27 +36,19 @@ export async function POST(request: Request) {
     
     console.log('Processing doctor creation request...');
     
-    const formData = await request.formData();
+    const body = await request.json();
     
-    console.log('Form data received:', {
-      fullName: formData.get('fullName'),
-      email: formData.get('email'),
-      phone: formData.get('phone'),
-      specialization: formData.get('specialization'),
-      qualifications: formData.get('qualifications')
-    });
-    
-    // Extract form fields
-    const fullName = formData.get('fullName') as string;
-    const email = formData.get('email') as string;
-    const phone = formData.get('phone') as string;
-    const password = formData.get('password') as string;
-    const licenseNumber = formData.get('licenseNumber') as string;
-    const specialization = formData.get('specialization') as string;
-    const qualifications = formData.get('qualifications') as string;
-    const experience = formData.get('experience') as string;
-    const hospitalAddress = formData.get('hospitalAddress') as string;
-    const profileImage = formData.get('profileImage') as string;
+    const fullName = body.fullName || '';
+    const email = body.email || '';
+    const phone = body.phone || '';
+    const password = body.password || '';
+    const licenseNumber = body.licenseNumber || '';
+    const specialization = body.specialization || '';
+    const qualifications = body.qualifications || '';
+    const experience = body.experience || '';
+    const hospitalAddress = body.hospitalAddress || '';
+    const profileImage = body.profileImage || null;
+    const documents = Array.isArray(body.documents) ? body.documents : [];
     
     // Validate only email format if provided
     if (email && !/\S+@\S+\.\S+/.test(email)) {
@@ -86,45 +78,7 @@ export async function POST(request: Request) {
     // Hash password (use default if not provided)
     const hashedPassword = await bcrypt.hash(password || 'Care4Elder@123', 12);
     
-    // Handle file uploads - upload to server and get URLs
-    const medicalCertificate = formData.get('medicalCertificate') as File;
-    const idProof = formData.get('idProof') as File;
-    
-    const documents = [];
-    
-    // Upload medical certificate
-    if (medicalCertificate && medicalCertificate.size > 0) {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', medicalCertificate);
-      
-      const uploadRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/upload`, {
-        method: 'POST',
-        body: uploadFormData,
-      });
-      
-      if (uploadRes.ok) {
-        const uploadData = await uploadRes.json();
-        documents.push(uploadData.urls[0]);
-      }
-    }
-    
-    // Upload ID proof
-    if (idProof && idProof.size > 0) {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', idProof);
-      
-      const uploadRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/upload`, {
-        method: 'POST',
-        body: uploadFormData,
-      });
-      
-      if (uploadRes.ok) {
-        const uploadData = await uploadRes.json();
-        documents.push(uploadData.urls[0]);
-      }
-    }
-    
-    console.log('Documents uploaded:', documents);
+    console.log('Documents received:', documents);
     
     // Create new doctor
     const newDoctor = new Doctor({

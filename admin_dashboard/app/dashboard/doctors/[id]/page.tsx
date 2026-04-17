@@ -12,6 +12,7 @@ import Link from 'next/link';
 import WithdrawalRequestsManager from '@/components/WithdrawalRequestsManager';
 import DocumentViewer from '@/components/DocumentViewer';
 import DoctorEditSections from '@/components/DoctorEditSections';
+import FinancialEditSection from '@/components/FinancialEditSection';
 
 async function getDoctor(id: string) {
   await dbConnect();
@@ -131,6 +132,9 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
 
         {/* Sidebar Info */}
         <div className="space-y-6">
+          {/* Financial Details - Editable */}
+          <FinancialEditSection doctor={doctor} />
+
           {/* System Info */}
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">

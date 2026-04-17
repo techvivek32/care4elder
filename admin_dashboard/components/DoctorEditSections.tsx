@@ -364,45 +364,6 @@ export default function DoctorEditSections({ doctor }: Props) {
       )}
 
       {/* ── SECTION 4: Financial Details ── */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-gray-800">Financial Details</h3>
-          {!editingFinancial ? (
-            <button onClick={() => setEditingFinancial(true)} className="inline-flex items-center px-3 py-1.5 text-sm text-blue-600 border border-blue-200 rounded hover:bg-blue-50">
-              <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
-            </button>
-          ) : (
-            <div className="flex space-x-2">
-              <button onClick={() => setEditingFinancial(false)} className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded hover:bg-gray-50">
-                <X className="w-3.5 h-3.5 mr-1" /> Cancel
-              </button>
-              <button onClick={saveFinancial} disabled={saving} className="inline-flex items-center px-3 py-1.5 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50">
-                <Check className="w-3.5 h-3.5 mr-1" /> {saving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            { label: 'Consultation Fee (₹)', key: 'consultationFee', type: 'number' },
-            { label: 'Emergency Fee (₹)', key: 'emergencyFee', type: 'number' },
-            { label: 'Bank Name', key: 'bankName' },
-            { label: 'Account Holder Name', key: 'accountHolderName' },
-            { label: 'Account Number', key: 'accountNumber' },
-            { label: 'IFSC Code', key: 'ifscCode' },
-          ].map(({ label, key, type }) => (
-            <div key={key}>
-              <label className={labelCls}>{label}</label>
-              {editingFinancial ? (
-                <input type={type || 'text'} className={inputCls} value={(financialData as any)[key]} onChange={(e) => setFinancialData(prev => ({ ...prev, [key]: e.target.value }))} />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">{(financialData as any)[key] || '-'}</p>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

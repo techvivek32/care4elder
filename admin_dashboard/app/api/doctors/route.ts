@@ -86,19 +86,45 @@ export async function POST(request: Request) {
     // Hash password (use default if not provided)
     const hashedPassword = await bcrypt.hash(password || 'Care4Elder@123', 12);
     
-    // Handle file uploads (for now, we'll store file names - in production, upload to cloud storage)
+    // Handle file uploads - upload to server and get URLs
     const medicalCertificate = formData.get('medicalCertificate') as File;
     const idProof = formData.get('idProof') as File;
     
     const documents = [];
-    if (medicalCertificate && medicalCertificate.name) {
-      documents.push(medicalCertificate.name);
-    }
-    if (idProof && idProof.name) {
-      documents.push(idProof.name);
+    
+    // Upload medical certificate
+    if (medicalCertificate && medicalCertificate.size > 0) {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', medicalCertificate);
+      
+      const uploadRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/upload`, {
+        method: 'POST',
+        body: uploadFormData,
+      });
+      
+      if (uploadRes.ok) {
+        const uploadData = await uploadRes.json();
+        documents.push(uploadData.urls[0]);
+      }
     }
     
-    console.log('Documents array:', documents);
+    // Upload ID proof
+    if (idProof && idProof.size > 0) {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', idProof);
+      
+      const uploadRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/upload`, {
+        method: 'POST',
+        body: uploadFormData,
+      });
+      
+      if (uploadRes.ok) {
+        const uploadData = await uploadRes.json();
+        documents.push(uploadData.urls[0]);
+      }
+    }
+    
+    console.log('Documents uploaded:', documents);
     
     // Create new doctor
     const newDoctor = new Doctor({

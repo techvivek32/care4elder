@@ -288,8 +288,8 @@ const { data: doctors, isLoading, error } = useQuery({
                         accept="image/jpeg,image/png"
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
-                          if (file && file.size > 5 * 1024 * 1024) {
-                            setFormErrors(prev => ({ ...prev, profilePicture: 'Image must be under 5MB' }));
+                          if (file && file.size > 20 * 1024 * 1024) {
+                            setFormErrors(prev => ({ ...prev, profilePicture: 'Image must be under 20MB' }));
                             return;
                           }
                           setFormData(prev => ({ ...prev, profilePicture: file }));
@@ -306,7 +306,7 @@ const { data: doctors, isLoading, error } = useQuery({
                         Remove
                       </button>
                     )}
-                    <p className="mt-1 text-xs text-gray-500">JPG, PNG up to 5MB (optional)</p>
+                    <p className="mt-1 text-xs text-gray-500">JPG, PNG up to 20MB (optional)</p>
                     {formErrors.profilePicture && <p className="text-red-500 text-xs mt-1">{formErrors.profilePicture}</p>}
                   </div>
                 </div>

@@ -57,28 +57,33 @@ export async function POST(request: Request) {
     const experience = formData.get('experience') as string;
     const hospitalAddress = formData.get('hospitalAddress') as string;
     
-    // Validate required fields
-    if (!fullName || !email || !phone || !password || !licenseNumber || !specialization || !qualifications || !experience || !hospitalAddress) {
-      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+    // Validate only email format if provided
+    if (email && !/\S+@\S+\.\S+/.test(email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
     
-    // Validate experience is a valid number
-    const experienceNum = parseInt(experience);
-    if (isNaN(experienceNum) || experienceNum < 0) {
+    // Validate experience is a valid number if provided
+    const experienceNum = experience ? parseInt(experience) : 0;
+    if (experience && (isNaN(experienceNum) || experienceNum < 0)) {
       return NextResponse.json({ error: 'Experience must be a valid positive number' }, { status: 400 });
     }
     
-    // Check if doctor already exists
-    const existingDoctor = await Doctor.findOne({
-      $or: [{ email }, { phone }, { licenseNumber }]
-    });
-    
-    if (existingDoctor) {
-      return NextResponse.json({ error: 'Doctor with this email, phone, or license number already exists' }, { status: 400 });
+    // Check if doctor already exists (only if email/phone/license provided)
+    if (email || phone || licenseNumber) {
+      const query: any = { $or: [] };
+      if (email) query.$or.push({ email });
+      if (phone) query.$or.push({ phone });
+      if (licenseNumber) query.$or.push({ licenseNumber });
+      
+      const existingDoctor = await Doctor.findOne(query);
+      
+      if (existingDoctor) {
+        return NextResponse.json({ error: 'Doctor with this email, phone, or license number already exists' }, { status: 400 });
+      }
     }
     
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // Hash password (use default if not provided)
+    const hashedPassword = await bcrypt.hash(password || 'Care4Elder@123', 12);
     
     // Handle file uploads (for now, we'll store file names - in production, upload to cloud storage)
     const medicalCertificate = formData.get('medicalCertificate') as File;

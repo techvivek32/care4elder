@@ -35,14 +35,36 @@ async function bulkDelete(ids: string[]) {
 }
 
 async function addDoctor(doctorData: any) {
+  // First upload profile picture if exists
+  let profileImageUrl = '';
+  if (doctorData.profilePicture) {
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', doctorData.profilePicture);
+    
+    const uploadRes = await fetch('/api/upload', {
+      method: 'POST',
+      body: uploadFormData,
+    });
+    
+    if (uploadRes.ok) {
+      const uploadData = await uploadRes.json();
+      profileImageUrl = uploadData.urls[0];
+    }
+  }
+  
   const formData = new FormData();
   
   // Add all text fields
   Object.keys(doctorData).forEach(key => {
-    if (key !== 'medicalCertificate' && key !== 'idProof') {
+    if (key !== 'medicalCertificate' && key !== 'idProof' && key !== 'profilePicture') {
       formData.append(key, doctorData[key]);
     }
   });
+  
+  // Add profile image URL
+  if (profileImageUrl) {
+    formData.append('profileImage', profileImageUrl);
+  }
   
   // Add files
   if (doctorData.medicalCertificate) {
@@ -84,6 +106,7 @@ export default function DoctorsPage() {
     qualifications: '',
     experience: '',
     hospitalAddress: '',
+    profilePicture: null as File | null,
     medicalCertificate: null as File | null,
     idProof: null as File | null,
   });
@@ -159,6 +182,7 @@ const { data: doctors, isLoading, error } = useQuery({
       qualifications: '',
       experience: '',
       hospitalAddress: '',
+      profilePicture: null,
       medicalCertificate: null,
       idProof: null,
     });
@@ -238,6 +262,55 @@ const { data: doctors, isLoading, error } = useQuery({
             
             <div className="px-6 py-6">
               <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Profile Picture */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-800 mb-3">Profile Picture</h4>
+                <div className="flex items-center space-x-6">
+                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 flex items-center justify-center flex-shrink-0">
+                    {formData.profilePicture ? (
+                      <img
+                        src={URL.createObjectURL(formData.profilePicture)}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <UserPlus className="h-8 w-8 text-gray-400" />
+                    )}
+                  </div>
+                  <div>
+                    <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                      <Upload className="h-4 w-4 mr-2" />
+                      {formData.profilePicture ? 'Change Photo' : 'Upload Photo'}
+                      <input
+                        type="file"
+                        className="sr-only"
+                        accept="image/jpeg,image/png"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          if (file && file.size > 5 * 1024 * 1024) {
+                            setFormErrors(prev => ({ ...prev, profilePicture: 'Image must be under 5MB' }));
+                            return;
+                          }
+                          setFormData(prev => ({ ...prev, profilePicture: file }));
+                          setFormErrors(prev => ({ ...prev, profilePicture: '' }));
+                        }}
+                      />
+                    </label>
+                    {formData.profilePicture && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, profilePicture: null }))}
+                        className="ml-2 text-sm text-red-500 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500">JPG, PNG up to 5MB (optional)</p>
+                    {formErrors.profilePicture && <p className="text-red-500 text-xs mt-1">{formErrors.profilePicture}</p>}
+                  </div>
+                </div>
+              </div>
+
               {/* Personal Information */}
               <div>
                 <h4 className="text-md font-semibold text-gray-800 mb-3">Personal Information</h4>

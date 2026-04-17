@@ -56,6 +56,7 @@ export async function POST(request: Request) {
     const qualifications = formData.get('qualifications') as string;
     const experience = formData.get('experience') as string;
     const hospitalAddress = formData.get('hospitalAddress') as string;
+    const profileImage = formData.get('profileImage') as string;
     
     // Validate only email format if provided
     if (email && !/\S+@\S+\.\S+/.test(email)) {
@@ -110,6 +111,7 @@ export async function POST(request: Request) {
       qualifications,
       experienceYears: experienceNum,
       hospitalAffiliation: hospitalAddress,
+      profileImage: profileImage || null,
       documents,
       verificationStatus: 'approved', // Admin-added doctors are auto-approved
       isAvailable: true,

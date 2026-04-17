@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, X, Check, Upload } from 'lucide-react';
+import { Pencil, X, Check, Upload, Eye, Download } from 'lucide-react';
 
 interface Props {
   doctor: any;
@@ -15,6 +15,7 @@ export default function DoctorEditSections({ doctor }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // ── Main Info state ──
   const [mainData, setMainData] = useState({
@@ -208,7 +209,7 @@ export default function DoctorEditSections({ doctor }: Props) {
             )}
           </div>
           {editingMain && (
-            <label className="cursor-pointer inline-flex items-center px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50">
+            <label className="cursor-pointer inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-400 rounded hover:bg-blue-100">
               <Upload className="w-3.5 h-3.5 mr-1" /> Change Photo
               <input type="file" className="sr-only" accept="image/jpeg,image/png"
                 onChange={(e) => {
@@ -278,9 +279,31 @@ export default function DoctorEditSections({ doctor }: Props) {
             const newFile = i === 0 ? newDoc1 : newDoc2;
             return (
               <div key={i} className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">Document {i + 1}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-gray-700">Document {i + 1}</p>
+                  {docUrl && !editingDocs && (
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setPreviewUrl(docUrl)}
+                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-400 rounded hover:bg-blue-100"
+                      >
+                        <Eye className="w-3 h-3 mr-1" /> View
+                      </button>
+                      <a
+                        href={docUrl}
+                        download
+                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-50 border border-green-400 rounded hover:bg-green-100"
+                      >
+                        <Download className="w-3 h-3 mr-1" /> Download
+                      </a>
+                    </div>
+                  )}
+                </div>
                 {docUrl && !newFile && (
-                  <div className="border rounded-lg overflow-hidden bg-gray-50 p-2">
+                  <div
+                    className="border rounded-lg overflow-hidden bg-gray-50 p-2 cursor-pointer hover:opacity-90"
+                    onClick={() => !editingDocs && setPreviewUrl(docUrl)}
+                  >
                     <img src={docUrl} alt={`Document ${i + 1}`} className="w-full h-auto object-contain max-h-[150px]" />
                   </div>
                 )}
@@ -290,7 +313,7 @@ export default function DoctorEditSections({ doctor }: Props) {
                   </div>
                 )}
                 {editingDocs && (
-                  <label className="cursor-pointer inline-flex items-center px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                  <label className="cursor-pointer inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-400 rounded hover:bg-blue-100">
                     <Upload className="w-3.5 h-3.5 mr-1" /> {docUrl ? 'Replace' : 'Upload'}
                     <input type="file" className="sr-only" accept=".pdf,.jpg,.jpeg,.png"
                       onChange={(e) => {
@@ -306,6 +329,39 @@ export default function DoctorEditSections({ doctor }: Props) {
           })}
         </div>
       </div>
+
+      {/* Document Preview Popup */}
+      {previewUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <span className="font-semibold text-gray-800">Document Preview</span>
+              <div className="flex items-center space-x-2">
+                <a
+                  href={previewUrl}
+                  download
+                  className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded"
+                >
+                  <Download className="w-4 h-4 mr-1" /> Download
+                </a>
+                <button
+                  onClick={() => setPreviewUrl(null)}
+                  className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="overflow-auto flex-1 p-4 flex items-center justify-center bg-gray-50">
+              {previewUrl.toLowerCase().includes('.pdf') ? (
+                <iframe src={previewUrl} className="w-full h-[75vh]" title="Document Preview" />
+              ) : (
+                <img src={previewUrl} alt="Document Preview" className="max-w-full max-h-[75vh] object-contain" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── SECTION 4: Financial Details ── */}
       <div className="bg-white shadow rounded-lg p-6">

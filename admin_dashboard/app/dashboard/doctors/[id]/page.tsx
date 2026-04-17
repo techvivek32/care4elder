@@ -129,59 +129,8 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
           <WithdrawalRequestsManager doctorId={doctor._id} />
         </div>
 
-
         {/* Sidebar Info */}
         <div className="space-y-6">
-          {/* Financial Info */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <CreditCard className="w-5 h-5 mr-2 text-green-500" />
-              Financial Details
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-gray-500">Consultation Fee</span>
-                <span className="font-semibold text-gray-900">₹{doctor.consultationFee}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-gray-500">Emergency Fee</span>
-                <span className="font-semibold text-gray-900">
-                  {doctor.consultationFees?.emergency ? `₹${doctor.consultationFees.emergency}` : '-'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-gray-500">Wallet Balance</span>
-                <span className="font-semibold text-green-600">₹{Number(doctor.walletBalance).toFixed(2)}</span>
-              </div>
-              
-              {doctor.bankDetails && (
-                <div className="mt-4 pt-4 border-t bg-gray-50 p-3 rounded-lg">
-                  <h4 className="text-sm font-bold text-black mb-3 border-b pb-1">Bank Information</h4>
-                  <div className="space-y-3 text-sm">
-                    {doctor.bankDetails.bankName && (
-                      <div className="flex justify-between border-b border-gray-200 pb-1">
-                        <span className="text-gray-700 font-semibold">Bank Name</span>
-                        <span className="text-black font-bold">{doctor.bankDetails.bankName}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between border-b border-gray-200 pb-1">
-                      <span className="text-gray-700 font-semibold">Holder Name</span>
-                      <span className="text-black font-bold">{doctor.bankDetails.accountHolderName || '-'}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-gray-200 pb-1">
-                      <span className="text-gray-700 font-semibold">Account No</span>
-                      <span className="text-black font-bold font-mono tracking-tight">{doctor.bankDetails.accountNumber || '-'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-700 font-semibold">IFSC Code</span>
-                      <span className="text-black font-bold font-mono tracking-tight">{doctor.bankDetails.ifscCode || '-'}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* System Info */}
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
@@ -191,21 +140,15 @@ export default async function DoctorDetailsPage(props: { params: Promise<{ id: s
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Total Consultations</span>
-                <span className="font-semibold text-blue-600">
-                  {doctor.totalConsultations || 0}
-                </span>
+                <span className="font-semibold text-blue-600">{doctor.totalConsultations || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Joined Date</span>
-                <span className="text-gray-900">
-                  {new Date(doctor.createdAt).toLocaleDateString()}
-                </span>
+                <span className="text-gray-900">{new Date(doctor.createdAt).toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Last Updated</span>
-                <span className="text-gray-900">
-                  {new Date(doctor.updatedAt).toLocaleDateString()}
-                </span>
+                <span className="text-gray-900">{new Date(doctor.updatedAt).toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Email Verified</span>

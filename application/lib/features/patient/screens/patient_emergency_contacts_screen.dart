@@ -137,12 +137,38 @@ class _PatientEmergencyContactsScreenState
     });
   }
 
-  void _removeContact(int index) {
-    if (_contacts.length <= 1) return; // Prevent removing the last contact
+  Future<void> _removeContact(int index) async {
+    if (_contacts.length <= 1) {
+      // Only one contact left — confirm before clearing it
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Remove Contact'),
+          content: const Text(
+              'This is your only emergency contact. Are you sure you want to remove it?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Remove'),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
 
     setState(() {
       final removedItem = _contacts.removeAt(index);
       removedItem.dispose();
+      // Always keep at least one empty entry so the form is never blank
+      if (_contacts.isEmpty) {
+        _contacts.add(_ContactEntry());
+      }
     });
   }
 
@@ -683,6 +709,46 @@ class _PatientEmergencyContactsScreenState
             if (index > 0) ...[
               const SizedBox(height: 4),
             ],
+
+            // Contact header row with remove button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  index == 0 ? 'PRIMARY CONTACT' : 'CONTACT ${index + 1}',
+                  style: GoogleFonts.roboto(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.0,
+                    color: colorScheme.primary.withOpacity(0.75),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => _removeContact(index),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.delete_outline,
+                            size: 16, color: Colors.red.shade400),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Remove',
+                          style: GoogleFonts.roboto(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red.shade400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
 
             // Name Field
             Text(

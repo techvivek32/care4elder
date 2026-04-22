@@ -325,23 +325,23 @@ class _PatientEmergencyContactsScreenState
       }).toList();
 
       // Find the new contact that needs OTP verification.
-      // A contact is "new" if isNew == true (added this session).
-      // If all contacts are existing (editing only), fall back to first.
-      final contactToVerify = _contacts.lastWhere(
-        (c) => c.isNew,
-        orElse: () => _contacts.first,
+      // A contact is "new" only if isNew == true (added this session).
+      // If all contacts are existing (user only edited), send NO verifyPhone.
+      final _ContactEntry? newContact = _contacts.cast<_ContactEntry?>().lastWhere(
+        (c) => c!.isNew,
+        orElse: () => null,
       );
-      final phoneToVerify = contactToVerify.phoneController.text.trim();
+      final String? phoneToVerify = newContact?.phoneController.text.trim();
 
-      // Pass verifyPhone explicitly — backend will only send OTP to this
-      // new number and will NOT re-send to already-verified contacts.
+      // Pass verifyPhone only when there is a genuinely new contact.
+      // Backend sends OTP ONLY to this phone — nothing else.
       final result = await AuthService().updateRelatives(
         contactsData,
         verifyPhone: phoneToVerify,
       );
 
-      // If backend says no new contact to verify (all already existed),
-      // skip OTP screen and just go back.
+      // If no new contact (phoneToVerify was null), backend returns otpSentTo: null
+      // — just save and go back, no OTP screen needed.
       final otpSentTo = result['otpSentTo'] as String?;
       if (otpSentTo == null || otpSentTo.isEmpty) {
         if (mounted) {

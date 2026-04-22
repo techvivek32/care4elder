@@ -32,10 +32,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
     }
 
-    const existingPhones: string[] = (existingPatient.emergencyContacts ?? []).map(
-      (c: any) => (c.phone ?? '').trim()
-    );
-
     // Save all contacts
     const patient = await Patient.findByIdAndUpdate(
       decoded.id,
@@ -47,20 +43,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
     }
 
-    // Determine which phone to send OTP to:
-    // 1. Use explicitly requested phone (verifyPhone) if provided and it's new
-    // 2. Otherwise fall back to the first new phone in the list
-    // 3. If all phones already existed, no OTP needed
-    let phoneToVerify: string | null = null;
-
-    if (verifyPhone && !existingPhones.includes(verifyPhone.trim())) {
-      phoneToVerify = verifyPhone.trim();
-    } else {
-      const newContact = relatives.find(
-        (r: any) => !existingPhones.includes((r.phone ?? '').trim())
-      );
-      phoneToVerify = newContact?.phone?.trim() ?? null;
-    }
+    // If Flutter explicitly tells us which phone to verify, trust it completely.
+    // Flutter already knows which contact is new (isNew flag).
+    // Only send OTP when verifyPhone is provided.
+    const phoneToVerify: string | null = verifyPhone ? verifyPhone.trim() : null;
 
     if (phoneToVerify) {
       // Generate OTP only for the new contact

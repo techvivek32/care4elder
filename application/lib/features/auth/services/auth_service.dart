@@ -169,10 +169,18 @@ class AuthService {
   }
 
   /// Update Patient Relatives
-  Future<Map<String, dynamic>> updateRelatives(List<Map<String, String>> relatives) async {
+  Future<Map<String, dynamic>> updateRelatives(
+    List<Map<String, String>> relatives, {
+    String? verifyPhone,
+  }) async {
     try {
-      final token = await _storage.read(key: 'auth_token');
-      if (token == null) throw Exception('Not authenticated');
+      final token = await getToken();
+      if (token == null) throw Exception('Not authenticated — please log in again');
+
+      final body = <String, dynamic>{'relatives': relatives};
+      if (verifyPhone != null && verifyPhone.isNotEmpty) {
+        body['verifyPhone'] = verifyPhone;
+      }
 
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/patient/update-relatives'),
@@ -180,9 +188,7 @@ class AuthService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          'relatives': relatives,
-        }),
+        body: jsonEncode(body),
       );
 
       final data = jsonDecode(response.body);

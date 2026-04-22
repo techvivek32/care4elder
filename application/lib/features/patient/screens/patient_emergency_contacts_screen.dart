@@ -312,7 +312,7 @@ class _PatientEmergencyContactsScreenState
     });
 
     try {
-      List<Map<String, String>> contactsData = _contacts.map((c) {
+      final List<Map<String, String>> contactsData = _contacts.map((c) {
         String relation = c.selectedRelation ?? '';
         if (relation == 'Custom') {
           relation = c.customRelationController.text.trim();
@@ -324,35 +324,51 @@ class _PatientEmergencyContactsScreenState
         };
       }).toList();
 
-      // Initiate OTP for the contact that needs verification
-      // If there are new contacts, verify the last added one. 
-      // Otherwise, verify the first contact.
+      // Find the new contact that needs OTP verification.
+      // A contact is "new" if isNew == true (added this session).
+      // If all contacts are existing (editing only), fall back to first.
       final contactToVerify = _contacts.lastWhere(
         (c) => c.isNew,
         orElse: () => _contacts.first,
       );
       final phoneToVerify = contactToVerify.phoneController.text.trim();
 
-      // Ensure the intended contact receives the OTP: backend targets relatives[0]
-      final int verifyIndex = _contacts.indexOf(contactToVerify);
-      if (verifyIndex > 0) {
-        final selectedMap = contactsData[verifyIndex];
-        contactsData.removeAt(verifyIndex);
-        contactsData = [selectedMap, ...contactsData];
-      }
+      // Pass verifyPhone explicitly — backend will only send OTP to this
+      // new number and will NOT re-send to already-verified contacts.
+      final result = await AuthService().updateRelatives(
+        contactsData,
+        verifyPhone: phoneToVerify,
+      );
 
-      // Save relatives and trigger server-side OTP to the selected phone
-      await AuthService().updateRelatives(contactsData);
+      // If backend says no new contact to verify (all already existed),
+      // skip OTP screen and just go back.
+      final otpSentTo = result['otpSentTo'] as String?;
+      if (otpSentTo == null || otpSentTo.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Contacts saved successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          final from = GoRouterState.of(context).uri.queryParameters['from'];
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(from?.isNotEmpty == true ? from! : '/patient/dashboard');
+          }
+        }
+        return;
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('OTP sent to selected relative'),
+            content: Text('OTP sent to new relative'),
             backgroundColor: AppColors.primaryBlue,
           ),
         );
 
-        // Navigate to OTP verification and pass contactsData for local persistence after success
         final from = GoRouterState.of(context).uri.queryParameters['from'];
         final otpRoute = (from != null && from.isNotEmpty)
             ? '/patient/contacts/otp?from=${Uri.encodeComponent(from)}'
@@ -361,7 +377,7 @@ class _PatientEmergencyContactsScreenState
         context.push(
           otpRoute,
           extra: {
-            'phone': phoneToVerify,
+            'phone': otpSentTo,
             'contactsData': contactsData,
           },
         );

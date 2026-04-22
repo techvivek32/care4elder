@@ -120,7 +120,8 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
           jsonEncode(widget.contactsToSave),
         );
 
-        // Save to Backend
+        // Save to Backend — no verifyPhone here since verification is already done,
+        // so backend will just save contacts without sending any OTP.
         await AuthService().updateRelatives(widget.contactsToSave!);
         
         // Refresh local profile
@@ -158,9 +159,13 @@ class _PatientRelativeOtpScreenState extends State<PatientRelativeOtpScreen> {
     });
 
     try {
-      // Re-trigger server-side OTP by re-submitting the same contacts
+      // Re-trigger server-side OTP by re-submitting the same contacts,
+      // explicitly targeting only this phone number.
       if (widget.contactsToSave != null && widget.contactsToSave!.isNotEmpty) {
-        await AuthService().updateRelatives(widget.contactsToSave!);
+        await AuthService().updateRelatives(
+          widget.contactsToSave!,
+          verifyPhone: widget.phoneNumber,
+        );
       } else {
         throw Exception('Contacts data missing for resend');
       }
